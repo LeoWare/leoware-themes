@@ -1,0 +1,8 @@
+DestroyModuleConfig FvwmIconBox: Resolution
+
+DestroyFunc FuncFvwmStartNormalIcons
+AddToFunc   FuncFvwmStartNormalIcons
++ I Style * !Icon
+
+AddToFunc   FuncFvwmStartThemeModules
++ I Module FvwmIconBox

@@ -1,0 +1,100 @@
+This is a release of fvwm-themes based on the stable fvwm 2.4.8 version.
+
+FVWM Themes is an attempt to create easy, configurable and modular framework
+for the FVWM configuration. You can visit the project's home page at:
+
+	http://fvwm-themes.sourceforge.net/
+
+or project's development page (where you may download the package):
+
+	http://sourceforge.net/projects/fvwm-themes/
+
+This release should work out of the box and is stable enough.
+The development continues.
+
+How To Install (CVS)
+--------------------
+
+To use the CVS version of fvwm-themes, you will need autotools installed, as
+well as X11 header files.  The script:
+
+contrib/configure_dev.sh
+
+in the CVS sources will run the autotool commands to generate the necessary
+configure script.  See the section on "How to Install" in this document on
+how to install fvwm-themes in the usual way.
+
+How To Install
+--------------
+
+Note, starting from 0.6.2, fvwm-themes is divided to 2 packages,
+fvwm-themes and fvwm-themes-extra. In the past (0.5.0 - 0.6.1)
+the package names were fvwm-themes-base and fvwm-themes-extra.
+
+Please read INSTALL file for installation instructions.
+In short, after untarring fvwm-themes package you should execute:
+
+	./configure
+	make install
+
+You must not untar fvwm-themes-extra pack. To install it, execute:
+
+	fvwm-themes-config --site --install fvwm-themes-extra.tar.bz2
+
+How to Start
+------------
+
+Make sure you use one of the latest versions of fvwm >= 2.4.8.
+Replace the last line of your ~/.Xclients (or ~/.xinitrc or ~/.xsession):
+	fvwm  (or fvwm2)
+with:
+	fvwm-themes-start
+and rerun X. See the fvwm-themes-start manual page for more details.
+You should get the default theme, which you can change using the root menu.
+
+How to use
+----------
+
+Once you start fvwm with the themes configuration, you get a very modular
+fvwm setup, including menus, bindings, colors, background, modules and more.
+
+There is a "Theme Management" menu. To change theme components, choose
+a theme and click on "[ all ]" to load all components in the chosen theme
+or on a specific component to load only it. Different components may have
+different options, they can be changed in the "current" theme submenu.
+For example, there are 42 color schemes in the cde theme, and 32 in the
+luthien theme. You first choose cde->colors, then current->colors->scheme.
+You can also fully manipulate theme components using the Themes Center GUI.
+
+Some themes may be more attractive to you, some less. At any time you may
+reset all loaded theme components by choosing "Reset all to default".
+Once you find the component combination you like, it is automatically
+becomes permanent, the next time you start fvwm-themes, it will be loaded.
+
+You will find more interesting things (about a possibility to ask a window
+button itself what it does, about changing icon sets, or redefining bound
+applications, or defining sessions and more) while exploring fvwm-themes.
+Don't expect to learn fvwm-themes in one day. Just trying all possible
+combinations of different theme components and their options may take years.
+There are more explanations in the FAQ.
+
+Documentation
+-------------
+
+There is plenty of documentation in the doc/ directory.
+Please read it before asking your questions. Thank you.
+
+Notes
+-----
+
+* For sound effects to work you need one of the sounds player listed under
+  Theme Management->current->settings->Sound Player to be installed (but
+  having one which can play .wav sound is a good idea). You can use esdplay
+  with esd running or not. rplayd must be run for rplay. You should update
+  your rplay.conf file with the sounds in sounds/ and themes/awol/sounds
+  for rplayD.
+* fvwm-themes is wm-icons compatible. If you want to use more icon sets
+  than included 16x16-kde and 48x48-infox, you should install wm-icons
+  package and choose "External wm-icons" in current/settings/Icon Styles.
+
+Success to you and enjoy!

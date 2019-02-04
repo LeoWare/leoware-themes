@@ -1,0 +1,26 @@
+AddToMenu MenuFvwmWindowMove "" Nop
++ "Desk 	Desk%menu/window-move.xpm%"	MoveToDesk 0 0
++ "Web/Mail	Desk%menu/window-move.xpm%"	MoveToDesk 0 1
++ "Devel	Desk%menu/window-move.xpm%"	MoveToDesk 0 2
++ "Games	Desk%menu/window-move.xpm%"	MoveToDesk 0 3
+
+AddToMenu MenuFvwmWindowGroupQuickMove "" Nop
++ "Desk		Desk%menu/window-move.xpm%"	Pick All ($r) MoveToDesk 0 0
++ "Web/Mail	Desk%menu/window-move.xpm%"	Pick All ($r) MoveToDesk 0 1
++ "Devel	Desk%menu/window-move.xpm%"	Pick All ($r) MoveToDesk 0 2
++ "Games	Desk%menu/window-move.xpm%"	Pick All ($r) MoveToDesk 0 3
+
+DestroyModuleConfig FvwmPager-Desker: *
+*FvwmPager-Desker: Geometry 255x55+5000+5000
+*FvwmPager-Desker: Rows 1
+
+*FvwmPager-Desker: Colorset * 14
+*FvwmPager-Desker: HilightColorset * 15
+*FvwmPager-Desker: BalloonColorset * 16
+*FvwmPager-Desker: WindowColorsets 1 2
+
+*FvwmPager-Desker: LabelsBelow
+*FvwmPager-Desker: SolidSeparator
+*FvwmPager-Desker: Balloons            All
+*FvwmPager-Desker: BalloonYOffset      +2
+*FvwmPager-Desker: BalloonBorderWidth  1

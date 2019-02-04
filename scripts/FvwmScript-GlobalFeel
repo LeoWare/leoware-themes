@@ -1,0 +1,3888 @@
+# This script is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+#-----------------------------------------------------------------------------
+# Copyright 2000, Olivier Chapuis
+#-----------------------------------------------------------------------------
+
+
+WindowTitle {FVWM Themes Global Feel}
+WindowSize 610 480
+Font	-adobe-helvetica-bold-r-*-*-12-*
+
+Init
+Begin
+    #Do {Echo CC started}
+    Do {FvwmScript FvwmScript-NoteMessage "Loading Configuration"}
+
+    Set $Lang = {}
+    Set $ViewerColorset = 33
+    Set $TextColorset = 36
+    Set $IconColorset = 5
+    # Arguments
+    Set $i = 1
+    Set $arg = (GetScriptArgument $i)
+    While $arg <> {} Do
+    Begin
+	Set $j = (Add $i 1)
+	If $arg == {--viewer-colorset} Then
+	    Set $ViewerColorset = (GetScriptArgument $j)
+	If $arg == {--text-colorset} Then
+	    Set $TextColorset = (GetScriptArgument $j)
+	If $arg == {--icon-colorset} Then
+	    Set $IconColorset = (GetScriptArgument $j)
+	If $arg == {--lang} Then
+	    Set $Lang = (GetScriptArgument $j)	
+	Set $i = (Add $i 2)
+	Set $arg = (GetScriptArgument $i)
+    End
+
+    If $TextColorset <> {} Then
+    Begin
+	ChangeColorset 35 $TextColorset
+	ChangeColorset 46 $TextColorset
+	ChangeColorset 51 $TextColorset
+	ChangeColorset 53 $TextColorset
+	ChangeColorset 58 $TextColorset
+	ChangeColorset 68 $TextColorset
+	ChangeColorset 71 $TextColorset
+	ChangeColorset 78 $TextColorset
+	ChangeColorset 81 $TextColorset
+	ChangeColorset 98 $TextColorset
+	ChangeColorset 102 $TextColorset
+	ChangeColorset 104 $TextColorset
+    End
+
+    If $ViewerColorset <> {} Then
+    Begin
+	ChangeColorset 990 $ViewerColorset
+    End
+
+# -----------------------------------------------------------------------------
+# Initialization of the com loop and first query
+
+    # found the FvwmScript pid
+    Set $cmd = {exec perl -e 'print getppid . "\n"'}
+    Set $pid = (GetOutput $cmd 1 -1)
+
+    # Run fvwm-themes-script until the end of the script
+    Do {Exec fvwm-themes-script --globalfeel --com-name=script-}$pid{ &}
+
+    # to send fvwm-themes-com command
+    Set $SendMsgAndGet = {fvwm-themes-com --name script-}$pid{ --lock-and-get --message=}
+    Set $SendMsg = {fvwm-themes-com --name script-}$pid{ --message=}
+    Set $GetLine = {fvwm-themes-com --name script-}$pid{ --get-buffer --line=}
+
+
+    Set $GF_FileName = {globalfeel}
+
+    # component at start
+    Set $Component = $GF_FileName
+
+    ### personal themes; widget 1 signal 1
+    Set $PersonalThemes = {}
+
+    ### ------------------- Loading GF config
+    # GF save, current and themes
+    # the next two: widget 1 signal 2 
+    Set $GF_CurrentTheme = {}
+    Set $GF_ThemesWith = {}
+    # Loading GF configuration:
+    #Do {Echo CC: going to load GF config}
+    Set $cmd = $SendMsgAndGet{"get-config current globalfeel All" --line=1}
+    Set $GF_error = (GetOutput $cmd 1 -1)
+    Set $cmd = $GetLine{2 --clear-buffer}
+    Set $GF_Config = (GetOutput $cmd 1 -1)
+    #Do {Echo CC: GF config loaded}
+
+    ###
+    Set $cmd = $SendMsgAndGet{"get-preferences"}
+    Set $tmp = (GetOutput $cmd 1 -1)
+    Set $GF_TryIsGlobal = (StrCopy $tmp 1 1)
+    Set $GF_DefaultIsGlobal = (StrCopy $tmp 2 2)
+    Set $GF_SaveIsGlobal = (StrCopy $tmp 3 3)
+    ChangeValue 962 $GF_TryIsGlobal
+    ChangeValue 963 $GF_DefaultIsGlobal
+    ChangeValue 964 $GF_SaveIsGlobal
+
+# ----------------------------------------------------------------------------
+# Internationalization.
+
+    Set $SelFont = {-adobe-helvetica-bold-r-*-*-12-*}
+    Set $ShadeFont = {-adobe-helvetica-medium-r-*-*-12-*}
+    Set $nonDefaultFont = 0
+
+    #Set $Lang = {en}
+    #Set $Lang = {ru}
+    If $Lang == {} Then
+    Begin
+	Set $cmd = {echo "$LANG" | cut -c1-2}
+	Set $Lang = (GetOutput $cmd 1 -1)
+    End
+    If $Lang == {} Then
+	Set $Lang = {C}
+
+    Set $msg = {}
+    Set $id = {}
+    Set $cmd = {fvwm-themes-script --get-msg }FvwmScript-GlobalFeel{ --lang }$Lang
+    Set $MSG = (GetOutput $cmd 1 -1)
+    Set $index = 0
+    Set $notdone = 1
+    While $notdone == 1 Do
+    Begin
+	Set $index = (Add $index 1)
+	Set $id = (StrCopy $MSG $index (Add $index 11))
+	Set $index = (Add $index 12)
+	Set $tmp = (StrCopy $MSG $index (Add $index 3))
+	Set $index = (Add $index 4)
+	Set $pos = (Add $index $tmp)
+	Set $msg = (StrCopy $MSG $index $pos)
+	Set $index = (Add $index $tmp)
+
+	If $index > 9999 Then
+	    Set $notdone = 0
+	If $id == {END         } Then
+	    Set $notdone = 0
+	If $id == {} Then
+	    Set $notdone = 0
+
+	### Menus
+	If $id == {Menu1       } Then
+	    ChangeTitle 1 $msg
+	If $id == {Menu2       } Then
+	    ChangeTitle 2 $msg
+
+	### Focus
+	If $id == {FocusPolicy } Then
+	    ChangeTitle 10 $msg
+	If $id == {ClickToFocus} Then
+	    ChangeTitle 11 $msg
+	If $id == {MouseFocus  } Then
+	    ChangeTitle 12 $msg
+	If $id == {SloppyFocus } Then
+	    ChangeTitle 13 $msg
+	If $id == {FocusOptions} Then
+	    ChangeTitle 14 $msg
+	If $id == {PassClick   } Then
+	    ChangeTitle 15 $msg
+	If $id == {ClickRaise  } Then
+	    ChangeTitle 16 $msg
+	If $id == {ColorMap    } Then
+	    ChangeTitle 17 $msg
+
+	### Placement
+	If $id == {WinPlacement} Then
+	    ChangeTitle 18 $msg
+	If $id == {SmartRandom } Then
+	    ChangeTitle 19 $msg
+	If $id == {SmartActive } Then
+	    ChangeTitle 20 $msg
+	If $id == {CleverPlace } Then
+	    ChangeTitle 21 $msg
+	If $id == {CleverPlaceP} Then
+	    ChangeTitle 22 $msg
+	If $id == {DumbActive  } Then
+	    ChangeTitle 23 $msg
+	If $id == {DumbRandom  } Then
+	    ChangeTitle 24 $msg
+	If $id == {PlacementOpt} Then
+	    ChangeTitle 25 $msg
+	If $id == {GrabFocus   } Then
+	    ChangeTitle 26 $msg
+	If $id == {PPosition   } Then
+	    ChangeTitle 27 $msg
+
+	### Move & Resize
+	If $id == {MoveResize  } Then
+	    ChangeTitle 30 $msg
+	If $id == {OpaqueResize} Then
+	    ChangeTitle 32 $msg
+	If $id == {OutLineRes  } Then
+	    ChangeTitle 33 $msg
+	If $id == {Resizing    } Then
+	    ChangeTitle 31 $msg
+	If $id == {OpaqueMove  } Then
+	    ChangeTitle 34 $msg
+	If $id == {ScreenPer   } Then
+	    ChangeTitle 36 $msg
+	If $id == {GeoPosition } Then
+	    ChangeTitle 37 $msg
+	If $id == {GeoCenter   } Then
+	    ChangeTitle 38 $msg
+	If $id == {GeoTopLeft  } Then
+	    ChangeTitle 39 $msg
+	If $id == {HideGeoWin  } Then
+	    ChangeTitle 40 $msg
+	If $id == {HideResize  } Then
+	    ChangeTitle 41 $msg
+	If $id == {HideMove    } Then
+	    ChangeTitle 42 $msg
+	If $id == {BuggyMove   } Then
+	    ChangeTitle 43 $msg
+
+	### Snap attraction
+	If $id == {SnapAttract } Then
+	    ChangeTitle 44 $msg
+	If $id == {SnapDist    } Then
+	    ChangeTitle 45 $msg
+	If $id == {SnapContext } Then
+	    ChangeTitle 47 $msg
+	If $id == {SnapPopup   } Then
+	    ChangeTitle 48 $msg
+	If $id == {SnapGrid    } Then
+	    ChangeTitle 49 $msg
+	If $id == {ColorOrPix  } Then
+	    ChangeTitle 54 $msg
+	If $id == {UseAColor   } Then
+	    ChangeTitle 55 $msg
+	If $id == {UseAPixmap  } Then
+	    ChangeTitle 56 $msg
+	# line colors
+	If $id == {OneColor    } Then
+	    Set $l_OneColor = $msg
+	If $id == {OnePixmap   } Then
+	    Set $l_OnePixmap = $msg
+	If $id == {SColorSel   } Then
+	    Set $l_StartColorSel = $msg
+	If $id == {StartImages } Then
+	    Set $l_StartImages = $msg
+
+	### Pagination
+	If $id == {Paging      } Then
+	    ChangeTitle 60 $msg
+	If $id == {HPaging     } Then
+	    ChangeTitle 61 $msg
+	If $id == {CirPaging   } Then
+	Begin
+	    ChangeTitle 63 $msg
+	    ChangeTitle 66 $msg
+	End
+	If $id == {VPaging     } Then
+	    ChangeTitle 64 $msg
+	If $id == {PagingList  } Then
+	Begin
+	    ChangeTitle 62 $msg
+	    ChangeTitle 65 $msg
+	End
+	If $id == {PagingDelay } Then
+	    ChangeTitle 67 $msg
+	If $id == {EdgeResist  } Then
+	    ChangeTitle 70 $msg
+	If $id == {PanFrame    } Then
+	    ChangeTitle 73 $msg
+	If $id == {Msec        } Then
+	Begin
+	    ChangeTitle 69 $msg
+	    ChangeTitle 79 $msg
+	End
+	If $id == {Pixels      } Then
+	Begin
+	    ChangeTitle 72 $msg
+	    ChangeTitle 75 $msg
+	    ChangeTitle 82 $msg
+	End
+
+	### Mouse Parameters
+	If $id == {MousePara   } Then
+	    ChangeTitle 76 $msg
+	If $id == {DoubleClick } Then
+	    ChangeTitle 77 $msg
+	If $id == {MouseDrag   } Then
+	    ChangeTitle 80 $msg
+
+	### Transient
+	If $id == {TransientWin} Then
+	    ChangeTitle 90 $msg
+	If $id == {TransNDecor } Then
+	    ChangeTitle 91 $msg
+	If $id == {TransRaise  } Then
+	    ChangeTitle 92 $msg
+	If $id == {TransLower  } Then
+	    ChangeTitle 93 $msg
+	If $id == {TransMore   } Then
+	    ChangeTitle 94 $msg
+	If $id == {TransGrab   } Then
+	    ChangeTitle 95 $msg
+
+	### Animation speed
+	If $id == {AnimTitle   } Then
+	    ChangeTitle 96 $msg
+	If $id == {ShadeStep   } Then
+	    ChangeTitle 97 $msg
+	If $id == {ShadeScroll } Then
+	    ChangeTitle 99 $msg
+	If $id == {AnimMenu    } Then
+	    ChangeTitle 100 $msg
+	If $id == {AnimSpeed   } Then
+	    ChangeTitle 101 $msg
+	If $id == {AnimSeq     } Then
+	    ChangeTitle 103 $msg
+	If $id == {AnimEx      } Then
+	    ChangeTitle 105 $msg
+	If $id == {AnimList    } Then
+	    ChangeTitle 106 $msg
+
+	### Hints
+	If $id == {HintsTitle  } Then
+	    ChangeTitle 110 $msg
+	If $id == {MWMDecor    } Then
+	    ChangeTitle 111 $msg
+	If $id == {OLDHints    } Then
+	    ChangeTitle 112 $msg
+	If $id == {ButShade    } Then
+	    ChangeTitle 113 $msg
+	If $id == {MWMFunctions} Then
+	    ChangeTitle 114 $msg
+	If $id == {GNOMEHints  } Then
+	    ChangeTitle 115 $msg
+	If $id == {ButModal    } Then
+	    ChangeTitle 116 $msg
+
+	### Busy cursor
+	If $id == {BusyTitle   } Then
+	    ChangeTitle 117 $msg
+
+	### Advenced
+	If $id == {AdvTitle    } Then
+	    ChangeTitle 122 $msg
+	If $id == {ColorLimit  } Then
+	    ChangeTitle 123 $msg
+	If $id == {ModTimeOut  } Then
+	    ChangeTitle 127 $msg
+
+	### GF Preference
+	If $id == {PrefFile    } Then
+	    ChangeTitle 950 $msg
+	If $id == {BPrefLoaded } Then
+	    Set $l_BPrefLoaded = $msg
+	If $id == {MPrefLoaded } Then
+	    Set $l_MPrefLoaded = $msg
+	If $id == {APrefLoaded } Then
+	    Set $l_APrefLoaded = $msg	    
+	If $id == {PrefLoad    } Then
+	    ChangeTitle 952 $msg    
+	If $id == {PrefSave    } Then
+	    ChangeTitle 956 $msg
+	If $id == {PrefAnother } Then
+	    ChangeTitle 958 $msg
+	If $id == {Load        } Then
+	    ChangeTitle 955 $msg
+	If $id == {Ok          } Then
+	    ChangeTitle 960 $msg    
+	If $id == {Preference  } Then
+	    ChangeTitle 961 $msg
+	If $id == {TryIsGlobal } Then
+	    ChangeTitle 962 $msg
+	If $id == {DefIsGlobal } Then
+	    ChangeTitle 963 $msg
+	If $id == {SaveIsGlobal} Then
+	    ChangeTitle 964 $msg
+
+	### End
+	If $id == {ConfigLoaded} Then
+	    Set $l_ConfigLoaded = $msg
+	If $id == {Save        } Then
+	    ChangeTitle 991 $msg
+	If $id == {SavedInter  } Then
+	    Set $l_SavedInternally = $msg
+	If $id == {SavedExter  } Then
+	    Set $l_SavedExternally = $msg
+	If $id == {Try         } Then
+	    ChangeTitle 992 $msg
+	If $id == {AppliedInter} Then
+	    Set $l_AppliedInternally = $msg
+	If $id == {AppliedExter} Then    
+	    Set $l_AppliedExternally = $msg
+	If $id == {NoEffectHere} Then
+	    Set $l_NoEffectHere = $msg
+	If $id == {Error       } Then
+	    Set $l_Error = $msg
+	If $id == {Default     } Then
+	    ChangeTitle 993 $msg
+	If $id == {Help        } Then
+	    ChangeTitle 994 $msg
+	If $id == {Quit        } Then
+	    ChangeTitle 995 $msg
+
+	### Fonts
+	If $id == {ChangeFont  } Then
+	    Set $nonDefaultFont = $msg
+	If $id == {SelFont     } Then
+	    Set $SelFont = $msg
+	If $id == {ShadeFont   } Then
+	    Set $ShadeFont = $msg
+	If $id == {FixedFont   } Then
+	    Set $FixedFont = $msg    
+    End
+
+    ChangeTitle 59 $l_StartColorSel
+    If $nonDefaultFont == 1 Then
+    Begin
+	ChangeFont 2 $SelFont
+	ChangeFont 10 $SelFont
+	ChangeFont 11 $FixedFont
+	ChangeFont 12 $FixedFont
+	ChangeFont 13 $FixedFont
+	ChangeFont 14 $SelFont
+	ChangeFont 15 $FixedFont
+	ChangeFont 16 $FixedFont
+	ChangeFont 17 $FixedFont
+	ChangeFont 18 $SelFont
+	ChangeFont 19 $FixedFont
+	ChangeFont 20 $FixedFont
+	ChangeFont 21 $FixedFont
+	ChangeFont 22 $FixedFont
+	ChangeFont 23 $FixedFont
+	ChangeFont 24 $FixedFont
+	ChangeFont 25 $SelFont
+	ChangeFont 26 $FixedFont
+	ChangeFont 27 $FixedFont
+	ChangeFont 30 $SelFont
+	ChangeFont 31 $FixedFont
+	ChangeFont 32 $FixedFont
+	ChangeFont 33 $FixedFont
+	ChangeFont 34 $FixedFont
+	ChangeFont 35 $FixedFont
+	ChangeFont 36 $FixedFont
+	ChangeFont 37 $FixedFont
+	ChangeFont 38 $FixedFont
+	ChangeFont 39 $FixedFont
+	ChangeFont 40 $FixedFont
+	ChangeFont 41 $FixedFont
+	ChangeFont 42 $FixedFont
+	ChangeFont 43 $FixedFont
+	ChangeFont 44 $SelFont
+	ChangeFont 45 $FixedFont
+	ChangeFont 46 $FixedFont
+	ChangeFont 47 $FixedFont
+	ChangeFont 48 $FixedFont
+	ChangeFont 49 $FixedFont
+	ChangeFont 50 $FixedFont
+	ChangeFont 51 $FixedFont
+	ChangeFont 52 $FixedFont
+	ChangeFont 53 $FixedFont
+	ChangeFont 54 $SelFont
+	ChangeFont 55 $FixedFont
+	ChangeFont 56 $FixedFont
+	ChangeFont 57 $FixedFont
+	ChangeFont 58 $FixedFont
+	ChangeFont 59 $FixedFont
+	ChangeFont 60 $SelFont
+	ChangeFont 61 $FixedFont
+	ChangeFont 62 $FixedFont
+	ChangeFont 63 $FixedFont
+	ChangeFont 64 $FixedFont
+	ChangeFont 65 $FixedFont
+	ChangeFont 66 $FixedFont
+	ChangeFont 67 $FixedFont
+	ChangeFont 68 $FixedFont
+	ChangeFont 69 $FixedFont
+	ChangeFont 70 $FixedFont
+	ChangeFont 71 $FixedFont
+	ChangeFont 72 $FixedFont
+	ChangeFont 73 $FixedFont
+	ChangeFont 74 $FixedFont
+	ChangeFont 75 $FixedFont
+	ChangeFont 76 $SelFont
+	ChangeFont 77 $FixedFont
+	ChangeFont 78 $FixedFont
+	ChangeFont 79 $FixedFont
+	ChangeFont 80 $FixedFont
+	ChangeFont 81 $FixedFont
+	ChangeFont 82 $FixedFont
+	ChangeFont 90 $SelFont
+	ChangeFont 91 $FixedFont
+	ChangeFont 92 $FixedFont
+	ChangeFont 93 $FixedFont
+	ChangeFont 94 $FixedFont
+	ChangeFont 95 $FixedFont
+	ChangeFont 96 $SelFont
+	ChangeFont 97 $FixedFont
+	ChangeFont 98 $FixedFont
+	ChangeFont 99 $FixedFont
+	ChangeFont 100 $FixedFont
+	ChangeFont 101 $FixedFont
+	ChangeFont 102 $FixedFont
+	ChangeFont 103 $FixedFont
+	ChangeFont 104 $FixedFont
+	ChangeFont 105 $FixedFont
+	ChangeFont 106 $FixedFont
+	ChangeFont 110 $SelFont
+	ChangeFont 111 $FixedFont
+	ChangeFont 112 $FixedFont
+	ChangeFont 113 $FixedFont
+	ChangeFont 114 $FixedFont
+	ChangeFont 115 $FixedFont
+	ChangeFont 116 $FixedFont
+	ChangeFont 117 $SelFont
+	ChangeFont 118 $FixedFont
+	ChangeFont 119 $FixedFont
+	ChangeFont 120 $FixedFont
+	ChangeFont 121 $FixedFont
+	ChangeFont 122 $SelFont
+	ChangeFont 123 $FixedFont
+	ChangeFont 124 $FixedFont
+	ChangeFont 125 $FixedFont
+	ChangeFont 126 $FixedFont
+	ChangeFont 127 $FixedFont
+	ChangeFont 128 $FixedFont
+	ChangeFont 129 $FixedFont
+	ChangeFont 130 $FixedFont
+
+	ChangeFont 950 $SelFont
+	ChangeFont 951 $FixedFont
+	ChangeFont 952 $FixedFont
+	ChangeFont 953 $SelFont
+	ChangeFont 954 $SelFont
+	ChangeFont 955 $SelFont
+	ChangeFont 956 $FixedFont
+	ChangeFont 957 $FixedFont
+	ChangeFont 958 $FixedFont
+	ChangeFont 959 $SelFont
+	ChangeFont 960 $SelFont
+	ChangeFont 961 $SelFont
+	ChangeFont 956 $FixedFont
+	ChangeFont 957 $FixedFont
+	ChangeFont 958 $FixedFont
+	
+	ChangeFont 990 $SelFont
+	ChangeFont 991 $SelFont
+	ChangeFont 992 $SelFont
+	ChangeFont 993 $SelFont
+	ChangeFont 994 $SelFont
+	ChangeFont 995 $SelFont
+    End
+
+    ChangeFont 991 $ShadeFont
+    Set $SaveFont = {Sel}
+    ChangeFont 992 $ShadeFont
+    Set $TryFont = {Shade}
+
+    # not yet implemented
+    ChangeFont 1 $ShadeFont
+
+    #Do {Echo ConfigCenter: GF inter loaded}
+#------------------------------------------------------------------------------
+# Main variables, i.e. "Global one" (see also the com loop init !)
+
+    ### Perodic Task Test:
+    Set $GF_UpdateConfig = 1
+    Set $GF_BuildConfig = 1
+    Set $GF_BuildAllConfig = 1
+    # Others:
+    # $GF_UpdateButtonFont
+    # Is the color sel is up for XorValue ? (GF)
+    Set $GF_XorBrowser = {}
+
+    ### CommonFeel specific (initialized during $GF_BuilConfig = 1)
+    # $GF_Focus, $GF_Placement, $GF_ResizeOutLine,  $GF_Emulate, 
+    # $GF_HideGeoSize, $HideGeoMove, $GF_Xor, $GF_XorPixmap, $GF_XorValue,
+    # GF Hide/Show{Focus,Move,Paging,Transient,Hints}
+
+    Set $ThemeToLoad = {current}
+    Set $InStart = 1
+
+    Set $ConfigTool = {Focus}
+    
+    # type of command for Apply and save
+    Set $CmdType = {}
+
+    Do {All (FvwmScript-NoteMessage) Delete}
+End
+
+# ---------------------------------------------------------------------------
+#
+# Periodic Task
+#
+# ---------------------------------------------------------------------------
+
+PeriodicTasks
+Begin
+
+#----------------------------------------------------------------------------
+# Build (Update) the config
+
+    If $GF_UpdateConfig == 1 Then
+    Begin
+	Set $GF_UpdateConfig = 0
+	Set $GF_BuildConfig = 1
+	If $InStart == 1 Then
+	Begin
+	    Set $LoadFocus = 1
+	    Set $LoadMove = 1
+	    Set $LoadPaging = 1
+	    Set $LoadTransient = 1
+	    Set $LoadHints = 1
+	    Set $GF_BuildAllConfig = 1
+	End
+	Else
+	Begin
+	    Set $test = 1
+	    Set $tmp = 1
+	    If $LoadFromPreference == 1 Then
+		Set $test = 0
+	    Set $LoadFromPreference = 0
+	    If $GF_DefaultIsGlobal == 1 Then
+		Set $tmp = 0
+	    Set $test = (Mult $test $tmp)
+	    If $test == 0 Then
+	    Begin
+		Set $LoadFocus = 1
+		Set $LoadMove = 1
+		Set $LoadPaging = 1
+		Set $LoadTransient = 1
+		Set $LoadHints = 1
+		Set $ct = {All}
+		Set $GF_BuildAllConfig = 1
+	    End
+	    Else
+	    Begin
+		Set $GF_BuildConfig = 1
+		Set $LoadFocus = 0
+		Set $LoadMove = 0
+		Set $LoadPaging = 0
+		Set $LoadTransient = 0
+		Set $LoadHints = 0
+		Set $ct = $ConfigTool
+		If $ct == {Focus} Then
+		   Set $LoadFocus = 1
+ 		If $ct == {Move} Then
+		   Set $LoadMove = 1
+  		If $ct == {Paging} Then
+		   Set $LoadPaging = 1
+   		If $ct == {Transient} Then
+		   Set $LoadTransient = 1
+  		If $ct == {Hints} Then
+		   Set $LoadHints = 1
+	    End
+	    Set $cmd = $SendMsgAndGet{"get-config }$ThemeToLoad{ }$GF_FileName{ }$ct{" --line=1}
+	    Set $GF_error = (GetOutput $cmd 1 -1)
+	    Set $cmd = $GetLine{2 --clear-buffer}
+	    Set $GF_Config = (GetOutput $cmd 1 -1)
+	End
+
+	If $GF_error <> {0} Then
+	Begin
+	    Set $LoadFocus = 0
+	    Set $LoadMove = 0
+	    Set $LoadPaging = 0
+	    Set $LoadTransient = 0
+	    Set $LoadHints = 0
+	    Set $msg = $GF_error{ (when loading }$ThemeToLoad{)}
+	End
+	Else
+	    Set $msg = $l_ConfigLoaded
+
+	Set $index = 0
+	### Focus
+	If $LoadFocus == 1 Then
+	Begin
+	    Set $index = (Add $index 1)
+	    Set $tmp = 11
+	    While $tmp <> 24 Do
+	    Begin
+		ChangeValue $tmp 0
+		Set $tmp = (Add $tmp 1)
+	    End
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $GF_Focus = (Add 10 $tmp)
+	    ChangeValue $GF_Focus 1
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 15 $tmp
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 16 $tmp
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 17 $tmp
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $GF_Placement = (Add 18 $tmp)
+	    ChangeValue $GF_Placement 1
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 26 $tmp
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 27 $tmp
+	End
+	### Move
+	If $LoadMove == 1 Then
+	Begin
+	    # Opaque/OutLine
+	    ChangeValue 32 0
+	    ChangeValue 33 0
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $GF_ResizeOutLine = (Add 32 $tmp)
+	    ChangeValue $GF_ResizeOutLine 1
+	    # ResizeOpaque
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 35 $value
+	    # Emulate
+	    ChangeValue 38 0
+	    ChangeValue 39 0
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $GF_Emulate = (Add 38 $tmp)
+	    ChangeValue $GF_Emulate 1
+	    # Hide Geo
+	    Set $index = (Add $index 1)
+	    Set $GF_HideGeoSize = (StrCopy $GF_Config $index $index)
+	    ChangeValue 41 $GF_HideGeoSize
+	    Set $index = (Add $index 1)
+	    Set $GF_HideGeoMove = (StrCopy $GF_Config $index $index)
+	    ChangeValue 42 $GF_HideGeoMove
+	    # FlickeringMoveWorkaround
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 43 $tmp
+	    # Snap distance
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 46 $value
+	    # Snap behavior
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 48 $tmp
+	    # Snap Grid X
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 51 $value
+	    # Snap Grid Y
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 53 $value
+	    # XOR
+	    ChangeValue 55 0
+	    ChangeValue 56 0
+	    Set $index = (Add $index 1)
+	    Set $GF_Xor = (StrCopy $GF_Config $index $index)
+	    Set $tmp = (Add $GF_Xor 55)
+	    ChangeValue $tmp 1
+	    # XorValue
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}	
+	    End
+	    Set $GF_XorValue = $value
+	    # XorPixmap
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    Set $GF_XorPixmap = $value
+	    If $GF_Xor == 0 Then
+	    Begin
+		ChangeTitle 58 $GF_XorValue
+		ChangeTitle 57 $l_OneColor
+		ChangeTitle 59 $l_StartColorSel
+	    End
+	    Else
+	    Begin
+		ChangeTitle 58 $GF_XorPixmap
+		ChangeTitle 57 $l_OnePixmap
+		ChangeTitle 59 $l_StartImages
+	    End
+	End
+	### Paging
+	If $LoadPaging == 1 Then
+	Begin
+	    # Horizontal:
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $tmp = (Add 1 $tmp)
+	    ChangeValue 62 $tmp
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 63 $tmp
+	    # Vertical:
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $tmp = (Add 1 $tmp)
+	    ChangeValue 65 $tmp
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 66 $tmp
+	    # Resitance
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 68 $value
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 71 $value
+	    # thickness
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 74 $tmp
+	    # Click time
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 78 $value
+	    # MoveThreshold
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 81 $value
+	End
+	### Transient
+	If $LoadTransient == 1 Then
+	Begin
+	    # NakedTransient
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 91 $tmp
+	    # RaiseTransient
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 92 $tmp
+	    # LowerTransient
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 93 $tmp
+	    # StackTransientParent
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 94 $tmp
+	    # GrabFocusTransient
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 95 $tmp
+	    # WindowShadeSteps
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}		
+	    End
+	    ChangeTitle 98 $value
+	    # WindowShadeScrolls
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 99 $tmp
+	    # SetAnimation: speed 
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle  102 $value
+	    # SetAnimation: frac 
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    Set $value = {}
+	    While $tmp <> {!} Do
+	    Begin
+		Set $value = $value $tmp
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		If $index > 3200 Then
+		    Set $tmp = {!}
+	    End
+	    ChangeTitle 104 $value
+	End
+	### Hints
+	If $LoadHints == 1 Then
+	Begin
+	    Set $t = 111
+	    While $t <> 117 Do
+	    Begin
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		ChangeValue $t $tmp
+		Set $t = (Add $t 1)
+	    End
+	    # BusyCursor
+	    Set $t = 118
+	    While $t <> 122 Do
+	    Begin
+		Set $index = (Add $index 1)
+		Set $tmp = (StrCopy $GF_Config $index $index)
+		ChangeValue $t $tmp
+		Set $t = (Add $t 1) 
+	    End
+	    # color limit
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 124 $tmp
+	    # MixedVisualWorkaround
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 125 $tmp
+	    # RaiseOverNativeWindows
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 126 $tmp
+	    # SaveUnder
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 129 $tmp
+	    # BackingStore
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 130 $tmp
+	    # ModuleTimeOut
+	    Set $index = (Add $index 1)
+	    Set $tmp = (StrCopy $GF_Config $index $index)
+	    ChangeValue 128 $tmp
+	End
+
+	If $index > 3200 Then
+	Begin
+	    Do {Echo ConfigCenter: problems when loading globalfeel config!}
+	    Do {Echo ConfigCenter: can you send a bug report to:}
+	    Do {Echo ConfigCenter: <fvwm-themes-devel@lists.sourceforge.net>}
+	    SendSignal 995 1
+	End
+
+	If $InStart == 1 Then
+	Begin
+	    Set $GF_ShowFocus = 1
+	End
+	
+	ChangeTitle 990 $msg
+    End
+
+#----------------------------------------------------------------------------
+# config tool switching
+
+    If $GF_HideFocus == {1} Then
+    Begin
+	Set $GF_HideFocus = 0
+	Set $tmp = 10
+	While $tmp <> 28 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_HideMove == {1} Then
+    Begin
+	Set $GF_HideMove = 0
+	Set $tmp = 30
+	While $tmp <> 60 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_HidePaging == {1} Then
+    Begin
+	Set $GF_HidePaging = 0
+	Set $tmp = 60
+	While $tmp <> 83 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_HideTransient == {1} Then
+    Begin
+	Set $GF_HideTransient = 0
+	Set $tmp = 90
+	While $tmp <> 107 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_HideHints == {1} Then
+    Begin
+	Set $GF_HideHints = 0
+	Set $tmp = 110
+	While $tmp <> 131 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_HidePreference == {1} Then
+    Begin
+	Set $GF_HidePreference = 0
+	Set $tmp = 950
+	While $tmp <> 965 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_ShowFocus == {1} Then
+    Begin
+	Set $GF_ShowFocus = 0
+	Set $ConfigTool = {Focus}
+	Set $tmp = 10
+	While $tmp <> 28 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_ShowMove == {1} Then
+    Begin
+	Set $GF_ShowMove = 0
+	Set $ConfigTool = {Move}
+	Set $tmp = 30
+	While $tmp <> 60 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_ShowPaging == {1} Then
+    Begin
+	Set $GF_ShowPaging = 0
+	Set $ConfigTool = {Paging}
+	Set $tmp = 60
+	While $tmp <> 83 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_ShowTransient == {1} Then
+    Begin
+	Set $GF_ShowTransient = 0
+	Set $ConfigTool = {Transient}
+	Set $tmp = 90
+	While $tmp <> 107 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $GF_ShowHints == {1} Then
+    Begin
+	Set $GF_ShowHints = 0
+	Set $ConfigTool = {Hints}
+	Set $tmp = 110
+	While $tmp <> 131 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+    
+    If $GF_ShowPreference == {1} Then
+    Begin
+	Set $GF_ShowPreference = 0
+	Set $ConfigTool = {GF_Preference}
+	Set $tmp = 950
+	While $tmp <> 965 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+#----------------------------------------------------------------------------
+# Update "font" : first part
+
+    If (RemainderOfDiv (GetTime) 2)==0 Then
+    Begin
+        If $Component == {globalfeel} Then
+	Begin
+	    Set $GF_UpdateButtonFont = 1
+	    Set $GF_BuildConfig = 1
+	End
+    End
+	
+#----------------------------------------------------------------------------
+# Build config for fvwm-themes-script:
+
+    If $GF_BuildConfig == 1 Then
+    Begin
+	Set $GF_BuildConfig = 0
+
+	# Focus
+	Set $tmp = (Add $GF_Focus -10)
+	Set $t = (Add $GF_Placement -18)
+	Set $GF_LastConfigFocus = $tmp (GetValue 15) (GetValue 16) (GetValue 17) $t (GetValue 26) (GetValue 27)
+	# Move
+	Set $tmp = (Add $GF_ResizeOutLine  -32)
+	Set $t = (Add $GF_Emulate -38)
+	Set $GF_LastConfigMove = $tmp (GetTitle 35) {!} $t (GetValue 41) (GetValue 42) (GetValue 43) (GetTitle 46) {!} (GetValue 48) (GetTitle 51) {!} 
+	Set $GF_LastConfigMove = $GF_LastConfigMove (GetTitle 53) {!} $GF_Xor (GetTitle 58) {!}
+	# Paging
+	Set $tmp = (Add  (GetValue 62)  -1)
+	Set $t = (Add (GetValue 65) -1)
+	Set $GF_LastConfigPaging = $tmp (GetValue 63) $t (GetValue 66) (GetTitle 68) {!} (GetTitle 71) {!} (GetValue 74) (GetTitle 78) {!} (GetTitle 81) {!}
+	# Transient
+	Set $GF_LastConfigTransient = (GetValue 91) (GetValue 92) (GetValue 93) (GetValue 94) (GetValue 95) (GetTitle 98) {!} (GetValue 99) (GetTitle 102) {!} (GetTitle 104) {!}
+	# Hints
+	Set $GF_LastConfigHints = (GetValue 111) (GetValue 112) (GetValue 113) (GetValue 114) (GetValue 115) (GetValue 116) (GetValue 118) (GetValue 119) (GetValue 120) (GetValue 121) 
+	Set $GF_LastConfigHints = $GF_LastConfigHints (GetValue 124) (GetValue 125) (GetValue 126) (GetValue 129) (GetValue 130) (GetValue 128)
+
+	Set $GF_LastConfig = $GF_LastConfigFocus $GF_LastConfigMove $GF_LastConfigPaging $GF_LastConfigTransient $GF_LastConfigHints 
+	Set $test1 = 0
+	Set $test2 = 0
+	If $InStart == 1 Then
+	Begin
+	    Set $test1 = 1
+	    Set $test2 = 1
+	End
+	Else
+	Begin
+	    If $CmdType == {Try} Then
+		Set $test1 = 1
+	    If $CmdType == {Save} Then
+		Set $test2 = 1
+	End
+
+	If $GF_BuildAllConfig == 1 Then
+	Begin
+	    Set $GF_BuildAllConfig = 0
+	    If $test1 == 1 Then
+	    Begin
+		Set $GF_TryConfigFocus = $GF_LastConfigFocus
+		Set $GF_TryConfigMove = $GF_LastConfigMove
+		Set $GF_TryConfigPaging = $GF_LastConfigPaging
+		Set $GF_TryConfigTransient = $GF_LastConfigTransient 
+		Set $GF_TryConfigHints = $GF_LastConfigHints
+	    End
+	    If $test2 == 1 Then
+	    Begin
+		Set $GF_SaveConfigFocus = $GF_LastConfigFocus
+		Set $GF_SaveConfigMove = $GF_LastConfigMove
+		Set $GF_SaveConfigPaging = $GF_LastConfigPaging
+		Set $GF_SaveConfigTransient = $GF_LastConfigTransient 
+		Set $GF_SaveConfigHints = $GF_LastConfigHints
+	    End
+	End	
+	Else
+	Begin
+	    If $test1 == 1 Then
+	    Begin
+		If $ConfigTool == {Focus} Then
+		    Set $GF_TryConfigFocus = $GF_LastConfigFocus
+		If $ConfigTool == {Move} Then
+		    Set $GF_TryConfigMove = $GF_LastConfigMove
+		If $ConfigTool == {Paging} Then
+		    Set $GF_TryConfigPaging = $GF_LastConfigPaging
+		If $ConfigTool == {Transient} Then
+		    Set $GF_TryConfigTransient = $GF_LastConfigTransient
+		If $ConfigTool == {Hints} Then
+		    Set $GF_TryConfigHints = $GF_LastConfigHints
+	    End
+	    If $test2 == 1 Then
+	    Begin
+		If $ConfigTool == {Focus} Then
+		    Set $GF_SaveConfigFocus = $GF_LastConfigFocus
+		If $ConfigTool == {Move} Then
+		    Set $GF_SaveConfigMove = $GF_LastConfigMove
+		If $ConfigTool == {Paging} Then
+		    Set $GF_SaveConfigPaging = $GF_LastConfigPaging
+		If $ConfigTool == {Transient} Then
+		    Set $GF_SaveConfigTransient = $GF_LastConfigTransient
+		If $ConfigTool == {Hints} Then
+		    Set $GF_SaveConfigHints = $GF_LastConfigHints
+	    End
+	End
+	
+	If $test1 == 1 Then 
+	    Set $GF_TryConfig = $GF_TryConfigFocus $GF_TryConfigMove $GF_TryConfigPaging $GF_TryConfigTransient $GF_TryConfigHints
+	If $test2 == 1 Then 
+	    Set $GF_SaveConfig = $GF_SaveConfigFocus $GF_SaveConfigMove $GF_SaveConfigPaging $GF_SaveConfigTransient $GF_SaveConfigHints
+
+	If $InStart == 1 Then
+	Begin
+	    Set $InStart = 0
+	    Set $GF_CurrentConfig = $GF_TryConfig
+	End
+    End
+
+# ----------------------------------------------------------------------------
+# Apply and Try
+    
+    If $DoApplyCmd == 1 Then
+    Begin
+	Set $DoApplyCmd = 0
+
+	If $CmdType == {Try} Then
+	Begin
+	    If $GF_TryIsGlobal == 0 Then
+	    Begin
+		Set $msg = $l_AppliedInternally
+		Set $tmp = $ConfigTool
+	    End
+	    Else
+	    Begin
+		Set $msg = $l_AppliedExternally
+		Set $tmp = {All}
+	    End
+	    Set $conf = $GF_TryConfig
+	End
+	
+	If $CmdType == {Save} Then
+	Begin
+	    If $GF_SaveIsGlobal == 0 Then
+	    Begin
+		Set $msg = $l_SavedInternally
+		Set $tmp = $ConfigTool
+	    End
+	    Else
+	    Begin
+		Set $msg = $l_SavedExternally
+		Set $tmp = {All}
+	    End
+	    Set $conf = $GF_SaveConfig
+	End
+
+	Set $cmd = $SendMsgAndGet{'save-try-config }$Component{ }$tmp{ 0 }$conf{'}
+	Set $check = (GetOutput $cmd 1 -1)
+ 	If $check == {ok} Then
+	Begin
+	    If $CmdType == {Try} Then
+	    Begin
+		Set $cmd = $SendMsgAndGet{'save-try-last-build 1'}
+		Do {PipeRead "}$cmd{"}
+		Set $GF_CurrentConfig = $GF_TryConfig
+	    End
+	    If $CmdType == {Save} Then
+	    Begin
+		# there some problems here ...
+		If $GF_SaveConfig <> $GF_CurrentConfig Then
+		Begin
+		   Set $cmd = $SendMsgAndGet{'save-try-last-build 3'}
+		   Do {PipeRead "}$cmd{"} 
+		   Set $msg = $msg { and Pipe}
+		   Set $GF_TryConfig = $GF_SaveConfig
+		   Set $GF_TryConfigFocus = $GF_SaveConfigFocus
+		   Set $GF_TryConfigMove = $GF_SaveConfigMove
+		   Set $GF_TryConfigPaging = $GF_SaveConfigPaging
+		   Set $GF_TryConfigTransient = $GF_SaveConfigTransient 
+		   Set $GF_TryConfigHints = $GF_SaveConfigHints
+		End
+		Else
+		Begin
+		    Set $cmd = $SendMsgAndGet{'save-try-last-build 2'}
+		    Do {Exec }$cmd
+		End
+		Set $GF_CurrentConfig = $GF_SaveConfig
+	    End
+	End
+	Else
+	Begin
+	    Set $msg = $l_Error { }$check
+	End
+	ChangeTitle 990 $msg
+	Set $CmdType = {}
+    End
+
+#----------------------------------------------------------------------------
+# Update "font" : 2nd part
+
+    If $GF_UpdateButtonFont == 1 Then
+    Begin
+	Set $GF_UpdateButtonFont = 0
+	# Update default font
+	If $DefaultFont <> {Sel} Then
+	Begin
+	    Set $DefaultFont = {Sel}
+	    ChangeFont 993 $SelFont
+	End
+	# Update Try font
+	Set $test = 1
+	If $GF_TryIsGlobal == 1 Then
+	Begin
+	    If $GF_TryConfig == $GF_LastConfig Then
+		Set $test = 0
+	End
+	Else
+	Begin
+	    If $ConfigTool == {Focus} Then
+	    Begin
+		If $GF_TryConfigFocus == $GF_LastConfigFocus Then
+		    Set $test = 0
+	    End
+	    If $ConfigTool == {Move} Then
+	    Begin
+		If $GF_TryConfigMove == $GF_LastConfigMove Then
+		    Set $test = 0
+	    End
+	    If $ConfigTool == {Paging} Then
+	    Begin
+		If $GF_TryConfigPaging == $GF_LastConfigPaging Then
+		    Set $test = 0
+	    End
+	    If $ConfigTool == {Transient} Then
+	    Begin
+		If $GF_TryConfigTransient == $GF_LastConfigTransient Then
+		    Set $test = 0
+	    End
+	    If $ConfigTool == {Hints} Then
+	    Begin
+		If $GF_TryConfigHints == $GF_LastConfigHints  Then
+		    Set $test = 0
+	    End
+	End
+	If $test == 0 Then
+	Begin
+	    If $TryFont == {Sel} Then
+	    Begin
+		ChangeFont 992 $ShadeFont
+		Set $TryFont = {Shade}
+	    End
+	End
+	Else
+	Begin
+	    If $TryFont == {Shade} Then
+	    Begin
+		ChangeFont 992 $SelFont
+		Set $TryFont = {Sel}
+	    End
+	End
+	
+	# Update Save font
+	Set $test = 1
+	If $GF_SaveIsGlobal == 1 Then
+	Begin
+	    If $GF_SaveConfig == $GF_LastConfig Then
+		Set $test = 0
+	End
+	Else
+	Begin
+	    If $ConfigTool == {Focus} Then
+	    Begin
+		If $GF_SaveConfigFocus == $GF_LastConfigFocus Then
+		    Set $test = 0
+	    End
+	    If $ConfigTool == {Move} Then
+	    Begin
+		If $GF_SaveConfigMove == $GF_LastConfigMove Then
+		    Set $test = 0
+	    End
+	    If $ConfigTool == {Paging} Then
+	    Begin
+		If $GF_SaveConfigPaging == $GF_LastConfigPaging Then
+		    Set $test = 0
+	    End
+	    If $ConfigTool == {Transient} Then
+	    Begin
+		If $GF_SaveConfigTransient == $GF_LastConfigTransient Then
+		    Set $test = 0
+	    End
+	    If $ConfigTool == {Hints} Then
+	    Begin
+		If $GF_SaveConfigHints == $GF_LastConfigHints  Then
+		    Set $test = 0
+	    End
+	End
+	If $test == 0 Then
+	Begin
+	    If $SaveFont == {Sel} Then
+	    Begin
+		ChangeFont 991 $ShadeFont
+		Set $SaveFont = {Shade}
+	    End
+	End
+	Else
+	Begin
+	    If $SaveFont == {Shade} Then
+	    Begin
+		ChangeFont 991 $SelFont
+		Set $SaveFont = {Sel}
+	    End
+	End
+    End
+#----------------------------------------------------------------------------
+# Messages
+    
+    If $GF_XorBrowser <> {} Then
+    Begin
+	Set $msg = (ReceivFromScript $GF_XorBrowser)
+	If $msg <> {No message} Then
+	Begin
+	    Set $GF_XorBrowser = {}
+	    If $msg <> {Cancel} Then
+	    Begin
+		If $GF_Xor == 1 Then
+		    Set $GF_XorPixmap = $msg
+		Else
+		Begin
+		    # Hex -> Value conversion
+		    Set $cmd = $SendMsgAndGet{"hexcolor-2-value }$msg{"}
+		    Set $msg = (GetOutput $cmd 1 -1)
+		    Set $GF_XorValue = $msg
+		End
+		ChangeTitle 58 $msg
+	    End
+	End
+    End
+
+    If $NullMessage == {1} Then
+    Begin
+	Set $NullMessage = 0
+	Set $msg = {}
+	ChangeTitle 990 $msg
+    End
+
+    If $SpecialMessage <> {} Then
+    Begin
+	ChangeTitle 990 $SpecialMessage
+	Set $SpecialMessage = {}
+    End
+
+End
+
+# ---------------------------------------------------------------------------
+#
+# Now the widgets
+#
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+#
+# Head: GUI chooser and rectangle delimiter
+#
+# ---------------------------------------------------------------------------
+
+Widget 1
+Property
+    Flags NoReliefString
+    Position 90 10
+    Size 175 20
+    Type Menu
+    Title {                           }
+Main
+Case message of
+
+ SingleClic :
+ Begin
+    Set $tmp = (GetValue 1)
+    If $tmp == 1 Then
+    Begin
+	Set $GF_HideFocus = 1
+	Set $GF_HideMove = 1
+	Set $GF_HidePaging = 1
+	Set $GF_HideTransient = 1
+	Set $GF_HideHints = 1
+	Set $GF_HidePreference = 1
+	Set $BD_HideKeyboard = 1
+	Set $NullMessage = 1
+	ChangeFont 2 $ShadeFont
+	ChangeFont 1 $SelFont
+	If $GF_CurrentTheme == {} Then
+	    SendSignal 1 2
+	If $PersonalThemes == {} Then
+	    SendSignal 1 1
+	Set $GF_ShowPreference = 1
+	If $TryFont <> {Shade} Then
+	Begin
+	    ChangeFont 992 $ShadeFont
+	    Set $TryFont = {Shade}
+	End
+	If $SaveFont <> {Sel} Then
+	Begin
+	    ChangeFont 991 $SelFont
+	    Set $SaveFont = {Sel}
+	End
+	ChangeFont 993 $ShadeFont
+	Set $DefaulFont = {Shade}
+	Set $Component = {GF_Preference}
+    End
+    If $tmp == 2 Then
+	SendSignal 995 1
+ End
+
+ 1 :
+ Begin
+    ### personal themes
+    Set $cmd = $SendMsgAndGet{"get-perso-themes"}
+    Set $PersonalThemes = (GetOutput $cmd 1 -1)
+    ChangeTitle 959 $PersonalThemes
+ End
+
+ # --- GF themes config
+ 2 :
+ Begin
+    ### GF save, current and themes
+    Set $cmd = $SendMsgAndGet{"get-themes-info }$GF_FileName{" --line=1}
+    # where we save: the theme
+    Set $tmp = (GetOutput $cmd 1 -1)
+    ChangeTitle 957 $tmp
+    # current theme
+    Set $cmd = $GetLine{2}
+    Set $GF_CurrentTheme = (GetOutput $cmd 1 -1)
+    # themes with a globalfeel component
+    Set $cmd = $GetLine{3 --clear-buffer}
+    Set $GF_ThemesWith = (GetOutput $cmd 1 -1)
+    ChangeTitle 953 $GF_ThemesWith
+    Set $tmp = $l_BPrefLoaded $Component $l_MPrefLoaded $GF_CurrentTheme $l_APrefLoaded
+    ChangeTitle 951 $tmp
+ End
+
+End
+
+Widget 2
+Property
+    Flags NoReliefString
+    Position 270 5
+    Type Menu
+    Title {                                      }
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $tmp = (GetValue 2)
+    If $tmp <> 0 Then
+    Begin
+	Set $Component = {globalfeel}
+	Set $GF_HideFocus = 1
+	Set $GF_HideMove = 1
+	Set $GF_HidePaging = 1
+	Set $GF_HideTransient = 1
+	Set $GF_HideHints = 1
+	Set $GF_HidePreference = 1
+	Set $NullMessage = 1
+	ChangeFont 1 $ShadeFont
+	ChangeFont 2 $SelFont
+	ChangeFont 993 $SelFont
+	Set $DefaultFont = {Sel}
+    End
+    If $tmp == 1 Then
+    Begin
+	Set $GF_ShowFocus = 1
+	Set $GF_HideFocus = 0
+    End
+    If $tmp == 2 Then
+    Begin
+	Set $GF_ShowMove = 1
+	Set $GF_HideMove = 0
+    End
+    If $tmp == 3 Then
+    Begin
+	Set $GF_ShowPaging = 1
+	Set $GF_HidePaging = 0
+    End
+    If $tmp == 4 Then
+    Begin
+	Set $GF_ShowTransient = 1
+	Set $GF_HideTransient = 0
+    End
+    If $tmp == 5 Then
+    Begin
+	Set $GF_ShowHints = 1
+	Set $GF_HideHints = 0
+    End
+ End
+End
+
+Widget 9
+Property
+    Size 600 410
+    Position 5 35
+    Type Rectangle
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+##############################################################################
+#
+# Global Feel
+#
+##############################################################################
+
+#-----------------------------------------------------------------------------
+#
+# Focus and Placement
+#
+#-----------------------------------------------------------------------------
+
+# Focus Title:
+Widget 10
+Property
+    Size 280 15
+    Position 15 45
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {Load Configuration ...}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# ClicToFocus
+Widget 11
+Property
+    Position 15 70
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                                           }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Focus 0
+    ChangeValue 11 1
+    Set $GF_Focus = 11
+ End
+End
+
+# MouseFocus
+Widget 12
+Property
+    Position 15 95
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                                           }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Focus 0
+    ChangeValue 12 1
+    Set $GF_Focus = 12
+ End
+End
+
+# SloppyFocus
+Widget 13
+Property
+    Position 15 120
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                           }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Focus 0
+    ChangeValue 13 1
+    Set $GF_Focus = 13
+ End
+End
+
+
+# Focus Options
+Widget 14
+Property
+    Size 275 15
+    Position 310 45
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# ClickToFocusPassesClick/ClickToFocusDoesntPassClick
+Widget 15
+Property
+    Position 310 70
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                           }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# ClickToFocusRaises/ClickToFocusRaisesOff & 
+# MouseFocusClickRaises/MouseFocusClickDoesntRaise
+Widget 16
+Property
+    Position 310 95
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                           }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# ColormapFocus	FollowsMouse  / FollowsFocus
+Widget 17
+Property
+    Position 310 120
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                           }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+#---------------------------
+# Placement of windows, Title
+Widget 18
+Property
+    Size 580 15
+    Position 15 155
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# TileCascadePlacement
+Widget 19
+Property
+    Position 30 180
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Placement 0
+    ChangeValue 19 1
+    Set $GF_Placement = 19
+ End
+End
+
+# TileManualPlacement
+Widget 20
+Property
+    Position 30 205
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Placement 0
+    ChangeValue 20 1
+    Set $GF_Placement = 20
+ End
+End
+
+
+# MinOverlapPlacement
+Widget 21
+Property
+    Position 30 230
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Placement 0
+    ChangeValue 21 1
+    Set $GF_Placement = 21
+ End
+End
+
+
+# MinOverlapPercentPlacement
+Widget 22
+Property
+    Position 30 255
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Placement 0
+    ChangeValue 22 1
+    Set $GF_Placement = 22
+ End
+End
+
+
+# ManualPlacement
+Widget 23
+Property
+    Position 30 280
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Placement 0
+    ChangeValue 23 1
+    Set $GF_Placement = 23
+ End
+End
+
+# CascadePlacement
+Widget 24
+Property
+    Position 30 305
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Placement 0
+    ChangeValue 24 1
+    Set $GF_Placement = 24
+ End
+End
+
+
+# "Options" for Placement of windows:
+Widget 25
+Property
+    Size 580 15
+    Position 15 335
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# GrabFocus/GrabFocusOff
+Widget 26
+Property
+    Position 30 360
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# UsePPosition/NoPPosition
+Widget 27
+Property
+    Position 30 385
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+#-----------------------------------------------------------------------------
+#
+# Move and Resize
+#
+#-----------------------------------------------------------------------------
+
+# Opaque Title:
+Widget 30
+Property
+    Size 580 15
+    Position 15 50
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Move Opaque/OutLine 
+Widget 31
+Property
+    Position 20 75
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                        }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# ResizeOpaque
+Widget 32
+Property
+    Position 170 75
+    Type RadioButton
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                    }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_ResizeOutLine 0
+    ChangeValue 32 1
+    Set $GF_ResizeOutLine = 32    
+ End
+End
+
+# ResizeOutline
+Widget 33
+Property
+    Position 310 75
+    Type RadioButton
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                    }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_ResizeOutLine 0
+    ChangeValue 33 1
+    Set $GF_ResizeOutLine = 33            
+ End
+End
+
+# Opaque move size (%)
+Widget 34
+Property
+    Position 20 105
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                                           }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# OpaqueMoveSize 
+Widget 35
+Property
+    Position 385 100
+    Size 30 15
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+
+Widget 36
+Property
+    Position 425 105
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden  NoFocus
+    Title {                    }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Geometry windows position
+Widget 37
+Property
+    Position 20 135
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                          }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+Widget 38
+Property
+    Position 280 135
+    Type RadioButton
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                       }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Emulate 0
+    ChangeValue 38 1
+    Set $GF_Emulate = 38
+ End
+End
+
+Widget 39
+Property
+    Position 440 135
+    Type RadioButton
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                       }
+Main
+Case message of
+SingleClic :
+ Begin
+    ChangeValue $GF_Emulate 0
+    ChangeValue 39 1
+    Set $GF_Emulate = 39        
+ End
+End
+
+# Hide Geometry windows
+Widget 40
+Property
+    Position 20 165
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                          }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Size
+Widget 41
+Property
+    Position 280 165
+    Type RadioButton
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                       }
+Main
+Case message of
+SingleClic :
+ Begin
+    If $GF_HideGeoSize == 1 Then
+	ChangeValue 41 0
+    Set $GF_HideGeoSize = (GetValue 41)
+ End
+End
+
+# Move
+Widget 42
+Property
+    Position 440 165
+    Type RadioButton
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                       }
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $GF_HideGeoMove == 1 Then
+	ChangeValue 42 0
+    Set $GF_HideGeoMove = (GetValue 42)
+ End
+End
+
+# BugOpts FlickeringMoveWorkaround
+Widget 43
+Property
+    Position 20 195
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                                       }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+#-------------------------
+# Snap Attraction:
+Widget 44
+Property
+    Size 580 15
+    Position 15 225
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# distance
+Widget 45
+Property
+    Position 65 255
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {               }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# distance value
+Widget 46
+Property
+    Position 155 250
+    Size 30 15
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# context
+Widget 47
+Property
+    Position 260 255
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {              }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# context value
+Widget 48
+Property
+    Position 350 250
+    Type PopupMenu
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                           }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# SnapGrid
+Widget 49
+Property
+    Position 65 295
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                          }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# SnapGrid X title
+Widget 50
+Property
+    Position 230 295
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {X:}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 51
+Property
+    Position 250 290
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# SnapGrid Y title
+Widget 52
+Property
+    Position 330 295
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {Y:}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 53
+Property
+    Position 350 290
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+#-------------------------
+# XOR Color or Pixmap: 
+Widget 54
+Property
+    Size 580 15
+    Position 15 330
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Color or Pixmap? Color
+Widget 55
+Property
+    Position 90 355
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                               }
+Main
+Case message of
+ SingleClic :
+ Begin
+    ChangeValue 55 1
+    ChangeValue 56 0
+    If $GF_Xor == 1 Then
+    Begin
+	Set $GF_Xor = 0
+	Set $GF_XorPixmap = (GetTitle 58)
+	ChangeTitle 58 $GF_XorValue
+	ChangeTitle 57 $l_OneColor
+	ChangeTitle 59 $l_StartColorSel
+    End
+ End
+End
+
+# Color or Pixmap? Pixmap
+Widget 56
+Property
+    Position 310 355
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                                   }
+Main
+Case message of
+ SingleClic :
+ Begin
+    ChangeValue 56 1
+    ChangeValue 55 0
+    If $GF_Xor == 0 Then
+    Begin
+    	Set $GF_Xor = 1
+	Set $GF_XorValue = (GetTitle 58)
+	ChangeTitle 58 $GF_XorPixmap
+	ChangeTitle 57 $l_OnePixmap
+	ChangeTitle 59 $l_StartImages
+    End
+ End
+End
+
+# XOR: Title
+Widget 57
+Property
+    Position 70 390
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                           }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# XOR: Value
+Widget 58
+Property
+    Position 210 385
+    Size 90 20
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# XOR: Browse
+Widget 59
+Property
+    Position 340 385
+    Size 90 20
+    Type PushButton
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $GF_Xor == 1 Then
+	Set $arg={FvwmScript-IconBrowser --icon-colorset }$ViewerColorset{ --text-colorset }$TextColorset
+    Else
+    Begin
+	Set $tmp = (GetTitle 58)
+	Set $cmd = $SendMsgAndGet{"value-2-hexcolor }$tmp{"}
+	Set $tmp = (GetOutput $cmd 1 -1)
+	Set $arg={FvwmScript-ColorSelector --launched yes --return-type pixels --viewer-colorset } $ViewerColorset { --color }$tmp
+	ChangeTitle 990 {The color selector returns good values only with a TrueColor visual (16, 24 or 32 bpp)}
+    End
+    Set $GF_XorBrowser = (LaunchScript $arg)
+ End
+End
+
+
+#-----------------------------------------------------------------------------
+#
+# Pagination and Mouse Parameters
+#
+#-----------------------------------------------------------------------------
+
+# Pagination Title:
+Widget 60
+Property
+    Size 580 15
+    Position 15 50
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Horizontal Paging: title
+Widget 61
+Property
+    Position 20 85
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden  NoFocus
+    Title {                              }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Horizontal Paging: Value
+Widget 62
+Property
+    Position 205 80
+    Type PopupMenu
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Horizontal Paging: circular ?
+Widget 63
+Property
+    Position 385 85
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                              }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Vertical Paging: title
+Widget 64
+Property
+    Position 20 125
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus   
+    Title {                              }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Vertical Paging: Value
+Widget 65
+Property
+    Position 205 120
+    Type PopupMenu
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Vertical Paging: circular ?
+Widget 66
+Property
+    Position 385 125
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                              }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Paging Delay : title
+Widget 67
+Property
+    Position 20 165
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                                   }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+
+# Paging Delay: value
+Widget 68
+Property
+    Position 330 160
+    Size 60 15
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Paging Delay : ms
+Widget 69
+Property
+    Position 400 165
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {    }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Moving Edge resistance: title
+Widget 70
+Property
+    Position 20 200
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                                   }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+
+# Moving Edge resistance: value
+Widget 71
+Property
+    Position 330 195
+    Size 60 15
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Paging Delay : pixels
+Widget 72
+Property
+    Position 400 200
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {        }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# PanFrame: title
+Widget 73
+Property
+    Position 20 235
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                                      }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+
+# PanFrame: value
+Widget 74
+Property
+    Position 350 230
+    Type PopupMenu
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {1|2}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Pame Farme : pixels
+Widget 75
+Property
+    Position 400 235
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {        }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+#----------------------------------------
+# Mouse Parameters
+
+# Title:
+Widget 76
+Property
+    Size 580 15
+    Position 15 285
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Double click: title
+Widget 77
+Property
+    Position 20 325
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                                        }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+
+# Double Click: value
+Widget 78
+Property
+    Position 335 320
+    Size 30 15
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Double Click : pixels
+Widget 79
+Property
+    Position 380 325
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {    }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# MoveThreshold: title
+Widget 80
+Property
+    Position 20 360
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                                        }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+
+# MoveThreshold: value
+Widget 81
+Property
+    Position 335 355
+    Size 30 15
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# MoveThreshold: pixels
+Widget 82
+Property
+    Position 380 360
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {        }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+#-----------------------------------------------------------------------------
+#
+# Transient windows
+#
+#-----------------------------------------------------------------------------
+
+# Transient Title:
+Widget 90
+Property
+    Size 580 15
+    Position 15 50
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# NakedTransient/DecorateTransient
+Widget 91
+Property
+    Position 30 80
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                               }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# DontRaiseTransient/RaiseTransient
+Widget 92
+Property
+    Position 30 105
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                                         }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# DontLowerTransient/LowerTransient
+Widget 93
+Property
+    Position 30 130
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                                         }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# DontStackTransientParent/StackTransientParent
+Widget 94
+Property
+    Position 30 155
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                                       }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# GrabFocusTransient/GrabFocusTransientOff
+Widget 95
+Property
+    Position 30 180
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                                                                       }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+#-------------------------
+# Animations Speed:
+Widget 96
+Property
+    Size 580 15
+    Position 15 220
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# ShadeSetps title
+Widget 97
+Property
+    Position 30 255
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                      }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# ShadeSetps
+Widget 98
+Property
+    Position 260 250
+    Size 40 15
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# ShadeScroll/Shrinks
+Widget 99
+Property
+    Position 30 287
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                                                                               }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# SetAnimation title
+Widget 100
+Property
+    Position 30 320
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                               }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# SetAnimation speed title
+Widget 101
+Property
+    Position 250 320
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                       }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# SetAnimation speed value
+Widget 102
+Property
+    Position 395 315
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# SetAnimation fractions-to-move-list title
+Widget 103
+Property
+    Position 50 352
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                 }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# SetAnimation fractions-to-move-list value
+Widget 104
+Property
+    Position 255 347
+    Size 335 15
+    Type TextField
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Some preconfigured value title
+Widget 105
+Property
+    Position 50 382
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {               }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Some preconfigured value: value
+Widget 106
+Property
+    Position 255 379
+    Type PopupMenu
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                       }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+#-----------------------------------------------------------------------------
+#
+# Hints, Busy Cursor
+#
+#-----------------------------------------------------------------------------
+
+# Hints Title:
+Widget 110
+Property
+    Size 580 15
+    Position 15 50
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Mwm Decor
+Widget 111
+Property
+    Position 35 80
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                                      }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# OLD
+Widget 112
+Property
+    Position 35 105
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                      }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# HintsOverRead
+Widget 113
+Property
+    Position 35 130
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                      }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Mwm Functions
+Widget 114
+Property
+    Position 310 80
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                      }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# GNOME
+Widget 115
+Property
+    Position 310 105
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                      }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# ModalityIsEvil
+Widget 116
+Property
+    Position 310 130
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {                                      }
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+#---------------------
+# Busy cursor Title:
+Widget 117
+Property
+    Size 580 15
+    Position 15 170
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Read
+Widget 118
+Property
+    Position 55 200
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {Read}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Recapture
+Widget 119
+Property
+    Position 170 200
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {Recapture}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# Wait
+Widget 120
+Property
+    Position 285 200
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {Wait}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# ModuleSynchronous
+Widget 121
+Property
+    Position 400 200
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden   
+    Title {ModuleSynchronous}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+#--------------------------------
+# Advanced (defaults are good!)
+Widget 122
+Property
+    Size 580 15
+    Position 15 240
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# ColorLimit: title
+Widget 123
+Property
+    Position 35 275
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                               }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# ColorLimit: value
+Widget 124
+Property
+    Position 320 270
+    Type PopupMenu
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {Default|2|9|19|29|39|49|61|No Limit}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# MixedVisualWorkaround
+Widget 125
+Property
+    Position 35 310
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title { MixedVisualWorkaround}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# RaiseOverNativeWindows
+Widget 126
+Property
+    Position 35 345
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title { RaiseOverNativeWindows}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# SaveUnder
+Widget 129
+Property
+    Position 280 310
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title { SaveUnder}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+# BackingStore
+Widget 130
+Property
+    Position 280 345
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title { BackingStore}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+
+# ModuleTimeOut
+Widget 127
+Property
+    Position 35 380
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden NoFocus
+    Title {                                                            }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# ModuleTimeOut: value
+Widget 128
+Property
+    Position 400 375
+    Type PopupMenu
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {2 sec|5 sec|7 sec|10 sec|15 sec |30 sec|45 sec|60 sec|120 sec}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+#-----------------------------------------------------------------------------
+#
+# GF_Preference
+#
+#-----------------------------------------------------------------------------
+
+#theme and files title
+Widget 950
+Property
+    Size 580 15
+    Position 15 50
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# some explaination
+Widget 951
+Property
+    Position 15 80
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {                                                                                             }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# load an other config: title
+Widget 952
+Property
+    Position 35 115
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {                                    }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# load an other config: choices
+Widget 953
+Property
+    Position 265 110
+    Type PopupMenu
+    Flags NoReliefString Hidden
+    Title {                          }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# reserved!
+Widget 954
+Property
+    Position 608 110
+    Size 1 1
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# load an other config: apply
+Widget 955
+Property
+    Position 430 110
+    Size 80 20
+    Type PushButton
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $ThemeToLoad = (GetValue 953)
+    Set $GF_UpdateConfig = 1 
+    Set $LoadFromPreference = 1
+    Set $CmdType = {}
+ End
+End
+
+# where we save: title
+Widget 956
+Property
+    Position 35 155
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {                         }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# where we save: theme
+Widget 957
+Property
+    Position 150 155
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {                        }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# change where we save: title
+Widget 958
+Property
+    Position 50 185
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {                                }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# change where we save: choice
+Widget 959
+Property
+    Position 265 180
+    Type PopupMenu
+    Flags NoReliefString Hidden
+    Title {                            }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# change where we save: apply
+Widget 960
+Property
+    Position 430 180
+    Size 80 20
+    Type PushButton
+    Flags NoReliefString Hidden
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $tmp = (GetValue 959)
+    Set $cmd = $SendMsgAndGet{"set-save-file }$Component{ }$tmp{"}
+    Set $tmp = (GetOutput $cmd 1 -1)
+    ChangeTitle 957 $tmp
+ End
+End
+
+# Preference
+Widget 961
+Property
+    Size 580 15
+    Position 15 235
+    Type ItemDraw
+    Flags NoReliefString Hidden NoFocus
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# 
+Widget 962
+Property
+    Position 30 270
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                                                                                          }
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $GF_TryIsGlobal = (GetValue 962)
+ End
+End
+
+Widget 963
+Property
+    Position 30 305
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                                                                                          }
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $GF_DefaultIsGlobal = (GetValue 963)
+ End
+End
+
+Widget 964
+Property
+    Position 30 340
+    Type CheckBox
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Flags NoReliefString Hidden
+    Title {                                                                                          }
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $GF_SaveIsGlobal = (GetValue 964)
+ End
+End
+
+
+##############################################################################
+#
+# EEEEEEEEEEEEEEENNNNNNNNNNNNNNNNNNNNNNNNDDDDDDDDDDDDDDDDDDDD
+#
+##############################################################################
+
+#-----------------------------------------------------------------------------
+#
+# Message, Apply, quit, ...
+#
+#-----------------------------------------------------------------------------
+
+# Message
+Widget 990
+Property
+    Flags NoReliefString NoFocus
+    Position 20 417
+    Size 560 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Save
+Widget 991
+Property
+    Flags NoReliefString
+    Position 30 450
+    Size 85 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    #Execute 1 : just below
+    #If $Component == {globalfeel} Then
+	SendSignal 991 1
+ End
+ 1 :
+ Begin
+    If $ConfigTool == {GF_Preference} Then
+    Begin
+	Set $msg = {Preference Saved}
+	Set $cmd = $SendMsgAndGet{"save-preferences }$GF_TryIsGlobal $GF_DefaultIsGlobal $GF_SaveIsGlobal{"}
+	Set $dummy = (GetOutput $cmd 1 -1)
+	ChangeTitle 990 $msg
+    End
+    Else
+    Begin
+	Set $GF_BuildConfig = 1
+	If $GF_SaveIsGlobal == 1 Then
+	    Set $GF_BuildAllConfig = 1
+	Else
+	    Set $GF_BuildAllConfig = 0
+	Set $DoApplyCmd = 1
+	Set $CmdType = {Save}
+    End
+ End
+End
+
+# Try
+Widget 992
+Property
+    Flags NoReliefString
+    Position 145 450
+    Size 85 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    #Execute 1 : just below
+    SendSignal 992 1
+ End
+ 1 :
+ Begin
+    If $ConfigTool <> {GF_Preference} Then
+    Begin
+	Set $GF_BuildConfig = 1
+	If $GF_TryIsGlobal == 1 Then
+	    Set $GF_BuildAllConfig = 1
+	Else
+	    Set $GF_BuildAllConfig = 0
+	Set $DoApplyCmd = 1
+	Set $CmdType = {Try}
+    End
+    Else
+    Begin
+	ChangeTitle 990 $l_NoEffectHere
+    End
+ End
+End
+
+# Load Default
+Widget 993
+Property
+    Flags NoReliefString
+    Position 260 450
+    Size 85 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    #Execute 1 : just below
+    SendSignal 993 1
+ End
+ 1 :
+ Begin
+    If $ConfigTool <> {GF_Preference} Then
+    Begin
+	Set $GF_UpdateConfig = 1
+	Set $ThemeToLoad = {default}
+	Set $LoadFromPreference = 0
+    End
+    Else
+    Begin
+	ChangeTitle 990 $l_NoEffectHere
+    End
+ End
+End
+
+# Help
+Widget 994
+Property
+    Flags NoReliefString
+    Position 375 450
+    Size 85 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    #Execute 1 : just below
+    SendSignal 994 1
+ End
+ 1 :
+ Begin
+    Set $arg={FvwmScript-Help --text-colorset }$TextColorset{ --message "                    Documentation in progress" --title "Help for the Main Config}
+    Set $dummy = (LaunchScript $arg)
+ End
+End
+
+# Quit
+Widget 995
+Property
+    Flags NoReliefString
+    Position 490 450
+    Size 85 20
+    Type PushButton
+    Title {Quit}
+Main
+Case message of
+ SingleClic :
+ Begin
+ #Execute 1 : just below
+    SendSignal 995 1
+ End
+ 1 :
+ Begin
+   Set $cmd = $SendMsg{"exit"}
+   Do {Exec }$cmd
+   Quit
+ End
+End

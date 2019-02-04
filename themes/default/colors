@@ -1,0 +1,219 @@
+# colors@default
+
+# ****************************************************************************
+#
+# I.   FVWM Colorsets (0 to 9)
+#       I.1. Default Colorsets
+#       I.2. Window Decorations
+#       I.3. Menu Colorsets
+#
+# II.  Module Colorsets (10 to 29)
+#       II.1. Common Colorsets
+#       II.2. Window List Module Colorsets
+#       II.3. Other Module Colorsets
+#       II.4. External Colorsets
+#
+# III. Application Colorsets (30 to 35)
+#
+# IV.  Start/Stop functions
+#
+# ****************************************************************************
+
+# ============================================================================
+# I. FVWM Colorsets
+# ============================================================================
+
+# ----------------------
+# I.1. Default Colorsets
+# ----------------------
+
+# for feedback windows (like geometry window and NoteMessage) and FvwmScroll
+#
+Colorset 0 fg black, bg rgb:70/a0/a0
+
+# -----------------------
+# I.2. Window Decorations
+# -----------------------
+
+# The following colors are used in FvwmPager for the window colors
+# and in a title bar of windows (shade/hilight colors, computed from
+# the bg color, but might be specified directly by sh and hi).
+# The title bar background is defined below using TitleStyle.
+
+# window title, inactive and active
+#
+
+Colorset 1 VGradient 40 2 rgb:88/7b/66 1 rgb:66/5c/4c 1 rgb:88/7b/66, \
+	bg average, fg gray80, fgAlpha 85, NoShape
+Colorset 2 VGradient 40 2 rgb:cc/b8/9a 1 rgb:99/8a/7b 1 rgb:cc/b8/9a, \
+	bg average, fg white, NoShape
+
+# window borders, inactive and active
+#
+Colorset 3 fg black, bg rgb:88/7b/66, Plain, NoShape
+Colorset 4 fg black, bg rgb:cc/B8/9a, Plain, NoShape
+
+# background for window title, buttons and border
+#
+DestroyFunc FuncFvwmDecorBackground
+AddToFunc   FuncFvwmDecorBackground
++ I TitleStyle AllInactive Colorset 1 -- Raised
++ I TitleStyle AllActive   Colorset 2 -- Raised
+#
++ I ButtonStyle All Simple -- UseTitleStyle
+
+# -------------------
+# I.3. Menu Colorsets
+# -------------------
+
+# inactive menu item fg+bg and menu face if any
+#
+Colorset 5 fg white, HGradient 40 rgb:51/6c/90 rgb:3f/54/70, bg average, NoShape
+
+# active menu item fg+bg
+#
+Colorset 6 fg white, bg rgb:63/84/b0, Plain, NoShape
+
+# greyed menu item fg
+#
+Colorset 7 fg grey45, bg grey45, Plain, NoShape
+
+# -------------------------------------------------
+# Colorsets 8 and 9 are reserved for the future use.
+
+# ============================================================================
+# II. Module Colorsets
+# ============================================================================
+
+# ----------------------
+# II.1. Common Colorsets
+# ----------------------
+
+# default for modules
+# For FvwmButtons, FvwmPager, can be also used for FvwmIconMan, FvwmIconBox.
+#
+Colorset 10 fg black, bg rgb:80/A0/A0, Plain, NoShape
+
+# default hilight for modules
+# For hilighting a part of a button bar (some swallowed apps for example).
+#
+Colorset 11 fg black, bg white, Plain, NoShape
+
+# special or funny: a gradient or a pixmap
+# May be used in certain FvwmButtons, FvwmIconMan, FvwmIconBox.
+#
+Colorset 12 fg black, bg rgb:80/A0/A0, \
+	VGradient 20 rgb:80/A0/A0 rgb:C0/F0/F0, NoShape
+
+# swallowed window: the hilight and shadow colors should be defined
+# (-hd of xclock and -hl of xload use sh, and -hl of xclock uses hi)
+#
+Colorset 13 fg black, bg rgb:70/8C/8C, hi black, sh gray40, \
+	Plain, NoShape
+
+# default #2
+# FvwmPager or to get more colors in FvwmButtons, can be set to 10.
+#
+Colorset 14 fg black, bg rgb:80/A0/A0, Plain, NoShape
+
+# default hilight #2
+# FvwmPager or to get more colors in FvwmButtons, can be set to 11.
+#
+Colorset 15 fg black, bg rgb:C0/F0/F0, Plain, NoShape
+
+# tips/balloons (TaskBar and FvwmPager)
+#
+Colorset 16 fg black, bg rgb:F0/F0/C0, Plain, NoShape
+
+# ----------------------------------
+# II.2. Window List Module Colorsets
+# ----------------------------------
+
+# standard item
+Colorset 17 fg black, bg rgb:80/A0/A0, Plain, NoShape
+
+# active item
+Colorset 18 fg black, bg rgb:A0/C8/C8, Plain, NoShape
+
+# iconified item
+Colorset 19 fg white, bg rgb:60/78/78, Plain, NoShape
+
+# pointed item
+Colorset 20 fg black, bg rgb:88/AA/AA, Plain, NoShape
+
+# ----------------------------
+# II.3. Other Module Colorsets
+# ----------------------------
+
+# FvwmIdent
+#
+Colorset 21 fg black, bg bisque, Plain, NoShape
+
+# FvwmConsole
+#
+Colorset 22 fg white, bg rgb:00/30/60, Plain, NoShape
+
+# transparent
+#Colorset 23 fg $[fg.cs10], bg $[bg.cs10], Transparent, Plain, NoShape
+
+# ------------------------
+# II.4. External Colorsets
+# ------------------------
+
+# ----------------------------
+# reserved for modules@: 24-25
+
+# ----------------------------------
+# reserved for the future use: 26-28
+
+# temporary colorset: 29, has no static definition, used dynamically
+
+# ============================================================================
+# III. Application Colorsets
+# ============================================================================
+
+# regular terminal (xterm, rxvt, Eterm)
+#
+Colorset 30 fg white, bg rgb:00/00/50, Plain, NoShape
+
+# admin terminal (su xterm)
+#
+Colorset 31 fg white, bg rgb:00/50/50, Plain, NoShape
+
+# remote terminal (ssh, telnet)
+#
+Colorset 32 fg white, bg rgb:50/00/00, Plain, NoShape
+
+# viewer terminal (man, less, tail -f)
+#
+Colorset 33 fg white, bg rgb:00/50/00, Plain, NoShape
+
+# application run in the terminal, text editor using ft-xrdb
+#
+Colorset 34 fg rgb:FF/FF/E8, bg rgb:30/48/48, Plain, NoShape
+
+# dialog main background (FvwmScript, FvwmForm, xmessage, ft-xrdb)
+#
+Colorset 35 fg black, bg rgb:80/A0/80, Plain, NoShape
+
+# dialog text area (FvwmScript, FvwmForm, xmessage, ft-xrdb)
+#
+Colorset 36 fg black, bg rgb:A0/C8/A0, Plain, NoShape
+
+# --------------------------------------------------
+# Colorsets 37 to 39 are reserved for the future use.
+
+# ============================================================================
+# IV. Start/Stop Functions:
+# ============================================================================
+
+# These functions are executed when you enter (Start) and when you leave
+# (Stop) this component. For example, in colors@blackbox they are used to
+# set/unset a good window "transparency" style ParentalRelativity/Opacity;
+# in colors@cde and colors@luthien these functions are used for more things.
+
+DestroyFunc FuncFvwmStartColors
+AddToFunc   FuncFvwmStartColors
+
+DestroyFunc FuncFvwmStopColors
+AddToFunc   FuncFvwmStopColors

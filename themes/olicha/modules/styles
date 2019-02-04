@@ -1,0 +1,42 @@
+Style "FvwmButtons-Fvwm*Applets" !Title, !Handles, BorderWidth 0, Sticky, \
+	WindowListSkip, CirculateSkip, TitleAtTop, !Icon, NeverFocus
+Style "FvwmButtons-Pager*" !Title, Sticky, WindowListSkip, CirculateSkip, \
+	TitleAtRight, !Handles, NeverFocus
+Style "FvwmButtons-StartApps" !Title, !Handles, BorderWidth 2, \
+	Sticky, WindowListSkip, CirculateSkip, NeverFocus
+Style "FvwmButtons-Apps" !Title, !Handles, BorderWidth 2, \
+	Sticky, WindowListSkip, CirculateSkip, NeverFocus
+Style "FvwmButtons-StartWinOps" !Title, !Handles, BorderWidth 2, \
+	Sticky, WindowListSkip, NeverFocus
+Style "FvwmButtons-WinOps" !Title, !Handles, BorderWidth 2, \
+	Sticky, WindowListSkip, NeverFocus
+Style "FvwmButtons-WMaker*Applets" !Title, !Handles, BorderWidth 0, Sticky, \
+	WindowListSkip, CirculateSkip, !Icon, TitleAtTop, NeverFocus
+Style "FvwmIconBox" !Title, !Handles, Sticky, WindowListSkip, \
+	CirculateSkip, TitleAtBottom, NeverFocus
+Style "FvwmIconMan" !Title, !Handles, Sticky, WindowListSkip, \
+	CirculateSkip, TitleAtBottom, NeverFocus
+Style "FvwmPager-Desker" !Title, Sticky, WindowListSkip, CirculateSkip, \
+	TitleAtBottom, NeverFocus
+Style "FvwmPager-Single" !Title, Sticky, !Handles, WindowListSkip, \
+	CirculateSkip, NeverFocus, TitleAtRight
+Style "FvwmTaskBar" !Title, Sticky, WindowListSkip, TitleAtBottom, \
+	CirculateSkip, !Handles, NeverFocus
+Style "FvwmWinList" !Handles, !Title, Sticky, WindowListSkip, \
+	TitleAtBottom, CirculateSkip, NeverFocus
+
+DestroyFunc FuncFvwmModulesDestroyStyle
+AddToFunc   FuncFvwmModulesDestroyStyle
++ I DestroyStyle "FvwmButtons-Fvwm*Applets"
++ I DestroyStyle "FvwmButtons-Pager*"
++ I DestroyStyle "FvwmButtons-StartApps"
++ I DestroyStyle "FvwmButtons-Apps"
++ I DestroyStyle "FvwmButtons-StartWinOps"
++ I DestroyStyle "FvwmButtons-WinOps"
++ I DestroyStyle "FvwmButtons-WMaker*Applets"
++ I DestroyStyle "FvwmIconBox"
++ I DestroyStyle "FvwmIconMan"
++ I DestroyStyle "FvwmPager-Desker"
++ I DestroyStyle "FvwmPager-Single"
++ I DestroyStyle "FvwmTaskBar"
++ I DestroyStyle "FvwmWinList"

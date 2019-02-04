@@ -1,0 +1,68 @@
+DestroyModuleConfig FvwmIconMan: *
+
+*FvwmIconMan: nummanagers 1
+# resolution is configurable in this theme
+#*FvwmIconMan: resolution page
+*FvwmIconMan: title "FVWM Themes, RedmondXP theme, http://fvwm-themes.sf.net/"
+
+# migo: these reliefs make the most sense to me.
+# But in this theme they probably should all be flat anyway...
+*FvwmIconMan: plainbutton  flat
+*FvwmIconMan: focusbutton  down
+*FvwmIconMan: iconbutton flat
+*FvwmIconMan: selectbutton flat
+*FvwmIconMan: focusandselectbutton down
+*FvwmIconMan: titlebutton sunkedge
+
+*FvwmIconMan: colorset		23
+*FvwmIconMan: plaincolorset	17
+*FvwmIconMan: focuscolorset	18
+*FvwmIconMan: iconcolorset	19
+*FvwmIconMan: selectcolorset	20
+*FvwmIconMan: focusandselectcolorset 20
+
+*FvwmIconMan: usewinlist true
+
+*FvwmIconMan: drawicons always
+
+*FvwmIconMan: shape false
+
+*FvwmIconMan: followfocus true
+*FvwmIconMan: sort name
+*FvwmIconMan: format %i
+
+*FvwmIconMan: ManagerGeometry 15x1+20000+20000
+*FvwmIconMan: ButtonGeometry 50x30
+*FvwmIconMan: MaxButtonWidth 256
+
+*FvwmIconMan: Tips always
+*FvwmIconMan: TipsColorset 16
+*FvwmIconMan: TipsJustification center
+*FvwmIconMan: TipsOffsets 2 1
+*FvwmIconMan: TipsDelays 1000 300
+
+# mouse actions
+#*FvwmIconMan: action  Mouse 1    A sendcommand FuncFvwmDeiconifyFocusAndRaise
+*FvwmIconMan: action  Mouse 1    A sendcommand FuncFvwmIconifyOrFocusAndRaise
+*FvwmIconMan: action  Mouse 2    A sendcommand Iconify
+*FvwmIconMan: action  Mouse 3    A sendcommand "Menu MenuFvwmWindowOps2 rectangle $widthx$height+$left+$top c -100m"
+
+# key actions, not really relevant if FvwmIconMan NeverFocus or swallowed
+*FvwmIconMan: action  Key Left   A gotobutton Left, select
+*FvwmIconMan: action  Key Right  A gotobutton Right, select
+*FvwmIconMan: action  Key Up     A gotobutton Up, select
+*FvwmIconMan: action  Key Down   A gotobutton Down, select
+*FvwmIconMan: action  Key Return A sendcommand FuncFvwmDeiconifyFocusAndRaise
+*FvwmIconMan: action  Key q      M quit
+
+*FvwmIconMan: action  Key i      N sendcommand Iconify
+*FvwmIconMan: action  Key c      N sendcommand Close
+*FvwmIconMan: action  Key k      N sendcommand Destroy
+
+*FvwmIconMan: action  Key p      N sendcommand "*FvwmIconMan: resolution page"
+*FvwmIconMan: action  Key s      N sendcommand "*FvwmIconMan: resolution screen"
+*FvwmIconMan: action  Key d      N sendcommand "*FvwmIconMan: resolution desk"
+*FvwmIconMan: action  Key g      N sendcommand "*FvwmIconMan: resolution global"
+
+# animation
+*FvwmIconMan: NoIconAction "SendToModule FvwmAnimate animate"

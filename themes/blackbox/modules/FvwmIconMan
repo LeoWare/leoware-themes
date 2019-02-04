@@ -1,0 +1,36 @@
+DestroyFunc FuncFvwmIconManWarpToMiddle
+AddToFunc   FuncFvwmIconManWarpToMiddle
++ I WarpToWindow 50 50
+
+DestroyFunc FuncFvwmIconFocusAndOptions
+AddToFunc   FuncFvwmIconFocusAndOptions
++ I Focus NoWarp
++ I Popup MenuFvwmWindowOps2 Mouse c -102m
+
+DestroyModuleConfig FvwmIconMan: *
+# it should be 0x1+0-0 anyway
+*FvwmIconMan: ManagerGeometry 10x1+0-0
+*FvwmIconMan: ButtonGeometry 100x14
+
+*FvwmIconMan: Colorset		12
+*FvwmIconMan: IconColorset	19
+*FvwmIconMan: PlainColorset	17
+*FvwmIconMan: SelectColorset	20
+*FvwmIconMan: FocusColorset	18
+*FvwmIconMan: FocusAndSelectColorset 20
+
+*FvwmIconMan: PlainButton flat
+*FvwmIconMan: TitleButton flat
+*FvwmIconMan: FollowFocus true
+*FvwmIconMan: FocusButton flat
+*FvwmIconMan: FocusAndSelectButton flat
+*FvwmIconMan: Resolution desk
+#*FvwmIconMan: DrawIcons true
+*FvwmIconMan: UseWinList true
+*FvwmIconMan: Format %i
+*FvwmIconMan: Action Mouse 1 A sendcommand FuncFvwmDeiconifyFocusAndRaise
+*FvwmIconMan: Action Mouse 2 A sendcommand FuncFvwmIconManWarpToMiddle
+*FvwmIconMan: Action Mouse 3 A sendcommand FuncFvwmIconFocusAndOptions
+*FvwmIconMan: Shape true
+
+*FvwmIconMan: NoIconAction "SendToModule FvwmAnimate animate"

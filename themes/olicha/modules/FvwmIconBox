@@ -1,0 +1,46 @@
+DestroyModuleConfig FvwmIconBox: *
+
+*FvwmIconBox: IconColorSet 17
+*FvwmIconBox: IconHiColorset 18
+*FvwmIconBox: Colorset 12
+
+*FvwmIconBox: Geometry 5x1+0-0
+*FvwmIconBox: Lines 5
+*FvwmIconBox: MaxIconSize 48x48
+*FvwmIconBox: SortIcons    IconName
+
+*FvwmIconBox: Padding 10
+*FvwmIconBox: FrameWidth 0 0
+*FvwmIconBox: SBWidth 7
+*FvwmIconBox: Placement Left Top
+*FvwmIconBox: HideSC Horizontal
+*FvwmIconBox: SetWMIconSize
+*FvwmIconBox: HilightFocusWin
+*FvwmIconBox: UseSkipList
+# 
+# mouse bindings 
+# 
+*FvwmIconBox: Mouse 1 Click FuncFvwmDeiconifyFocusAndRaise
+*FvwmIconBox: Mouse 1 DoubleClick FuncFvwmDeiconifyFocusAndWarp
+*FvwmIconBox: Mouse 2 Click Iconify
+*FvwmIconBox: Mouse 3 Click FvwmIdent
+# 
+# Key bindings
+# 
+*FvwmIconBox: Key r RaiseLower
+*FvwmIconBox: Key i Iconify
+*FvwmIconBox: Key c Close
+*FvwmIconBox: Key d Destroy
+# 
+# FvwmIconBox built-in functions 
+# 
+*FvwmIconBox: Key n Next 
+*FvwmIconBox: Key p Prev 
+
+*FvwmIconBox: Key h Left
+*FvwmIconBox: Key j Down
+*FvwmIconBox: Key k Up
+*FvwmIconBox: Key l Right
+
+# animation (pas terrible)
+*FvwmIconBox: NoIconAction SendToModule FvwmAnimate animate

@@ -1,0 +1,919 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"is",
+				"isSampleItem"
+			],
+			[
+				"calculateCT",
+				"calculateCTSCostNew"
+			],
+			[
+				"ge",
+				"dialog_get_input"
+			],
+			[
+				"dia",
+				"dialog_get_input"
+			],
+			[
+				"DIALO",
+				"DIALOG_BACKTITLE"
+			],
+			[
+				"pieceA",
+				"pieceAmount"
+			],
+			[
+				"pieceWei",
+				"pieceWeight"
+			],
+			[
+				"msg",
+				"msgStr"
+			],
+			[
+				"Overs",
+				"overSizeShipAmount"
+			],
+			[
+				"pieceW",
+				"pieceWidth"
+			],
+			[
+				"piec",
+				"pieceQty"
+			],
+			[
+				"price",
+				"pricePerLinealUnit"
+			],
+			[
+				"pri",
+				"pricePerLinealUnit"
+			],
+			[
+				"pieceWeight",
+				"pieceWeightSqUnit"
+			],
+			[
+				"pieceS",
+				"pieceAmountSqUnit"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/home/samuel/src/fbautostart/src/xdg_spec.cc",
+			"settings":
+			{
+				"buffer_size": 1367,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "Searching 1269 files for \"FLUXBOX\"\n\n/home/samuel/src/fbautostart/AUTHORS:\n    1: * Paul Tagliamonte <paultag@fluxbox.org>\n    2  \n\n/home/samuel/src/fbautostart/ChangeLog:\n    1: 2012-06-17  Paul Tagliamonte  <paultag@fluxbox.org>\n    2  \n    3  * ERRATTUM: The fix was for gcc-4.7, not 2.7.\n    .\n   12  * Version bump to 2.718281828\n   13  \n   14: 2012-04-03  Paul Tagliamonte  <paultag@fluxbox.org>\n   15  \n   16  * src/main.cc: Including unistd.h, since we use both fork and execl\n   ..\n   18  Matthias Klose (doko).\n   19  \n   20: 2012-03-16  Paul Tagliamonte  <paultag@fluxbox.org>\n   21  \n   22  * src/xdg_parse.cc(parse_folder): Adjusted this function to only parse\n   23  .desktop files. This closes bug #1 on Github. Thanks, confluence.\n   24  * src/xdg_parse.cc(ends_with): Added this function.\n   25: * Changed all the headers to show my fluxbox email rather then no email.\n   26  * Added documentation blocks to all non-straight forward routines. I'm tired\n   27  of not remembering what my old code does :)\n   ..\n   29  * Version bump to 2.7182818.\n   30  \n   31: 2012-03-08  Paul Tagliamonte  <paultag@fluxbox.org>\n   32  \n   33  * Re-indenteded all the files to use spaces rather then tabs.\n\n/home/samuel/src/fbautostart/CONTRIBUTING:\n  171  \n  172  Format Patch Series\n  173:   This method is 100% fine, as it's the way we do patches in Fluxbox it's self.\n  174    This may also be helpful if you're not using GitHub for reasons such as it's\n  175    status as a free software project. Some advice (only advice, I won't reject\n\n/home/samuel/src/fbautostart/COPYRIGHT:\n    1: Copyright (c) 2010-2012 Paul Tagliamonte <paultag@fluxbox.org>\n    2  \n    3  Permission is hereby granted, free of charge, to any person obtaining a\n\n/home/samuel/src/fbautostart/fbautostart:\n    <binary>\n\n/home/samuel/src/fbautostart/README.markdown:\n    1: fbautostart ( Fluxbox Autostarter )\n    2  ===================================\n    3  \n    4: fbautostart is an XDG compliant autostarting app for Fluxbox that was designed\n    5  to have little to no overhead, while still maintaining the needed functionality\n    6  of launching applications according to the XDG spec.\n\n/home/samuel/src/fbautostart/THANKS:\n    1: Thanks to Segaja on irc.freenode.net ( #fluxbox ) for\n    2   finding the first bug with the XDG Env vars. Thanks\n    3   So much!\n\n/home/samuel/src/fbautostart/dest/home/samuel/.local/bin/fbautostart:\n    <binary>\n\n/home/samuel/src/fbautostart/dest/home/samuel/.local/share/man/man1/fbautostart.1:\n   66  \\fBFBXDG_DE\\fR\n   67  .RS 4\n   68: Desktop environment that we should act upon\\&. This defaults to \"FLUXBOX\", since this is a fluxbox project, after all\\&. Please note this is case sensitive\\&.\n   69  .RE\n   70  .PP\n   ..\n  106  .SH \"SEE ALSO\"\n  107  .sp\n  108: fluxbox(1)\n  109  .SH \"AUTHOR\"\n  110  .PP\n\n/home/samuel/src/fbautostart/doc/fbautostart.1:\n   66  \\fBFBXDG_DE\\fR\n   67  .RS 4\n   68: Desktop environment that we should act upon\\&. This defaults to \"FLUXBOX\", since this is a fluxbox project, after all\\&. Please note this is case sensitive\\&.\n   69  .RE\n   70  .PP\n   ..\n  106  .SH \"SEE ALSO\"\n  107  .sp\n  108: fluxbox(1)\n  109  .SH \"AUTHOR\"\n  110  .PP\n\n/home/samuel/src/fbautostart/doc/fbautostart.1.in:\n   66  \\fBFBXDG_DE\\fR\n   67  .RS 4\n   68: Desktop environment that we should act upon\\&. This defaults to \"FLUXBOX\", since this is a fluxbox project, after all\\&. Please note this is case sensitive\\&.\n   69  .RE\n   70  .PP\n   ..\n  106  .SH \"SEE ALSO\"\n  107  .sp\n  108: fluxbox(1)\n  109  .SH \"AUTHOR\"\n  110  .PP\n\n/home/samuel/src/fbautostart/doc/Makefile:\n   15  \n   16  \n   17: # doc/Makefile.am for Fluxbox 0.9  - an X11 Window manager\n   18: # Makefile.am for fluxbox/doc\n   19  \n   20  am__is_gnu_make = { \\\n\n/home/samuel/src/fbautostart/doc/Makefile.am:\n    1: # doc/Makefile.am for Fluxbox 0.9  - an X11 Window manager\n    2: # Makefile.am for fluxbox/doc\n    3  \n    4  CLEANFILES = fbautostart.1\n\n/home/samuel/src/fbautostart/doc/Makefile.in:\n   15  @SET_MAKE@\n   16  \n   17: # doc/Makefile.am for Fluxbox 0.9  - an X11 Window manager\n   18: # Makefile.am for fluxbox/doc\n   19  VPATH = @srcdir@\n   20  am__is_gnu_make = { \\\n\n/home/samuel/src/fbautostart/doc/asciidoc/fbautostart.txt:\n   55  *FBXDG_DE*::\n   56  \tDesktop environment that we should act upon. This\n   57: \tdefaults to \"FLUXBOX\", since this is a fluxbox project,\n   58  \tafter all. Please note this is case sensitive.\n   59  \n   ..\n   83  SEE ALSO\n   84  --------\n   85: fluxbox(1)\n   86  \n\n/home/samuel/src/fbautostart/include/comment.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/entry.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/exceptions.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/group.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/invalid.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/key.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/machine.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/main.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/state.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/value.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/xdg_autostart.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/xdg_model.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/xdg_parse.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/xdg_spec.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/comment.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/entry.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/group.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/invalid.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/key.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/machine.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/main.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n    .\n  181      std::cout << \"\" << std::endl;\n  182      std::cout << \" - Chef Tagliamonte\" << std::endl;\n  183:     std::cout << \"       & The Fluxbox Crew\" << std::endl;\n  184      std::cout << \"\" << std::endl;\n  185  }\n\n/home/samuel/src/fbautostart/src/Makefile:\n   15  \n   16  link:\n   17: \t$(CXX) $(TARGETS) -o $(BIN)fluxbox-xdg\n   18  \n   19  .cc.o:\n\n/home/samuel/src/fbautostart/src/state.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/value.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/xdg_autostart.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/xdg_model.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/xdg_parse.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/xdg_spec.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n    .\n   25  #include \"xdg_spec.hh\"\n   26  \n   27: std::string _xdg_window_manager = \"FLUXBOX\"; /* Default DE to start on behalf of */\n   28  \n   29  std::string _xdg_default_global = \"/etc/xdg\";\n\n63 matches across 43 files\n\n\nSearching 1269 files for \"FLUXBOX\"\n\n/home/samuel/src/fbautostart/AUTHORS:\n    1: * Paul Tagliamonte <paultag@fluxbox.org>\n    2  \n\n/home/samuel/src/fbautostart/ChangeLog:\n    1: 2012-06-17  Paul Tagliamonte  <paultag@fluxbox.org>\n    2  \n    3  * ERRATTUM: The fix was for gcc-4.7, not 2.7.\n    .\n   12  * Version bump to 2.718281828\n   13  \n   14: 2012-04-03  Paul Tagliamonte  <paultag@fluxbox.org>\n   15  \n   16  * src/main.cc: Including unistd.h, since we use both fork and execl\n   ..\n   18  Matthias Klose (doko).\n   19  \n   20: 2012-03-16  Paul Tagliamonte  <paultag@fluxbox.org>\n   21  \n   22  * src/xdg_parse.cc(parse_folder): Adjusted this function to only parse\n   23  .desktop files. This closes bug #1 on Github. Thanks, confluence.\n   24  * src/xdg_parse.cc(ends_with): Added this function.\n   25: * Changed all the headers to show my fluxbox email rather then no email.\n   26  * Added documentation blocks to all non-straight forward routines. I'm tired\n   27  of not remembering what my old code does :)\n   ..\n   29  * Version bump to 2.7182818.\n   30  \n   31: 2012-03-08  Paul Tagliamonte  <paultag@fluxbox.org>\n   32  \n   33  * Re-indenteded all the files to use spaces rather then tabs.\n\n/home/samuel/src/fbautostart/CONTRIBUTING:\n  171  \n  172  Format Patch Series\n  173:   This method is 100% fine, as it's the way we do patches in Fluxbox it's self.\n  174    This may also be helpful if you're not using GitHub for reasons such as it's\n  175    status as a free software project. Some advice (only advice, I won't reject\n\n/home/samuel/src/fbautostart/COPYRIGHT:\n    1: Copyright (c) 2010-2012 Paul Tagliamonte <paultag@fluxbox.org>\n    2  \n    3  Permission is hereby granted, free of charge, to any person obtaining a\n\n/home/samuel/src/fbautostart/fbautostart:\n    <binary>\n\n/home/samuel/src/fbautostart/README.markdown:\n    1: fbautostart ( Fluxbox Autostarter )\n    2  ===================================\n    3  \n    4: fbautostart is an XDG compliant autostarting app for Fluxbox that was designed\n    5  to have little to no overhead, while still maintaining the needed functionality\n    6  of launching applications according to the XDG spec.\n\n/home/samuel/src/fbautostart/THANKS:\n    1: Thanks to Segaja on irc.freenode.net ( #fluxbox ) for\n    2   finding the first bug with the XDG Env vars. Thanks\n    3   So much!\n\n/home/samuel/src/fbautostart/dest/home/samuel/.local/bin/fbautostart:\n    <binary>\n\n/home/samuel/src/fbautostart/dest/home/samuel/.local/share/man/man1/fbautostart.1:\n   66  \\fBFBXDG_DE\\fR\n   67  .RS 4\n   68: Desktop environment that we should act upon\\&. This defaults to \"FLUXBOX\", since this is a fluxbox project, after all\\&. Please note this is case sensitive\\&.\n   69  .RE\n   70  .PP\n   ..\n  106  .SH \"SEE ALSO\"\n  107  .sp\n  108: fluxbox(1)\n  109  .SH \"AUTHOR\"\n  110  .PP\n\n/home/samuel/src/fbautostart/doc/fbautostart.1:\n   66  \\fBFBXDG_DE\\fR\n   67  .RS 4\n   68: Desktop environment that we should act upon\\&. This defaults to \"FLUXBOX\", since this is a fluxbox project, after all\\&. Please note this is case sensitive\\&.\n   69  .RE\n   70  .PP\n   ..\n  106  .SH \"SEE ALSO\"\n  107  .sp\n  108: fluxbox(1)\n  109  .SH \"AUTHOR\"\n  110  .PP\n\n/home/samuel/src/fbautostart/doc/fbautostart.1.in:\n   66  \\fBFBXDG_DE\\fR\n   67  .RS 4\n   68: Desktop environment that we should act upon\\&. This defaults to \"FLUXBOX\", since this is a fluxbox project, after all\\&. Please note this is case sensitive\\&.\n   69  .RE\n   70  .PP\n   ..\n  106  .SH \"SEE ALSO\"\n  107  .sp\n  108: fluxbox(1)\n  109  .SH \"AUTHOR\"\n  110  .PP\n\n/home/samuel/src/fbautostart/doc/Makefile:\n   15  \n   16  \n   17: # doc/Makefile.am for Fluxbox 0.9  - an X11 Window manager\n   18: # Makefile.am for fluxbox/doc\n   19  \n   20  am__is_gnu_make = { \\\n\n/home/samuel/src/fbautostart/doc/Makefile.am:\n    1: # doc/Makefile.am for Fluxbox 0.9  - an X11 Window manager\n    2: # Makefile.am for fluxbox/doc\n    3  \n    4  CLEANFILES = fbautostart.1\n\n/home/samuel/src/fbautostart/doc/Makefile.in:\n   15  @SET_MAKE@\n   16  \n   17: # doc/Makefile.am for Fluxbox 0.9  - an X11 Window manager\n   18: # Makefile.am for fluxbox/doc\n   19  VPATH = @srcdir@\n   20  am__is_gnu_make = { \\\n\n/home/samuel/src/fbautostart/doc/asciidoc/fbautostart.txt:\n   55  *FBXDG_DE*::\n   56  \tDesktop environment that we should act upon. This\n   57: \tdefaults to \"FLUXBOX\", since this is a fluxbox project,\n   58  \tafter all. Please note this is case sensitive.\n   59  \n   ..\n   83  SEE ALSO\n   84  --------\n   85: fluxbox(1)\n   86  \n\n/home/samuel/src/fbautostart/include/comment.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/entry.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/exceptions.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/group.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/invalid.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/key.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/machine.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/main.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/state.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/value.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/xdg_autostart.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/xdg_model.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/xdg_parse.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/include/xdg_spec.hh:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/comment.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/entry.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/group.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/invalid.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/key.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/machine.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/main.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n    .\n  181      std::cout << \"\" << std::endl;\n  182      std::cout << \" - Chef Tagliamonte\" << std::endl;\n  183:     std::cout << \"       & The Fluxbox Crew\" << std::endl;\n  184      std::cout << \"\" << std::endl;\n  185  }\n\n/home/samuel/src/fbautostart/src/Makefile:\n   15  \n   16  link:\n   17: \t$(CXX) $(TARGETS) -o $(BIN)fluxbox-xdg\n   18  \n   19  .cc.o:\n\n/home/samuel/src/fbautostart/src/state.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/value.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/xdg_autostart.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/xdg_model.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/xdg_parse.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n\n/home/samuel/src/fbautostart/src/xdg_spec.cc:\n    1  /*\n    2:  * Copyright (C) 2011, Paul Tagliamonte <paultag@fluxbox.org>\n    3   *\n    4   * Permission is hereby granted, free of charge, to any person obtaining a copy\n    .\n   25  #include \"xdg_spec.hh\"\n   26  \n   27: std::string _xdg_window_manager = \"FLUXBOX\"; /* Default DE to start on behalf of */\n   28  \n   29  std::string _xdg_default_global = \"/etc/xdg\";\n\n63 matches across 43 files\n",
+			"settings":
+			{
+				"buffer_size": 22252,
+				"line_ending": "Unix",
+				"name": "Find Results",
+				"scratch": true
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"sftp",
+				"SFTP: Browse Server…"
+			],
+			[
+				"Browse",
+				"Browse Mode..."
+			],
+			[
+				"left",
+				"Browse Mode: Left Sidebar"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"brow",
+				"SFTP: Browse Remote…"
+			],
+			[
+				"brose",
+				"SFTP: Browse Remote…"
+			],
+			[
+				"brw",
+				"SFTP: Browse Remote…"
+			],
+			[
+				"sfto",
+				"SFTP: Browse Server…"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 287.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/samuel/fvwm-themes-0.7.0"
+	],
+	"file_history":
+	[
+		"/home/samuel/.fvwm/.FvwmForm-XDGMenu-Config",
+		"/home/samuel/.xinitrc",
+		"/home/samuel/.fvwm/themes/personal/menus-extra",
+		"/home/samuel/fvwm-themes-0.7.0/sounds.tar.gz",
+		"/home/samuel/src/android_studio.desktop",
+		"/tmp/sublime-sftp-browse-1544821440/taptest17/home/taptest17/public_html/z_inc/inc.queries.php",
+		"/tmp/sublime-sftp-browse-1544832369/taptest17/home/taptest17/public_html/z_inc/inc.edgeRouted_helper.php",
+		"/tmp/sublime-sftp-browse-1544820258/taptest17/home/taptest17/public_html/z_inc/inc.edgePolish_helper.php",
+		"/tmp/sublime-sftp-browse-1544819064/taptest17/home/taptest17/public_html/z_js/item_config.js",
+		"/tmp/sublime-sftp-browse-1544819014/taptest17/home/taptest17/public_html/z_js/product_detail.js",
+		"/tmp/sublime-sftp-browse-1544828016/taptest17/home/taptest17/public_html/z_view/product/productDetail.php",
+		"/tmp/sublime-sftp-browse-1544838177/taptest17/home/taptest17/public_html/z_view/_mobile/product/product_detail.php",
+		"/tmp/sublime-sftp-browse-1544838644/taptest17/home/taptest17/public_html/z_css/_mobile/product.css",
+		"/home/samuel/src/depresolver/README",
+		"/home/samuel/Desktop/productDetail.php",
+		"/home/samuel/Desktop/Trash",
+		"/usr/src/mylfs2/BUILD/neofetch-5.0.0/Makefile",
+		"/home/samuel/.config/sublime-text-3/Packages/FileBrowser/dired.sublime-settings",
+		"/tmp/mozilla_samuel0/libxcb-1.12-python3-1.patch",
+		"/tmp/sublime-sftp-browse-1544384473/taptest17/home/taptest17/public_html/queries.log",
+		"/tmp/sublime-sftp-browse-1544319773/taptest17/home/taptest17/public_html/z_css/product.css",
+		"/tmp/sublime-sftp-browse-1544309913/taptest17/home/taptest17/public_html/z_inc/inc.edgeRounded_helper.php",
+		"/tmp/sublime-sftp-browse-1544323524/taptest17/home/taptest17/public_html/z_inc/inc.edgeRouted_helper.php",
+		"/tmp/sublime-sftp-browse-1544384329/taptest17/home/taptest17/public_html/queries.log",
+		"/tmp/sublime-sftp-browse-1544384199/taptest17/home/taptest17/public_html/queries.log",
+		"/tmp/sublime-sftp-browse-1544383997/taptest17/home/taptest17/public_html/queries.log",
+		"/tmp/sublime-sftp-browse-1544383715/taptest17/home/taptest17/public_html/z_inc/inc.queries.php",
+		"/tmp/sublime-sftp-browse-1544382809/taptest17/home/taptest17/php_errors.log",
+		"/tmp/sublime-sftp-browse-1544382771/taptest17/home/taptest17/public_html/php_errors.log",
+		"/tmp/sublime-sftp-browse-1544307029/taptest17/home/taptest17/public_html/z_inc/inc.queries.php",
+		"/tmp/sublime-sftp-browse-1544319297/taptest17/home/taptest17/public_html/z_view/product/productDetail.php",
+		"/tmp/sublime-sftp-browse-1544308232/taptest17/home/taptest17/public_html/z_inc/inc.edgeRouted_helper.php",
+		"/tmp/sublime-sftp-browse-1544305984/taptest17/home/taptest17/public_html/z_inc/inc.edgePolish_helper.php",
+		"/tmp/sublime-sftp-browse-1544219819/taptest17/home/taptest17/public_html/z_js/product_detail.js",
+		"/tmp/sublime-sftp-browse-1544220434/taptest17/home/taptest17/public_html/z_inc/inc.itemConfig_helper.php",
+		"/tmp/sublime-sftp-browse-1544219200/taptest17/home/taptest17/public_html/z_view/product/productDetail.php",
+		"/tmp/sublime-sftp-browse-1544214953/taptest17/home/taptest17/public_html/z_js/item_config.js",
+		"/tmp/sublime-sftp-browse-1544238358/taptest17/home/taptest17/public_html/z_inc/upsRate.php",
+		"/tmp/sublime-sftp-browse-1544238312/taptest17/home/taptest17/public_html/z_inc/inc.itemConfig_helper.php",
+		"/tmp/sublime-sftp-browse-1544238263/taptest17/home/taptest17/public_html/z_inc/inc.site_config.php",
+		"/tmp/sublime-sftp-browse-1544218587/taptest17/home/taptest17/public_html/phpfriendly/.htaccess",
+		"/tmp/sublime-sftp-browse-1544216742/taptest17/home/taptest17/public_html/z_inc/inc.site_config.php",
+		"/tmp/sublime-sftp-browse-1544218501/taptest17/home/taptest17/public_html/phpfriendly/admin/regdb.php",
+		"/home/samuel/.config/sublime-text-3/Packages/User/Package Control.sublime-settings",
+		"/home/samuel/.config/sublime-text-3/Packages/User/sftp_servers/taptest17",
+		"/tmp/sublime-sftp-browse-1544106677/taptest17/home/taptest17/public_html/z_view/product/productDetail.php",
+		"/tmp/sublime-sftp-browse-1544133877/taptest17/home/taptest17/public_html/z_view/_mobile/product/product_detail.php",
+		"/tmp/sublime-sftp-browse-1544135437/taptest17/home/taptest17/public_html/z_js/global.js",
+		"/tmp/sublime-sftp-browse-1544137957/taptest17/home/taptest17/public_html/z_js/item_config.js",
+		"/tmp/sublime-sftp-browse-1544139740/taptest17/home/taptest17/public_html/z_js/product_detail.js",
+		"/tmp/mozilla_samuel0/0001-fixed-rundeps.patch",
+		"/home/samuel/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
+		"/tmp/sublime-sftp-browse-1544135479/taptest17/home/taptest17/public_html/z_js/_mobile/global.js",
+		"/tmp/sublime-sftp-browse-1544135400/taptest17/home/taptest17/public_html/z_js/general.js",
+		"/home/samuel/src/sylpheed-3.7.0/INSTALL",
+		"/home/samuel/src/sylpheed-3.7.0/README",
+		"/tmp/sublime-sftp-browse-1544106918/taptest17/home/taptest17/public_html/z_view/_mobile/product/product_detail.php",
+		"/applications-merged/xdgtestdata-xdgt2018-11-15-032624.menu",
+		"/home/samuel/applications.menu",
+		"/usr/bin/fvwm-menu-desktop",
+		"/home/samuel/Applications.directory"
+	],
+	"find":
+	{
+		"height": 26.0
+	},
+	"find_in_files":
+	{
+		"height": 137.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"FLUXBOX",
+			"thickness",
+			"thicknessRow",
+			"cm",
+			"foot",
+			".prop",
+			".prop()",
+			"#wholeWidth",
+			"updateCTSAddOnPrice",
+			"edgeRouted_helper",
+			"#polishing",
+			"thickness",
+			"thicness",
+			"calCtsPrice",
+			"calcCtsPrice",
+			"updateCTSPrice",
+			"calCtsPrice",
+			"getPolishCost",
+			"getEdgePolishCostByThickness",
+			"$(\"#inch\").prop(\"checked\") ?",
+			"edgePolish_helper",
+			"getPolishCost",
+			"SELECT * FROM edgePolish",
+			"getEdgePolishCostByThickness"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/home/samuel/src/fbautostart/src/xdg_spec.cc",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 1367,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1225,
+								1225
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 22252,
+						"regions":
+						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										109,
+										116
+									],
+									[
+										217,
+										224
+									],
+									[
+										388,
+										395
+									],
+									[
+										574,
+										581
+									],
+									[
+										849,
+										856
+									],
+									[
+										1116,
+										1123
+									],
+									[
+										1353,
+										1360
+									],
+									[
+										1641,
+										1648
+									],
+									[
+										1865,
+										1872
+									],
+									[
+										1998,
+										2005
+									],
+									[
+										2256,
+										2263
+									],
+									[
+										2622,
+										2629
+									],
+									[
+										2648,
+										2655
+									],
+									[
+										2784,
+										2791
+									],
+									[
+										2982,
+										2989
+									],
+									[
+										3008,
+										3015
+									],
+									[
+										3144,
+										3151
+									],
+									[
+										3345,
+										3352
+									],
+									[
+										3371,
+										3378
+									],
+									[
+										3507,
+										3514
+									],
+									[
+										3638,
+										3645
+									],
+									[
+										3700,
+										3707
+									],
+									[
+										3825,
+										3832
+									],
+									[
+										3887,
+										3894
+									],
+									[
+										4043,
+										4050
+									],
+									[
+										4105,
+										4112
+									],
+									[
+										4329,
+										4336
+									],
+									[
+										4355,
+										4362
+									],
+									[
+										4480,
+										4487
+									],
+									[
+										4615,
+										4622
+									],
+									[
+										4839,
+										4846
+									],
+									[
+										5068,
+										5075
+									],
+									[
+										5292,
+										5299
+									],
+									[
+										5518,
+										5525
+									],
+									[
+										5740,
+										5747
+									],
+									[
+										5966,
+										5973
+									],
+									[
+										6189,
+										6196
+									],
+									[
+										6413,
+										6420
+									],
+									[
+										6637,
+										6644
+									],
+									[
+										6869,
+										6876
+									],
+									[
+										7097,
+										7104
+									],
+									[
+										7325,
+										7332
+									],
+									[
+										7552,
+										7559
+									],
+									[
+										7774,
+										7781
+									],
+									[
+										7994,
+										8001
+									],
+									[
+										8214,
+										8221
+									],
+									[
+										8436,
+										8443
+									],
+									[
+										8654,
+										8661
+									],
+									[
+										8876,
+										8883
+									],
+									[
+										9095,
+										9102
+									],
+									[
+										9350,
+										9357
+									],
+									[
+										9528,
+										9535
+									],
+									[
+										9672,
+										9679
+									],
+									[
+										9892,
+										9899
+									],
+									[
+										10120,
+										10127
+									],
+									[
+										10344,
+										10351
+									],
+									[
+										10568,
+										10575
+									],
+									[
+										10791,
+										10798
+									],
+									[
+										10987,
+										10994
+									],
+									[
+										11236,
+										11243
+									],
+									[
+										11344,
+										11351
+									],
+									[
+										11515,
+										11522
+									],
+									[
+										11701,
+										11708
+									],
+									[
+										11976,
+										11983
+									],
+									[
+										12243,
+										12250
+									],
+									[
+										12480,
+										12487
+									],
+									[
+										12768,
+										12775
+									],
+									[
+										12992,
+										12999
+									],
+									[
+										13125,
+										13132
+									],
+									[
+										13383,
+										13390
+									],
+									[
+										13749,
+										13756
+									],
+									[
+										13775,
+										13782
+									],
+									[
+										13911,
+										13918
+									],
+									[
+										14109,
+										14116
+									],
+									[
+										14135,
+										14142
+									],
+									[
+										14271,
+										14278
+									],
+									[
+										14472,
+										14479
+									],
+									[
+										14498,
+										14505
+									],
+									[
+										14634,
+										14641
+									],
+									[
+										14765,
+										14772
+									],
+									[
+										14827,
+										14834
+									],
+									[
+										14952,
+										14959
+									],
+									[
+										15014,
+										15021
+									],
+									[
+										15170,
+										15177
+									],
+									[
+										15232,
+										15239
+									],
+									[
+										15456,
+										15463
+									],
+									[
+										15482,
+										15489
+									],
+									[
+										15607,
+										15614
+									],
+									[
+										15742,
+										15749
+									],
+									[
+										15966,
+										15973
+									],
+									[
+										16195,
+										16202
+									],
+									[
+										16419,
+										16426
+									],
+									[
+										16645,
+										16652
+									],
+									[
+										16867,
+										16874
+									],
+									[
+										17093,
+										17100
+									],
+									[
+										17316,
+										17323
+									],
+									[
+										17540,
+										17547
+									],
+									[
+										17764,
+										17771
+									],
+									[
+										17996,
+										18003
+									],
+									[
+										18224,
+										18231
+									],
+									[
+										18452,
+										18459
+									],
+									[
+										18679,
+										18686
+									],
+									[
+										18901,
+										18908
+									],
+									[
+										19121,
+										19128
+									],
+									[
+										19341,
+										19348
+									],
+									[
+										19563,
+										19570
+									],
+									[
+										19781,
+										19788
+									],
+									[
+										20003,
+										20010
+									],
+									[
+										20222,
+										20229
+									],
+									[
+										20477,
+										20484
+									],
+									[
+										20655,
+										20662
+									],
+									[
+										20799,
+										20806
+									],
+									[
+										21019,
+										21026
+									],
+									[
+										21247,
+										21254
+									],
+									[
+										21471,
+										21478
+									],
+									[
+										21695,
+										21702
+									],
+									[
+										21918,
+										21925
+									],
+									[
+										22114,
+										22121
+									]
+								],
+								"scope": ""
+							}
+						},
+						"selection":
+						[
+							[
+								13892,
+								13892
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"incomplete_sync": null,
+							"line_numbers": false,
+							"output_tag": 2,
+							"result_base_dir": "",
+							"result_file_regex": "^([^ \t].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 4066.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 51.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.sftp":
+	{
+		"height": 247.0
+	},
+	"pinned_build_system": "",
+	"project": "leoware-themes.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 247.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

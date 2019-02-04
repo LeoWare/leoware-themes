@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN">
+<html lang="en">
+<title>FVWM Themes Center Documentation</title>
+
+<h1 align=center>Документация по Центру FVWM Themes</h1>
+<div id="abstract">
+<p><em>Центр Тем</em> - это интерфейс на базе FvwmScript, позволяющий
+Вам управлять темами, общими установками и сессиями FVWM Themes.
+Вы можете запустить его из мену <em>Theme Management / Themes Center GUI</em>.
+</div>
+
+<h3>Содержимое</h3>
+<ol>
+	<li>Выбор Тем</li>
+	<li>Общие Установки</li>
+	<li>Сессии FVWM Themes</li>
+	<li>Разное</li>
+	<li>Ошибки и Вопросы</li>
+</ol>
+
+<h3>1. Выбор Тем</h3>
+
+<p>Слева сверху показан список всех найденных тем. Когда одна из этих тем
+выбрана, список всех компоненетов данной темы показывается сверху справа.
+При этом вы можете выбрать все компоненты данной темы, используя
+кнопку <em>Взять Все</em>, выбрать только компоненты вида, используя
+кнопку <em>Взять Вид</em>, либо выбрать индивидуальный компонент данной темы
+и нажать кнопку <em>Взять</em>. Для получения информации о теме
+можно нажать на кнопку <em>Инфо</em>.
+
+
+<p>Ваша текущая конфигурация и все изменения, которые вы собираетесь
+осуществить, отражены в списке компонентов в нижней половине. Первый столбик
+списка показывает имя компонента, второй - тему из которой данный компонент
+взят, третий (пустой вначале) показывают новую выбранную тему для данного
+компонента, если она отличается от оригинальной (выбор нового компонента
+объяснен выше). И наконец, последний столбик может содержать <em>Var</em>,
+<em>Opt</em> или <em>V/O</em>, означачающие, что данный компонент темы
+(текущий или ново-выбранный) имеет варианты или опции.
+
+
+<p>If a component has variants or options you can modify them by selecting
+the component (in the bottom list) and clicking the <em>Properties</em>
+button. Moreover, you can restore the used theme of the component (unset
+your component theme change) using the <em>Restore</em> button, and you can
+lock the component (so that "load all" for a theme will ignore this
+component) using the <em>Lock</em> button. The <em>Drop</em> button is not
+yet implemented.
+
+
+<p>Now to apply your changes, you have to use the <em>Apply</em> button at
+the bottom. The <em>Refresh</em> button is similar to the <em>Apply</em> in
+that the entire current configuration is reloaded, but your changes are not
+applied. The <em>Update</em> button just rebuilds the lists used in the the
+Themes Selector configuration; this is useful if you made changes in
+components using other tools, like as the <em>Theme Management</em> menu or
+using <em>fvwm-themes-config</em> from a command line.
+
+
+<h3>2. Общие Установки</h3>
+
+<p>The <em>General Settings</em> tool enables to do the same job that with
+the <em>Theme Management -> current -> settings -></em> sub-menu or
+equivalent form-based and gtk-based ThemeSettings samples. The top field
+list represents your used and set configuration. To modify a setting, select
+one component and then a field list will appear below so that you can choose
+another variant for this component. All buttons at the bottom work like in
+the <em>Themes Selector</em> tool screen.
+
+
+<p>Important Note: Clicking on the <em>Apply</em> applies changes in both
+<em>Themes Selector</em> and <em>General Settings</em> tool screens.
+
+
+<h3>3. Сессии FVWM Themes</h3>
+
+<p>FVWM Themes has its own session concept. See the fvwm-themes-start manual
+page and the FAQ for details on this. This is useful to run different FVWM
+Themes configurations. The GUI seems really intuitive (there is already a
+mini doc in it), so we will not go further.
+
+
+<p>However, here are some tips showing how sessions can be useful. If you
+want to make a fast test without forgetting your current configuration, add
+a session named <em>test</em> (or reuse the existing <em>test</em> session),
+and define your current (usually <em>main</em>) session configuration for
+it. After defining <em>test</em> session as described, click on <em>Apply</em>.
+Now, you can use the <em>Themes Selector</em> and the <em>General
+Settings</em> tools freely without modifying your main configuration. You
+can always return to your <em>main</em> session, restoring the previous
+configuration, or, if you prefer, you can update your <em>main</em>
+configuration from the current <em>test</em> configuration using the same
+method as described above.
+
+
+<h3>4. Разное</h3>
+
+<p>Эта утилита может принимать несколько параметров. Она запускается
+из меню <em>Themes Management</em> следующим образом:
+
+<blockquote>
+  FvwmScript FvwmScript-ThemesCenter
+    --text-colorset 36 --viewer-colorset 33
+</blockquote>
+
+<p>Т.е., colorset 36 используется для списков или текстовых полей и colorset 33
+используется для строки подсказки (и в дополнении каждая утилита FvwmScript
+использует colorset 35 для своих основных цветов). Существует дополнительный
+параметер --lang xx, где xx это последние 2 буквы из unix LANG, как например
+в "ru_RU.koi8r". По умолчанию LANG устанавливается согласно переменной среды
+пользователя $LANG или "en". Пока поддерживаются значения en, fr и ru.
+
+
+<h3>5. Ошибки и Вопросы</h3>
+
+<p>Сообщайте о найденных ошибках в:
+<a href="mailto:fvwm-themes-devel@lists.sourceforge.net">
+fvwm-themes-devel@lists.sourceforge.net</a>.
+
+<p>Вопросы направляйте в:
+<a href="mailto:fvwm-themes-users@lists.sourceforge.net">
+fvwm-themes-users@lists.sourceforge.net</a>.

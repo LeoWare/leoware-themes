@@ -1,0 +1,28 @@
+DestroyFunc MouseXX
+AddToFunc   MouseXX
++ I Mouse $0 $2 $3 $4 "$5" "$6" "$7" "$8" "$9"
+
+# For stroke:
+# Mouse 3 on root window without modifier
+DestroyFunc FuncFvwmButton3OnRootWindow
+AddToFunc   FuncFvwmButton3OnRootWindow
++ I Menu MenuFvwmWindowOps
+
+# Alt Mouse 3 into a normal window
+DestroyFunc FuncFvwmButton3OnWindow
+AddToFunc   FuncFvwmButton3OnWindow
++ I Menu MenuFvwmWindowOps
+
+# For ewmh
+DestroyFunc FuncFvwmEWMHBindingsButton3OnRootWindow
+AddToFunc   FuncFvwmEWMHBindingsButton3OnRootWindow
++ I Mouse 3 R M Menu MenuFvwmWindowOps
+
+DestroyFunc FuncFvwmNoEWMHBindingsButton3OnRootWindow
+AddToFunc   FuncFvwmNoEWMHBindingsButton3OnRootWindow
++ I Mouse 3 R A Menu MenuFvwmWindowOps
+
+DestroyFunc FuncFvwmEWMHButton2OnRootWindow
+AddToFunc   FuncFvwmEWMHButton2OnRootWindow
++ I WindowList
+

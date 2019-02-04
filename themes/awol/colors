@@ -1,0 +1,131 @@
+# colors@awol
+
+# more details and comments can be found in colors@default
+# I.   FVWM Colorsets
+# II.  Module Colorsets
+# III. Application Colorsets
+# IV.  Start/Stop Functions
+
+# ----------------------------------------------------------------------------
+# I. Fvwm Colorsets
+
+# ----------------
+# Default colorset
+
+Colorset 0 fg blue4, bg grey77, hi grey88, sh grey65, Plain, NoShape
+
+# ------------------
+# Window decorations
+
+# window title, inactive and active
+Colorset 1 fg blue4, bg grey60, hi grey72, sh grey38, Plain, NoShape
+Colorset 2 fg DarkGreen, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# window borders, inactive and active
+Colorset 3 fg blue4, bg grey60, hi grey72, sh grey38, Plain, NoShape
+Colorset 4 fg DarkGreen, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# background for window title, buttons and border
+DestroyFunc FuncFvwmDecorBackground
+AddToFunc   FuncFvwmDecorBackground
++ I TitleStyle AllActiveUp   Simple
++ I TitleStyle AllActiveDown DGradient 400 3 grey45 100 grey88 1 grey45 100 grey88
++ I TitleStyle AllInactive   Simple
+#
++ I ButtonStyle All Simple -- UseTitleStyle
+
+# --------------
+# Menu Colorsets
+
+# inactive menu item fg+bg and menu face
+Colorset 5 fg blue4, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# active menu item fg+bg
+Colorset 6 fg DarkGreen, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# greyed menu item fg
+Colorset 7 fg gray60, bg grey60, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# II. Module Colorsets
+
+# ----------------
+# Common Colorsets
+
+# default for modules
+Colorset 10 fg blue4, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# default hilight
+Colorset 11 fg DarkGreen, bg grey60, hi grey72, sh grey38, Plain, NoShape
+
+# special
+Colorset 12 fg blue, bg grey77, Plain, NoShape
+
+# swallowed window
+Colorset 13 fg blue4, bg grey77, hi grey20, sh blue, Plain, NoShape
+
+# default2 (FvwmPager or to get more colors in Buttons)
+Colorset 14 fg blue4, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# default hilight2: (FvwmPager or to get more colors in a Buttons)
+Colorset 15 fg DarkGreen, bg grey60, hi grey72, sh grey38, Plain, NoShape
+
+# tips/balloons
+Colorset 16 fg DarkGreen, CGradient 400 grey90 grey70
+
+# ----------------------------
+# Window List Module Colorsets
+
+# standard item
+Colorset 17 fg blue4, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# active item
+Colorset 18 fg DarkGreen, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# iconified item
+Colorset 19 fg yellow2, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# pointed item
+Colorset 20 fg red4, bg grey77, hi grey90, sh grey57, Plain, NoShape
+
+# ----------------------
+# Other Module Colorsets
+
+# FvwmIdent
+Colorset 21 fg black, bg rgb:FF/FF/D0, Plain, NoShape
+
+# FvwmConsole
+Colorset 22 fg DarkBlue, bg lightblue, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# III. Application Colorsets
+
+# regular terminal
+Colorset 30 fg white, bg DarkBlue, Plain, NoShape
+
+# admin terminal
+Colorset 31 fg white, bg DarkCyan, Plain, NoShape
+
+# remote terminal
+Colorset 32 fg white, bg DarkRed, Plain, NoShape
+
+# viewer terminal
+Colorset 33 fg yellow, bg navy, Plain, NoShape
+
+# application run in the terminal, text editor
+Colorset 34 fg black, bg grey70, Plain, NoShape
+
+# dialog main area
+Colorset 35 fg white, bg rgb:90/90/70, Plain, NoShape
+
+# dialog text area
+Colorset 36 fg black, bg rgb:e4/d2/c0, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# IV. Start/Stop Functions
+
+DestroyFunc FuncFvwmStartColors
+AddToFunc   FuncFvwmStartColors
+
+DestroyFunc FuncFvwmStopColors
+AddToFunc   FuncFvwmStopColors

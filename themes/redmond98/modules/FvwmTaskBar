@@ -1,0 +1,33 @@
+#------------------------------------------------------------------------------
+#------------------ FvwmTaskBar
+#------------------------------------------------------------------------------
+
+DestroyModuleConfig FvwmTaskBar: *
+
+# defined in the option
+#*FvwmTaskBar: Geometry +0-0
+*FvwmTaskBar: Colorset 17
+# Not a misprint!
+*FvwmTaskBar: FocusColorset 17
+*FvwmTaskBar: IconColorset 19
+*FvwmTaskBar: TipsColorset 16
+
+*FvwmTaskBar: Action Click1 FuncFvwmDeiconifyFocusAndRaise
+*FvwmTaskBar: Action Click2 Iconify
+*FvwmTaskBar: Action Click3 Popup MenuFvwmWindowOps2 Mouse c -102m
+*FvwmTaskBar: UseSkipList
+*FvwmTaskBar: AutoStick
+*FvwmTaskBar: StartName Start
+# menu is defined in the option taskbarpos/
+#*FvwmTaskBar: StartMenu MenuFvwmStartMenu Mouse -100p -100m
+#*FvwmTaskBar: StartMenu MenuFvwmStartMenu Root +0p o100-32p
+#*FvwmTaskBar: StartMenu MenuFvwmStartMenu Root +1p o100-27p
+*FvwmTaskBar: StartIcon 16x16/linux.xpm
+*FvwmTaskBar: MailCommand FuncFvwmMail
+*FvwmTaskBar: ShowTips
+*FvwmTaskBar: ShowTransients
+#*FvwmTaskBar: HighlightFocus
+# defined in the options
+#*FvwmTaskBar: AutoHide
+#*FvwmTaskBar: DeskOnly
+*FvwmTaskBar: NoIconAction SendToModule FvwmAnimate animate

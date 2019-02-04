@@ -1,0 +1,411 @@
+#!/usr/bin/perl -w
+
+# This module is intended to contol RedmondXP panel by changing
+# its configuration dynamically.
+
+use strict;
+use lib `fvwm-config -p | tr -d '\n'`;
+#use lib `fvwm-perllib dir`;
+use FVWM::Module;
+use General::FileSystem '-quiet';
+use General::Parse;
+
+# configuration variables
+my $fullName = $0;
+my $name = $fullName; $name =~ s|.*/||g;
+my $configFile = ".$name.cfg";
+
+my $clockFormats = {
+	time => [
+		'%H:%M',
+		'%a, %H:%M',
+		'%H:%M, %a',
+		'%I:%M %P',
+		'%I:%M %p',
+	],
+	date => [
+		'%d %h',
+		'%d %B',
+		'%h %d',
+		'%B %d',
+		'%a, %d %h',
+		'%h %d, %a',
+		'%a %d',
+		'%x',
+		'%d-%b-%Y',
+		'%1d %b %Y',
+		'%b %1d %Y',
+		'%b/%d/%Y',
+		'%d/%m/%y',
+		'%m/%d/%y',
+		'%Y-%m-%d',
+	],
+};
+
+my $clockFieldOrder = [
+	[ 'time', 'date' ], [ 'date', 'time' ], [ 'time' ], [ 'date' ],
+];
+
+my $config = {
+	'taskbar-resolution' => 'page',
+	'taskbar-normalicons' => 0,
+	'pagebar-show-single' => 0,
+	'pagebar-show-desker' => 0,
+	'pagebar-switch-position' => 0,
+	'clockbar-field-order' => 0,
+	'clockbar-time-format' => 0,
+	'clockbar-date-format' => 0,
+};
+my $newConfig = {};
+
+my $singlePagerSize = "91x85";
+my $deskerPagerSize = "91x343";
+my $pagerPositions = [ "+0+0", "-0+0" ];
+my $iconboxPadding = 10;
+my $iconboxPagerSpace = 100;
+my $currPageNum = -1;  # support 4 pages 2x2
+my $currDeskNum = 0;
+
+my $module = new FVWM::Module(
+	Name => $name,
+	Mask => M_NEW_PAGE | M_NEW_DESK | M_STRING,
+#	Debug => 1,
+);
+
+sub loadConfig () {
+	my $textRef = loadFile($configFile);
+	return unless defined $textRef;
+
+	foreach (split(/\n/s, $$textRef)) {
+		next unless /=/;
+		my ($key, $value) = split(/=/, $_, 2);
+		$newConfig->{$key} = $value if exists $config->{$key};
+	}
+}
+
+sub saveConfig () {
+	my $text = "";
+	foreach (sort keys %$config) {
+		$text .= "$_=$config->{$_}\n";
+	}
+	saveFile($configFile, \$text);
+}
+
+local $SIG{ALRM} = \&showClockNowAndRegularly;
+my $clockStarted = 0;
+sub showClockNowAndRegularly () {
+	alarm(0);
+	$clockStarted = 1;
+
+	my @formats = ();
+	foreach (@{$clockFieldOrder->[$config->{'clockbar-field-order'}]}) {
+		push @formats, $clockFormats->{$_}->
+			[$config->{"clockbar-$_-format"}];
+	}
+	# optimization, call date only once for both time and date
+	my $command = "date '+" . join('%n', @formats) . "'";
+	my $output = `$command`;
+	chomp($output);
+	my @strings = split(/\n/s, $output);
+	my $bi = 1;
+	foreach (@strings) {
+		$module->send("SendToModule FvwmButtons-Panel " .
+			"ChangeButton clock$bi Title '$_'");
+		$bi++;
+	}
+
+	alarm(20);
+}
+
+sub applyNewConfig () {
+	my $updateClock = 0;
+	my $updateIconbox = 0;
+	my $updateSinglePager = 0;
+	my $updateDeskerPager = 0;
+
+	my $key;
+	foreach $key (keys %$newConfig) {
+		my $newValue = $newConfig->{$key};
+		my $oldValue = $config->{$key};
+		die("Internal error: undefined key ($key)")
+			unless defined $newValue && defined $oldValue;
+		delete $newConfig->{$key};
+		next if $newValue eq $oldValue;
+		my $isBadValue = 0;
+
+		if ($key eq 'pagebar-show-single') {
+			$updateSinglePager = 1;
+		}
+		if ($key eq 'pagebar-show-desker') {
+			$updateDeskerPager = 1;
+		}
+		if ($key eq 'pagebar-switch-position') {
+			$newValue = 0 if $newValue ne "1";
+
+			my $singleGeo = $singlePagerSize;
+			$singleGeo .= $pagerPositions->[$newValue];
+			$module->send("*FvwmPager-Single: Geometry $singleGeo");
+			$updateSinglePager = 1;
+
+			my $deskerGeo = $deskerPagerSize;
+			$deskerGeo .= $pagerPositions->[1 - $newValue];
+			$module->send("*FvwmPager-Desker: Geometry $deskerGeo");
+			$updateDeskerPager = 1;
+		}
+		if ($key eq 'taskbar-resolution') {
+			$module->send("*FvwmIconMan: resolution $newValue");
+		}
+		if ($key eq 'taskbar-normalicons') {
+			my $not = $newValue? "!": "";
+			$module->send("Style * ${not}NoIcon");
+		}
+		if ($key eq 'clockbar-field-order') {
+			if ($newValue < 0 || $newValue >= @$clockFieldOrder) {
+				$isBadValue = 1;
+				$module->send('FuncFvwmShowMessage "Sorry" "Internal problem #1"');
+			} elsif ($newValue < 2) {
+				$updateClock = 1;
+			} else {
+				$isBadValue = 1;
+				$module->send('FuncFvwmShowMessage "Sorry" "This choice is not supported yet"');
+			}
+		}
+		if ($key =~ /^clockbar-(\w+)-format$/) {
+			my $formats = $clockFormats->{$1};
+			unless (ref($formats) eq 'ARRAY' && @$formats) {
+				$isBadValue = 1;
+			} else {
+				# ensure a value is in range
+				$newValue = $newValue % @$formats;
+				$updateClock = 1;
+			}
+		}
+
+		$config->{$key} = $newValue unless $isBadValue;
+	}
+
+	if ($updateClock) {
+		showClockNowAndRegularly();
+	}
+	if ($updateSinglePager) {
+		$module->send("KillModule FvwmPager FvwmPager-Single");
+		$module->send("FvwmPager FvwmPager-Single")
+			if $config->{'pagebar-show-single'};
+		$updateIconbox = 1;
+	}
+	if ($updateDeskerPager) {
+		$module->send("KillModule FvwmPager FvwmPager-Desker");
+		$module->send("FvwmPager FvwmPager-Desker 0 3")
+			if $config->{'pagebar-show-desker'};
+		$updateIconbox = 1;
+	}
+	if ($updateIconbox) {
+		my $x1 = $iconboxPadding;
+		my ($y1, $x2, $y2) = ($x1, -$x1, -30 - $x1);
+		if ($config->{'pagebar-switch-position'}) {
+			$x1 += $iconboxPagerSpace if $config->{'pagebar-show-desker'};
+			$x2 -= $iconboxPagerSpace if $config->{'pagebar-show-single'};
+		} else {
+			$x1 += $iconboxPagerSpace if $config->{'pagebar-show-single'};
+			$x2 -= $iconboxPagerSpace if $config->{'pagebar-show-desker'};
+		}
+		$module->send("Style * IconBox screen w $x1 $y1 $x2 $y2 p");
+	}
+
+	saveConfig();
+}
+
+sub checkBoxIcon ($) {
+	return $_[0]? "item": "empty";
+}
+
+sub radioBoxIcon ($) {
+	return $_[0]? "choice-yes": "empty";
+}
+
+sub popupPageBarConfigMenu ($) {
+	my $addition = shift;
+	my $iconSSP = checkBoxIcon($config->{'pagebar-show-single'});
+	my $iconSDP = checkBoxIcon($config->{'pagebar-show-desker'});
+	my $iconSPP = checkBoxIcon($config->{'pagebar-switch-position'});
+	my $iconGD0 = radioBoxIcon($currDeskNum == 0);
+	my $iconGD1 = radioBoxIcon($currDeskNum == 1);
+	my $iconGD2 = radioBoxIcon($currDeskNum == 2);
+	my $iconGD3 = radioBoxIcon($currDeskNum == 3);
+	my $backCmd = "SendToModule $fullName";
+
+	$module->send(qq{
+		DestroyMenu PanelPageBarConfigMenu
+		AddToMenu   PanelPageBarConfigMenu
+		+ "%menu/$iconSSP.xpm%Show Single Pager" $backCmd toggle pagebar-show-single
+		+ "%menu/$iconSDP.xpm%Show Desker Pager" $backCmd toggle pagebar-show-desker
+		+ "%menu/$iconSPP.xpm%Switch Pager Position" $backCmd toggle pagebar-switch-position
+		+ "" Nop
+		+ "%menu/$iconGD0.xpm%Goto Desk 0" GotoDesk 0 0
+		+ "%menu/$iconGD1.xpm%Goto Desk 1" GotoDesk 0 1
+		+ "%menu/$iconGD2.xpm%Goto Desk 2" GotoDesk 0 2
+		+ "%menu/$iconGD3.xpm%Goto Desk 3" GotoDesk 0 3
+
+		Popup PanelPageBarConfigMenu $addition
+	});
+}
+
+sub popupTaskBarConfigMenu ($) {
+	my $addition = shift;
+	my $iconSNI = checkBoxIcon($config->{'taskbar-normalicons'});
+	my $iconTRP = radioBoxIcon($config->{'taskbar-resolution'} eq 'page');
+	my $iconTRS = radioBoxIcon($config->{'taskbar-resolution'} eq 'screen');
+	my $iconTRD = radioBoxIcon($config->{'taskbar-resolution'} eq 'desk');
+	my $iconTRG = radioBoxIcon($config->{'taskbar-resolution'} eq 'global');
+	my $backCmd = "SendToModule $fullName";
+
+	$module->send(qq{
+		DestroyMenu PanelTaskBarConfigMenu
+		AddToMenu   PanelTaskBarConfigMenu
+		+ "%menu/$iconSNI.xpm%Show Normal Icons" $backCmd toggle taskbar-normalicons
+		+ "" Nop
+		+ "%menu/$iconTRP.xpm%Resolution: page"   $backCmd set taskbar-resolution page
+		+ "%menu/$iconTRS.xpm%Resolution: screen" $backCmd set taskbar-resolution screen
+		+ "%menu/$iconTRD.xpm%Resolution: desk"   $backCmd set taskbar-resolution desk
+		+ "%menu/$iconTRG.xpm%Resolution: global" $backCmd set taskbar-resolution global
+
+		Popup PanelTaskBarConfigMenu $addition
+	});
+}
+
+sub popupClockBarConfigMenu ($) {
+	my $addition = shift;
+	my $iconFO0 = radioBoxIcon($config->{'clockbar-field-order'} == 0);
+	my $iconFO1 = radioBoxIcon($config->{'clockbar-field-order'} == 1);
+	my $iconFO2 = radioBoxIcon($config->{'clockbar-field-order'} == 2);
+	my $iconFO3 = radioBoxIcon($config->{'clockbar-field-order'} == 3);
+	my $backCmd = "SendToModule $fullName";
+
+	$module->send(qq{
+		DestroyMenu PanelClockBarConfigMenu
+		AddToMenu   PanelClockBarConfigMenu
+		+ "%menu/$iconFO0.xpm%Order: time, date" $backCmd set clockbar-field-order 0
+		+ "%menu/$iconFO1.xpm%Order: date, time" $backCmd set clockbar-field-order 1
+	#	+ "%menu/$iconFO2.xpm%Order: time"       $backCmd set clockbar-field-order 2
+	#	+ "%menu/$iconFO3.xpm%Order: date"       $backCmd set clockbar-field-order 3
+
+		Popup PanelClockBarConfigMenu $addition
+	});
+}
+
+sub updatePageLabel ($) {
+	my $pageNum = shift;
+	return if $pageNum == -1;
+
+	my $pageId = $pageNum + 1;
+	my $pageLabel = $pageNum == $currPageNum? "($pageId)": $pageId;
+	$module->send("SendToModule FvwmButtons-Panel ChangeButton " .
+		"page$pageId Title $pageLabel");
+}
+
+# ----------------------------------------------------------------------------
+# main
+
+$module->send("SendToModule FvwmAnimate push pause");  # avoid raise conditions
+loadConfig();
+applyNewConfig();
+$module->send("SendToModule FvwmAnimate pop");
+
+$module->addHandler(M_NEW_PAGE, sub {
+	my ($self, $event) = @_;
+	my $width  = $event->_vp_width;
+	my $height = $event->_vp_height;
+
+	if (!$width || !$height) {
+		# this may happen when doing DeskTopSize 1x1 on page 2 2;
+		# at least avoid division by zero
+		$width = 1;
+		$height = 1;
+	}
+
+	my $page_nx = int($event->_vp_x / $width);
+	my $page_ny = int($event->_vp_y / $height);
+	my $pageNum = $page_nx + $page_ny * 2;
+	return if $pageNum == $currPageNum;
+
+	my $prevCurrPageNum = $currPageNum;
+	$currPageNum = $pageNum;
+	$currPageNum = -1 if $currPageNum < 0 || $currPageNum >= 4;
+
+	updatePageLabel($prevCurrPageNum);
+	updatePageLabel($currPageNum);
+});
+
+$module->addHandler(M_NEW_DESK, sub {
+	my ($self, $event) = @_;
+	$currDeskNum = $event->_desk;
+});
+
+$module->addHandler(M_STRING, sub {
+	my ($self, $event) = @_;
+	my $string = eval { $event->_text } || "_internal_problem_";
+
+	my $action = cutToken(\$string);
+	if ($action eq 'toggle') {
+		my $key = getToken($string);
+		return unless exists $config->{$key};
+		$newConfig->{$key} = $config->{$key}? 0: 1;
+		applyNewConfig();
+	}
+	elsif ($action eq 'set') {
+		my ($key, $value) = getTokens($string);
+		return unless defined $key && defined $value;
+		return unless exists $config->{$key};
+		$newConfig->{$key} = $value;
+		applyNewConfig();
+	}
+	elsif ($action eq 'popup') {
+		my $menu = cutToken(\$string);
+		if ($menu eq 'pagebar-config') {
+			popupPageBarConfigMenu($string);
+		}
+		if ($menu eq 'taskbar-config') {
+			popupTaskBarConfigMenu($string);
+		}
+		if ($menu eq 'clockbar-config') {
+			popupClockBarConfigMenu($string);
+		}
+	}
+	elsif ($action eq 'circulate') {
+		my $var = getToken($string);
+		if ($var =~ /^clockbar-field(\d)-format$/) {
+			my $fieldName = $clockFieldOrder->
+				[$config->{"clockbar-field-order"}]->[$1 - 1];
+			return unless defined $fieldName;
+			$newConfig->{"clockbar-$fieldName-format"} =
+				$config->{"clockbar-$fieldName-format"} + 1;
+		}
+		applyNewConfig();
+	}
+	elsif ($action eq 'init-current-page') {
+		my ($desk, $pagex, $pagey) = getTokens($string, 3);
+		$currDeskNum = $desk;
+		$currPageNum = $pagey * 2 + $pagex;
+		$currPageNum = -1 if $currPageNum < 0 || $currPageNum >= 4;
+		updatePageLabel(0);
+		updatePageLabel(1);
+		updatePageLabel(2);
+		updatePageLabel(3);
+	}
+});
+
+$module->send(qq{
+	Deschedule 34543
+	SendToModule $fullName init-current-page \$[desk.n] \$[page.nx] \$[page.ny]
+});
+
+showClockNowAndRegularly() unless $clockStarted;
+
+END {
+	$module->send(
+		"FuncFvwmShowMessage 'Sorry, probably internal error' " .
+		"'$name: Woops, I am going to die.^n^nSee an error message.'"
+	);
+}
+
+$module->eventLoop;

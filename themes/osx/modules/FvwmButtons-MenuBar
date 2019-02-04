@@ -1,0 +1,83 @@
+DestroyModuleConfig FvwmButtons-MenuBar: *
+
+PipeRead 'if [ -n "$FT_XINERAMA_PWIDTH" ]; then echo "*FvwmButtons-MenuBar: Geometry "`expr "(" $FT_XINERAMA_PWIDTH - 2 ")"`"x25+0+0"; else echo "*FvwmButtons-MenuBar: Geometry "`expr "(" $[vp.width] - 2 ")"`"x25+0+0";fi'
+*FvwmButtons-MenuBar: Colorset 5
+*FvwmButtons-MenuBar: Rows 1
+*FvwmButtons-MenuBar: Frame 0
+*FvwmButtons-MenuBar: (2x1, Left, Icon 16x16/linux.xpm, ActionOnPress, \
+	Action(Mouse 1) 'WindowList \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 2) 'WindowList \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'WindowList (CurrentDesk) \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) Shells, ActionOnPress, \
+	Action 'Menu MenuFvwmShells \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmShells \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) Programs, ActionOnPress, \
+	Action 'Menu MenuFvwmPrograms \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmPrograms \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) Help, ActionOnPress, \
+	Action 'Menu MenuFvwmHelp \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmHelp \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) System, ActionOnPress, \
+	Action 'Menu MenuFvwmSystem \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmSystem \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) Personal, ActionOnPress, \
+	Action 'Menu MenuFvwmPersonal \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmPersonal \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) Themes, ActionOnPress, \
+	Action 'Menu MenuFvwmThemes \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmThemes \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) Modules, ActionOnPress, \
+	Action 'Menu MenuFvwmModules \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmModules \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) Config, ActionOnPress, \
+	Action 'Menu MenuFvwmConfiguration \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmConfiguration \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (3x1, Title (Left) WinOps, ActionOnPress, \
+	Action 'Menu MenuFvwmWindowOps \
+		 rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmWindowOps \
+		 rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (2x1, Swallow "FvwmApplet-DigitalClock" \
+	'FvwmScript FvwmApplet-DigitalClock 5', \
+)
+*FvwmButtons-MenuBar: (1x1, Right, Icon 16x16/display.xpm, ActionOnPress, \
+	Action 'Menu MenuFvwmScreenSaver \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmScreenSaver \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)
+*FvwmButtons-MenuBar: (1x1, Right, Icon 16x16/quit.xpm, ActionOnPress, \
+	Action 'Menu MenuFvwmQuit \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+	Action(Mouse 3) 'Popup MenuFvwmQuit \
+		rectangle $widthx$height+$left+$top@g +0 +100+1p', \
+)

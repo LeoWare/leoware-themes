@@ -1,0 +1,113 @@
+# 1. Icon related configuration
+# 2. Switch functions
+# 3. Theme module menus
+# 4. Modules configuration
+
+# ----------------------------------------------------------------------------
+# Icon related configuration
+
+Style * IconBox screen p w+10 +35 -10 -120p, IconFill t r, IconGrid 74 5  
+Style * SlipperyIcon, IconTitle
+
+# ----------------------------------------------------------------------------
+# Switch functions
+
+DestroyFunc FuncFvwmStartThemeModules
+AddToFunc   FuncFvwmStartThemeModules
++ I EWMHBaseStruts 0 0 27 0
++ I FuncFvwmStartChosenMenuBar
++ I FuncFvwmStartChosenMainBar
++ I FuncFvwmStartChosenAppsButtons
++ I FuncFvwmStartChosenApplets
++ I FuncFvwmStartChosenAppsMan
++ I FuncFvwmStartNormalIcons
+
+DestroyFunc FuncFvwmReloadThemeModules
+AddToFunc   FuncFvwmReloadThemeModules
++ I Read $./styles
++ I FuncFvwmStartNormalIcons
+
+DestroyFunc FuncFvwmReloadColorsModules
+AddToFunc   FuncFvwmReloadColorsModules
++ I FuncFvwmStartChosenOsxButtons
+
+DestroyFunc FuncFvwmStopThemeModules
+AddToFunc   FuncFvwmStopThemeModules
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-MenuBar
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-MainBar
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-OsxApps
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-OsxStartApplets
++ I KillModule FvwmWinList
++ I DestroyModuleConfig FvwmButtons-MenuBar: *
++ I DestroyModuleConfig FvwmButtons-MainBar: *
++ I DestroyModuleConfig FvwmButtons-OsxApps: *
++ I DestroyModuleConfig FvwmButtons-OsxStartApplets: *
++ I DestroyModuleConfig FvwmButtons-OsxApplets: *
++ I DestroyModuleConfig FvwmWinList: *
++ I DestroyModuleConfig FvwmPager-Single: *
++ I DestroyModuleConfig FvwmPager-Desker: *
++ I DestroyFunc FuncFvwmOsxNext
++ I DestroyFunc FuncFvwmOsxPrev
++ I DestroyFunc FuncFvwmStartChosenMenuBar
++ I DestroyFunc FuncFvwmStartChosenOsxButtons
++ I DestroyFunc FuncFvwmStartChosenAppsButtons
++ I DestroyFunc FuncFvwmStartChosenApplets
++ I DestroyFunc FuncFvwmStartChosenAppsMan
++ I FuncFvwmModulesDestroyStyle
++ I DestroyFunc FuncFvwmModulesDestroyStyle
++ I EWMHBaseStruts 0 0 0 0
+
+DestroyFunc FuncFvwmUnReloadColorsModules
+AddToFunc   FuncFvwmUnReloadColorsModules
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-MainBar
+
+DestroyFunc FuncFvwmUnReloadThemeModules
+AddToFunc   FuncFvwmUnReloadThemeModules
+
+# ----------------------------------------------------------------------------
+# Theme module menus
+
+DestroyMenu MenuFvwmStartThemeModules
+AddToMenu   MenuFvwmStartThemeModules "Osx Modules" Title
++ "%menu/item.xpm%Top &Menu Bar"    FuncFvwmRestartModuleByAlias \
+	FvwmButtons FvwmButtons-MenuBar
++ "%menu/item.xpm%Bottom Ma&in Bar" FuncFvwmRestartModuleByAlias \
+	FvwmButtons FvwmButtons-MainBar
++ "%menu/item.xpm%Bottom &Apps Bar" FuncFvwmRestartModuleByAlias \
+	FvwmButtons FvwmButtons-OsxApps
++ "%menu/item.xpm%App&lets Panel"   FuncFvwmRestartModuleByAlias \
+	FvwmButtons FvwmButtons-OsxStartApplets
++ "%menu/item.xpm%WinList"          FuncFvwmRestartModule FvwmWinList
+
+DestroyMenu MenuFvwmStopThemeModules
+AddToMenu   MenuFvwmStopThemeModules "Osx Modules" Title
++ "%menu/quit.xpm%Stop Top &Menu Bar" \
+	FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-MenuBar
++ "%menu/quit.xpm%Stop Bottom Ma&in Bar" \
+	FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-MainBar
++ "%menu/quit.xpm%Stop Bottom &Apps Bar" \
+	FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-OsxApps
++ "%menu/quit.xpm%Stop App&lets Panel" \
+	FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-OsxStartApplets
++ "%menu/quit.xpm%Stop WinList" KillModule FvwmWinList
+
+# ----------------------------------------------------------------------------
+# Desktop names
+
+DesktopName 0 Main
+DesktopName 1 Web/Mail
+DesktopName 2 Devel
+DesktopName 3 Games
+
+# ----------------------------------------------------------------------------
+# Modules configuration
+
+Read $./styles
+Read $./FvwmButtons-MenuBar
+Read $./FvwmButtons-MainBar
+Read $./FvwmButtons-OsxApps
+Read $./FvwmButtons-OsxStartApplets
+Read $./FvwmPager-Single
+Read $./FvwmPager-Desker
+Read $./FvwmWinList
+Read $./fonts

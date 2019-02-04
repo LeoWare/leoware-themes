@@ -1,0 +1,145 @@
+# colors@blackbox
+
+# more details and comments can be found in colors@default
+# I.   FVWM Colorsets
+# II.  Module Colorsets
+# III. Application Colorsets
+# IV.  Start/Stop Functions
+
+# ----------------------------------------------------------------------------
+# I. FVWM Colorsets
+
+# ----------------
+# Default colorset
+
+Colorset 0 fg grey85, bg #555d5d, Plain, NoShape
+
+# ------------------
+# Window decorations
+
+# window title, inactive and active
+Colorset 1 fg grey70, bg grey30, Plain, NoShape
+Colorset 2 fg white, bg grey50, Plain, NoShape
+
+# window borders, inactive and active
+Colorset 3 fg grey70, bg grey30, Plain, NoShape
+Colorset 4 fg white, bg grey50, Plain, NoShape
+
+# background for window title, buttons and border
+DestroyFunc FuncFvwmDecorBackground
+AddToFunc   FuncFvwmDecorBackground
++ I TitleStyle \
+	AllInactive (Pixmap decor/title-inactive.xpm -- Top Left) \
+	AllActive   (Pixmap decor/title-active.xpm   -- Top Left)
+
++ I ButtonStyle left  Pixmap decor/left-button-back.xpm   -- Top Left
++ I ButtonStyle right Pixmap decor/right-button-back.xpm  -- Top Left
++ I ButtonStyle 1     Pixmap decor/left-button1-back.xpm  -- Top Left
++ I ButtonStyle 2     Pixmap decor/right-button2-back.xpm -- Top Left
+
+# --------------
+# Menu Colorsets
+
+# inactive menu item fg+bg and menu face
+Colorset 5 fg #ececec, bg black, Pixmap menuback/face.xpm, NoShape
+
+# active menu item fg+bg
+Colorset 6 fg #333333, bg #cccccc, Plain, NoShape
+
+# greyed menu item fg
+Colorset 7 fg grey40, bg grey40, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# II. Module Colorsets
+
+#-----------------
+# Common Colorsets
+
+# default for modules
+Colorset 10 fg #979b9b, bg grey35, Plain, NoShape
+
+# default hilight
+Colorset 11 fg #979b9b, bg white, Pixmap modcolor/HilightDesk.xpm, \
+	NoShape
+
+# special
+Colorset 12 fg #979b9b, bg #555d5d, DGradient 50 #636f6f #484e4e, NoShape
+# a better color definition if we use blackbox modules is:
+# Colorset 10 fg #979b9b, bg #555d5d, Pixmap modcolor/TheToolbar700.xpm, NoShape
+
+# swallowed window
+Colorset 13 fg grey85, bg #485151, hi grey85, sh grey45, Plain, \
+	NoShape
+
+# default2 (FvwmPager or to get more colors in Buttons)
+Colorset 14 fg #979b9b, bg #555d5d, Pixmap modcolor/Toolbar100.xpm, NoShape
+
+# default hilight2: (FvwmPager or to get more colors in a Buttons)
+Colorset 15 fg #979b9b, bg white, Pixmap modcolor/HilightDesk.xpm, \
+	NoShape
+
+# tips/balloons
+Colorset 16 fg #ececec, bg #485151, Plain, NoShape
+
+# ----------------------------
+# Window List Module Colorsets
+
+# standard item
+Colorset 17 fg #979b9b, bg #555d5d, Pixmap modcolor/Toolbar100.xpm, \
+	NoShape
+
+# active item
+Colorset 18 fg #ffffff, bg #555d5d, Pixmap modcolor/Toolbar100.xpm, \
+	NoShape
+
+# iconified item
+Colorset 19 fg black, bg #555d5d, Pixmap modcolor/Toolbar100.xpm, \
+	NoShape
+
+# pointed item
+Colorset 20 fg #979b9b, bg #555d5d, Pixmap modcolor/Toolbar100.xpm, \
+	NoShape
+
+# ----------------------
+# Other Module Colorsets
+
+# FvwmIdent
+Colorset 21 fg yellow, bg black, Transparent, NoShape
+
+# FvwmConsole
+Colorset 22 fg yellow, bg black, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# III. Application Colorsets
+
+# regular terminal
+Colorset 30 fg #ffffff, bg #555d5d, Plain, NoShape
+
+# admin terminal
+Colorset 31 fg #a0f0f0, bg #555d5d, Plain, NoShape
+
+# remote terminal
+Colorset 32 fg #f0f0a0, bg #555d5d, Plain, NoShape
+
+# viewer terminal
+Colorset 33 fg grey20, bg grey90, Plain, NoShape
+
+# application run in the terminal, text editor
+Colorset 34 fg black, bg grey70, Plain, NoShape
+
+# dialog main area
+Colorset 35 fg white, bg #555d5d, Plain, NoShape
+
+# dialog text area
+Colorset 36 fg black, bg gray80, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# IV. Start/Stop Functions
+
+DestroyFunc FuncFvwmStartColors
+AddToFunc   FuncFvwmStartColors
++ I Style "FvwmIdent" ParentalRelativity
+
+DestroyFunc FuncFvwmStopColors
+AddToFunc   FuncFvwmStopColors
++ I Style "FvwmIdent" Opacity

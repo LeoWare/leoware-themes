@@ -1,0 +1,74 @@
+# 1. Icon related configuration
+# 2. Switch functions
+# 3. Theme module menus
+# 4. Modules configuration
+
+# ----------------------------------------------------------------------------
+# Icon related configuration
+
+Style * IconBox screen w 10 16 -130 700, IconGrid 74 14, IconFill left top
+Style * SlipperyIcon, IconTitle
+
+# ----------------------------------------------------------------------------
+# Switch functions
+
+DestroyFunc FuncFvwmStartThemeModules
+AddToFunc   FuncFvwmStartThemeModules
+#+ I FuncFvwmStartNormalIcons
++ I Colorset 23 fg $[fg.cs10], bg $[bg.cs10], Transparent, NoShape
++ I Module FvwmButtons FvwmButtons-Panel
+
+DestroyFunc FuncFvwmReloadThemeModules
+AddToFunc   FuncFvwmReloadThemeModules
++ I Read $./styles
+
+DestroyFunc FuncFvwmReloadColorsModules
+AddToFunc   FuncFvwmReloadColorsModules
++ I Colorset 23 fg $[fg.cs10], bg $[bg.cs10], Transparent, NoShape
++ I Module FvwmButtons FvwmButtons-Panel
+
+DestroyFunc FuncFvwmStopThemeModules
+AddToFunc   FuncFvwmStopThemeModules
++ I KillModule FvwmButtons FvwmButtons-Panel
++ I KillModule FvwmButtons FvwmButtons-CentralPanel
++ I KillModule FvwmPager FvwmPager-Single
++ I KillModule FvwmPager FvwmPager-Desker
++ I FuncFvwmModulesDestroyStyle
++ I DestroyFunc FuncFvwmModulesDestroyStyle
+
+DestroyFunc FuncFvwmUnReloadColorsModules
+AddToFunc   FuncFvwmUnReloadColorsModules
++ I KillModule FvwmButtons FvwmButtons-Panel
++ I KillModule FvwmButtons FvwmButtons-CentralPanel
+
+DestroyFunc FuncFvwmUnReloadThemeModules
+AddToFunc   FuncFvwmUnReloadThemeModules
+
+# ----------------------------------------------------------------------------
+# Theme module menus
+
+DestroyMenu MenuFvwmStartThemeModules
+AddToMenu   MenuFvwmStartThemeModules "CDE Modules" Title
++ "%menu/item.xpm%&Panel" FuncFvwmRestartModuleByAlias FvwmButtons FvwmButtons-Panel
+#+ "" Nop
+#+ "%menu/choice-no.xpm%No normal icons" Style * NoIcon  # for NoIcon modules
+#+ "%menu/choice-yes.xpm%Normal icons"   Style * !NoIcon
+
+DestroyMenu MenuFvwmStopThemeModules
+AddToMenu   MenuFvwmStopThemeModules "CDE Modules" Title
++ "%menu/quit.xpm%Stop &Panel" FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-Panel
+
+# ----------------------------------------------------------------------------
+# Desktop names
+
+DesktopName 0 Main
+DesktopName 1 Web & Mail
+DesktopName 2 Devel
+DesktopName 3 Games
+
+# ----------------------------------------------------------------------------
+# Modules configuration
+
+Read $./styles
+Read $./FvwmPager
+Read $./fonts

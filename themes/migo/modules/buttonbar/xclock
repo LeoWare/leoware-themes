@@ -1,0 +1,12 @@
+DestroyFunc FuncFvwmButtons-CompactClock
+AddToFunc   FuncFvwmButtons-CompactClock
+# xclock does not support transparency, remove "Colorset 23" in modules-extra
++ I *FvwmButtons-Compact: (4x4, Padding 0 0, Colorset 23, Swallow "xclock" `FuncFvwmButtons-StartXClock`)
+
+# not in the previous func because of a variable expansion problem
+DestroyFunc FuncFvwmButtons-StartXClock
+AddToFunc   FuncFvwmButtons-StartXClock
++ I Exec exec xclock -bg $[bg.cs10] -fg $[fg.cs10] -hd $[shadow.cs13] -hl $[hilight.cs13] -padding 2 -geometry 86x86-0+0
+
+AddToFunc   FuncFvwmStopThemeModules
++ I DestroyFunc FuncFvwmButtons-StartXClock

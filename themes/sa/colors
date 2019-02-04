@@ -1,0 +1,162 @@
+# colors@sa
+
+# more details and comments can be found in colors@default
+# I.   FVWM Colorsets
+# II.  Module Colorsets
+# III. Application Colorsets
+# IV.  Start/Stop Functions
+
+# ----------------------------------------------------------------------------
+# I. FVWM Colorsets
+
+# ----------------
+# Default colorset
+
+Colorset 0 sh grey40, hi grey50, bg grey30, fg White, \
+	TiledPixmap decor/stripe.png, NoShape
+
+# ------------------
+# Window decorations
+
+# window title, inactive and active
+Colorset 1 sh grey45, hi grey65, bg grey75, fg grey90, \
+	fgAlpha 60, fgsh grey20, IconAlpha 60, Plain, NoShape
+Colorset 2 sh grey65, hi grey85, bg grey75, fg grey90, \
+	fgAlpha 80, fgsh grey20, Plain, NoShape
+
+# window borders, inactive and active
+Colorset 3 sh Black, hi grey65, bg grey40, Plain, NoShape
+Colorset 4 sh black, hi grey75, bg grey50, Plain, NoShape
+
+# background for window title, buttons and border
+DestroyFunc FuncFvwmDecorBackground
+AddToFunc   FuncFvwmDecorBackground
++ I TitleStyle ActiveUp   \
+	Vgradient 255 3 grey85 15 grey40 50 grey55 20 grey30 -- Flat
++ I TitleStyle ActiveDown \
+	Vgradient 255 3 grey30 15 grey55 50 grey40 20 grey95 -- Flat
++ I TitleStyle Inactive   \
+	Vgradient 255 3 grey75 15 grey35 50 grey45 20 grey20 -- Flat
++ I TitleStyle ToggledActiveUp   \
+	Vgradient 255 3 grey85 15 grey40 50 grey55 20 grey30 -- Flat
++ I TitleStyle ToggledActiveDown \
+	Vgradient 255 3 grey30 15 grey55 50 grey40 20 grey95 -- Flat
++ I TitleStyle ToggledInactive   \
+	Vgradient 255 3 grey75 15 grey35 50 grey45 20 grey20 -- Flat
+#
++ I ButtonStyle All Simple -- UseTitleStyle
+
+# --------------
+# Menu Colorsets
+
+# inactive menu item fg+bg and menu face
+Colorset 5 sh grey40, hi grey50, TiledPixmap decor/stripe.png, \
+	bg grey30, fg Grey90, fgAlpha 85, fgsh grey10, NoShape
+
+# active menu item fg+bg
+Colorset 6 sh grey55, hi grey45, bg Black, fg White, \
+	fgAlpha 90, fgsh grey20, Plain, NoShape
+
+# greyed menu item fg
+Colorset 7 bg grey48, fg grey48, fgsh grey68, Transparent, NoShape
+
+# ----------------------------------------------------------------------------
+# II. Module Colorsets
+
+# ----------------
+# Common Colorsets
+
+# default for modules
+Colorset 10 sh grey50, hi grey70, TiledPixmap decor/stripe.png, \
+	bg grey60, fg White, fgAlpha 85, fgsh grey10, NoShape
+
+# default hilight for modules
+Colorset 11 fg White, bg grey60, Pixmap decor/blue.png, \
+	sh black, hi black, NoShape
+
+# special
+Colorset 12 fg black, bg grey60, \
+	VGradient 64 grey50 grey60, NoShape
+
+# swallowed window
+Colorset 13 fg White, bg grey60, hi grey50, sh grey40, \
+	Plain, NoShape
+
+# default #2 (FvwmPager or to get more colors in Buttons)
+Colorset 14 fgsh grey10, bg grey50, \
+	fg grey90, sh grey40, hi grey60, fgAlpha 85, Plain, NoShape
+
+# default hilight #2 (FvwmPager or to get more colors in Buttons)
+Colorset 15 hi grey70,  sh grey50, fg Black, bg grey60, Plain, NoShape
+
+# tips/balloons
+Colorset 16 fg White, bg grey30, Pixmap decor/grey.png, \
+	sh black, hi grey10, fgsh black, NoShape
+
+# ----------------------------
+# Window List Module Colorsets
+
+# standard item
+Colorset 17 fg Black, bg #9999A3, Plain, NoShape
+
+# active item
+Colorset 18 fg Black, bg grey60, Plain, NoShape
+
+# iconified item
+Colorset 19  fg Black, bg grey60, Plain, NoShape
+
+# pointed item
+Colorset 20 fg black, bg grey75, Plain, NoShape
+
+# ----------------------
+# Other Module Colorsets
+
+# FvwmIdent
+Colorset 21 fgsh grey10, Transparent, Tint black 50, fg White, \
+	sh grey50, hi grey60, fgAlpha 85, NoShape
+
+# FvwmConsole
+Colorset 22 fg white, bg rgb:00/20/40, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# III. Application Colorsets
+
+# regular terminal
+Colorset 30 fg white, bg rgb:00/00/20, Plain, NoShape
+
+# admin terminal
+Colorset 31 fg white, bg rgb:00/50/50, Plain, NoShape
+
+# remote terminal
+Colorset 32 fg white, bg rgb:50/00/00, Plain, NoShape
+
+# viewer terminal
+Colorset 33 fg white, bg rgb:00/50/00, Plain, NoShape
+
+# application run in the terminal, text editor
+Colorset 34 fg rgb:CC/CC/CC, bg rgb:30/48/48, Plain, NoShape
+
+# dialog main area
+Colorset 35 fg black, bg rgb:75/75/75, Plain, NoShape
+
+# dialog text area
+Colorset 36 fg black, bg rgb:90/90/90, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# IV. Start/Stop Functions
+
+DestroyFunc FuncFvwmStartColors
+AddToFunc   FuncFvwmStartColors
++ I Style "FvwmIdent" ParentalRelativity
+
+DestroyFunc FuncFvwmStopColors
+AddToFunc   FuncFvwmStopColors
++ I Style "FvwmIdent" !ParentalRelativity
+# temporarily until we have Colorset Clear
++ I Colorset  1 fgAlpha, IconAlpha
++ I Colorset  2 fgAlpha
++ I Colorset  5 fgAlpha
++ I Colorset  6 fgAlpha
++ I Colorset 10 fgAlpha
++ I Colorset 14 fgAlpha
++ I Colorset 21 fgAlpha, Tint

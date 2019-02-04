@@ -1,0 +1,318 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ(2.53)
+AC_REVISION(0.2.3)
+AC_INIT(themes/default/README)
+AM_INIT_AUTOMAKE(fvwm-themes, 0.7.1)
+
+REQUIRED_FVWM_VERSION=2.5.31
+AC_SUBST(REQUIRED_FVWM_VERSION)dnl
+REQUIRED_PERL_VERSION=5.008
+AC_SUBST(REQUIRED_PERL_VERSION)dnl
+
+mg_ARG_WITH(fvwm-bindir,
+	[  --with-fvwm-bindir=DIR    specify fvwm bin directory, if not in PATH],
+	FVWM_BINDIR, ""
+)
+
+mg_ARG_WITH(ft-datadir,
+	[  --with-ft-datadir=DIR     specify data dir, if different from fvwm],
+	FT_DATADIR, ""
+)
+
+AC_ARG_ENABLE(gnome-icons,
+	[  --enable-gnome-icons      convert gnome icons to xpm icons ],
+	GNOME_ICONS=yes, GNOME_ICONS=no
+)
+AC_SUBST(GNOME_ICONS)dnl
+
+AC_ARG_ENABLE(kde2-icons,
+	[  --enable-kde2-icons       convert kde2 icons to xpm icons ],
+	KDE2_ICONS=yes, KDE2_ICONS=no
+)
+AC_SUBST(KDE2_ICONS)dnl
+
+AC_ARG_ENABLE(build-menus,
+	[  --disable-build-menus     disable the rebuilding of the user menus ],
+	[ if test "$enableval" = yes; then
+		BUILD_MENUS=yes
+	else
+		BUILD_MENUS=no
+	fi ],
+	[ BUILD_MENUS=yes ]
+)
+AC_SUBST(BUILD_MENUS)
+
+# disabled menu system stuff even if present in the machine
+AC_ARG_ENABLE(menu-system,
+	[  --disable-menu-system     disable (Debian) menu system support ],
+	[ if test "$enableval" = yes; then
+		MENU_SYSTEM=yes
+	else
+		MENU_SYSTEM=no
+	fi ],
+	[ MENU_SYSTEM=yes ]
+)
+
+# do not run update-menu at install even if menu-system is enabled
+AC_ARG_ENABLE(run-updatemenu,
+	[  --disable-run-updatemenu  do not run (Debian) update-menu during installation even if detected ],
+	[ if test "$enableval" = yes; then
+		RUN_UPDATEMENU=yes
+	else
+		RUN_UPDATEMENU=no
+	fi ],
+	[ RUN_UPDATEMENU=yes ]
+)
+
+dnl 'unset' is not portable, but setting to null is not enough to avoid using
+dnl the cached value!  For ancient shells "rm config.cache" is a solution.
+UNSET=true
+if unset UNSET 2>/dev/null; then UNSET=unset; fi
+
+AC_PROG_INSTALL
+dnl Reports are that INSTALL is set incorrectly on Solaris.
+if test "`echo $INSTALL | cut -c1-2`" = ".."; then
+	AC_MSG_ERROR([
+	It seems that ./configure can't automatically set INSTALL.
+	Please set this environment var yourself and rerun ./configure.
+	For example: env INSTALL='/usr/ucb/install -c' ./configure])
+fi
+
+AC_PATH_PROG(PERL, perl)
+if test -z "$PERL"; then
+	AC_MSG_WARN(Perl is not found; you will have fatal problems using this package!)
+	PERL=/usr/bin/perl
+fi
+AC_SUBST(PERL)dnl
+
+AC_PATH_PROG(AWK, gawk)
+if test -z "$AWK"; then
+	AC_PATH_PROG(AWK, nawk)
+fi
+if test -z "$AWK"; then
+	AC_PATH_PROG(AWK, mawk)
+fi
+if test -z "$AWK"; then
+	AWK=awk
+fi
+AC_SUBST(AWK)dnl
+
+AC_PATH_PROG(TAR, gtar)
+if test -z "$TAR"; then
+	AC_PATH_PROG(TAR, gnutar)
+fi
+if test -z "$TAR"; then
+	TAR=tar
+fi
+AC_SUBST(TAR)dnl
+
+AC_PATH_PROG(MKFIFO, mkfifo)
+if test -z "$MKFIFO"; then
+	AC_MSG_WARN([
+	mkfifo is not found; you will have some problems with GUI!])
+fi
+
+# we check for FvwmM4 below
+AC_PATH_PROG(M4, m4)
+if test -z "$M4"; then
+	AC_MSG_WARN([
+	m4 is not found; you will have a few problems using this package!])
+fi
+
+# Solaris is not shipped with xmessage...
+AC_PATH_PROG(XMESSAGE, xmessage)
+if test -z "$XMESSAGE"; then
+	additional_msg=""
+	if test "`uname`" = "SunOS"; then additional_msg="
+	You may find the binary at http://sunfreeware.com/ ."
+	fi
+	AC_MSG_WARN([
+	xmessage is not found; you will have some problems; please install it.$additional_msg])
+fi
+
+# debian menu system
+AC_PATH_PROG(UPDATE_MENU, update-menus)
+if test -z "$UPDATE_MENU"; then
+	MENU_SYSTEM=no
+fi
+if test "$MENU_SYSTEM" = yes; then
+	MENU_SYSTEM_PREFIX='${ROOT_PREFIX}'"/etc/menu-methods"
+	MENU_SYSTEM_BINSCRIPTS='fvwm_themes'
+	MENU_SYSTEM_CONFIGDATA='fvwm_themes.h fvwm_themes_data.h'
+	AC_SUBST(MENU_SYSTEM_PREFIX)
+	AC_SUBST(MENU_SYSTEM_BINSCRIPTS)
+	AC_SUBST(MENU_SYSTEM_CONFIGDATA)
+else
+	RUN_UPDATEMENU=no
+	UPDATE_MENU=false
+fi
+AC_SUBST(RUN_UPDATEMENU)
+AC_SUBST(UPDATE_MENU)
+
+# fvwm-themes-images needs to know where the rgb.txt file is
+AC_PATH_XTRA
+if test -z "$X_LIBS"; then
+	if test -f /usr/share/X11/rgb.txt; then
+		X_LIBS=-L/usr/share
+	else
+		AC_MSG_WARN([
+	Xlib is not found; fvwm-themes-images will not fully work!])
+	fi
+fi
+
+# FIXME: a better way to find GNOME_IMAGES_DIR?
+# I've no gnome-config on my machine.
+AC_PATH_PROG(GNOME_SESSION, gnome-session)
+if test -z "$GNOME_SESSION"; then
+	GNOME_SESSION=/usr/bin/gnome-session
+fi
+GNOME_IMAGES_DIR=`echo $GNOME_SESSION | sed -e "s,/[[^/]]*/gnome-session$,,"`/share/pixmaps
+AC_SUBST(GNOME_IMAGES_DIR)dnl
+
+$UNSET ac_cv_path_FVWM_CONFIG
+AC_PATH_PROG(FVWM_CONFIG, fvwm-config --version, , [$FVWM_BINDIR:${PATH}])
+if test -z "$FVWM_CONFIG"; then
+	AC_MSG_ERROR([
+	fvwm-config is not found; try --with-fvwm-bindir
+	You need at least fvwm-$REQUIRED_FVWM_VERSION])
+fi
+AC_SUBST(FVWM_CONFIG)dnl
+
+FVWM_BINDIR=`$FVWM_CONFIG --bindir`
+AC_SUBST(FVWM_BINDIR)dnl
+FVWM_DEFAULT_USERDIR=`$FVWM_CONFIG --default-userdir`
+AC_SUBST(FVWM_DEFAULT_USERDIR)dnl
+FVWM_DEFAULT_IMAGEPATH=`$FVWM_CONFIG --default-imagepath`
+AC_SUBST(FVWM_DEFAULT_IMAGEPATH)dnl
+FVWM_MODULEDIR=`$FVWM_CONFIG --fvwm-moduledir`
+
+$UNSET ac_cv_path_FVWM_M4
+AC_PATH_PROG(FVWM_M4, FvwmM4, ,"$FVWM_MODULEDIR")
+if test -z "$FVWM_M4"; then
+	AC_MSG_WARN([
+	FvwmM4 is not found; you will have a few problems using this package!])
+fi
+
+FVWM_VERSION=`$FVWM_CONFIG --version`
+if test "x$FVWM_VERSION" = "x"; then FVWM_VERSION=unknown; fi
+AC_SUBST(FVWM_VERSION)dnl
+
+# Hopefully this "sort" is portable (after many tries using awk and expr)
+if (echo $REQUIRED_FVWM_VERSION; echo $FVWM_VERSION) \
+| sed 's/\./ /g' | uniq | sort -n -k 1 -k 2 -k 3 -c 2>/dev/null; then
+	:
+	# fvwm version is ok
+else
+	AC_MSG_ERROR([
+	You have fvwm-$FVWM_VERSION, which is not up to date
+	You need at least fvwm-$REQUIRED_FVWM_VERSION])
+fi
+
+ROOT_PREFIX=""
+AC_SUBST(ROOT_PREFIX)dnl
+
+if echo "${prefix}NONE" | awk '/^NONE/ { exit 1 }'; then
+	mg_DEFAULT_DIR_ARG(bindir,     '${prefix}/bin')
+	mg_DEFAULT_DIR_ARG(mandir,     '${prefix}/man')
+	mg_DEFAULT_DIR_ARG(datadir,    '${prefix}/share')
+	mg_DEFAULT_DIR_ARG(FT_DATADIR, '${datadir}/fvwm')
+else
+	mg_DEFAULT_DIR_ARG(bindir,     '${ROOT_PREFIX}'"`$FVWM_CONFIG --bindir`")
+	mg_DEFAULT_DIR_ARG(mandir,     '${ROOT_PREFIX}'"`$FVWM_CONFIG --mandir`")
+	mg_DEFAULT_DIR_ARG(datadir,    '${ROOT_PREFIX}'"`$FVWM_CONFIG --datadir`")
+	mg_DEFAULT_DIR_ARG(FT_DATADIR, '${ROOT_PREFIX}'"`$FVWM_CONFIG --fvwm-datadir`")
+fi
+
+#FT_FVWMSCRIPT_DIR='${FT_DATADIR}/scripts'
+#FT_FVWMFORM_DIR='${FT_DATADIR}/forms'
+FT_FVWMSCRIPT_DIR='${FT_DATADIR}'
+FT_FVWMFORM_DIR='${FT_DATADIR}'
+FT_LOCALE_DIR='${FT_DATADIR}/locale'
+
+AC_SUBST(FT_DATADIR)dnl
+AC_SUBST(FT_FVWMSCRIPT_DIR)dnl
+AC_SUBST(FT_FVWMFORM_DIR)dnl
+AC_SUBST(FT_LOCALE_DIR)dnl
+
+# migo: to match the one in FVWM...
+FT_VERSION_INFO="fvwm-themes $VERSION built on `date +'%b %d %Y at %T'`"
+AC_SUBST(FT_VERSION_INFO)dnl
+FT_BUILD_ID=`date '+build %d-%b-%Y %T'`
+AC_SUBST(FT_BUILD_ID)dnl
+
+SETTINGS_FILE='${FT_DATADIR}/themes/default/settings.cfg'
+AC_SUBST(SETTINGS_FILE)dnl
+
+# 3 lists: all themes, base and extra
+ALL_THEMES=`ls -d ./themes/* | grep -v /CVS | grep -v /Makefile | cut -d/ -f3`
+ALL_THEMES=`echo $ALL_THEMES`
+BASE_THEMES="afterstep cde default luthien migo multichoice olicha redmond98 redmondxp"
+mg_LIST_MINUS(ALL_THEMES, BASE_THEMES, EXTRA_THEMES)
+AC_SUBST(ALL_THEMES)AC_SUBST(BASE_THEMES)AC_SUBST(EXTRA_THEMES)dnl
+
+AC_OUTPUT(
+	Makefile
+	bin/Makefile
+	doc/Makefile
+	forms/Makefile
+	scripts/Makefile
+	locale/Makefile
+	locale/en/Makefile
+	locale/fr/Makefile
+	locale/ru/Makefile
+	locale/ja/Makefile
+	locale/de/Makefile
+	locale/pl/Makefile
+	bin/fvwm-themes-config
+	bin/fvwm-themes-start
+	bin/fvwm-themes-xrdb
+	bin/fvwm-themes-menuapp
+	bin/fvwm-themes-com
+	bin/fvwm-themes-script
+	bin/fvwm-themes-images
+	bin/fvwm-themes-root
+	debian/Makefile
+	debian/full-control
+	debian/extra-control
+	debian/base-control
+	doc/fvwm-themes.lsm
+	rpm/fvwm-themes.spec
+	rpm/fvwm-themes-base.spec
+	rpm/fvwm-themes-extra.spec
+	rpm/fvwm-themes-themes.spec
+	rpm/Makefile
+	menu-system/Makefile
+)
+
+if test -n "$DEBUG"; then
+	echo '--------------------------------- ( Debug ) ---------------------------------'
+	echo "[prefix:            ${prefix}]"
+	echo "[bindir:            ${bindir}]"
+	echo "[mandir:            ${mandir}]"
+	echo "[datadir:           ${datadir}]"
+	echo "[ft-datadir:        ${FT_DATADIR}]"
+	echo "[ft-fvwmscript-dir: ${FT_FVWMSCRIPT_DIR}]"
+	echo "[ft-fvwmform-dir:   ${FT_FVWMFORM_DIR}]"
+	echo "[menu-system:       ${MENU_SYSTEM},${MENU_SYSTEM_PREFIX},${UPDATE_MENU}]"
+	echo "[gnome-icons:       ${GNOME_ICONS}]"
+	echo "[gnome-session:     ${GNOME_SESSION}]"
+	echo "[gnome-images-dir:  ${GNOME_IMAGES_DIR}]"
+	echo "[kde2-icons:        ${KDE2_ICONS}]"
+	echo "[settings-file:     ${SETTINGS_FILE}]"
+	echo "[x-libs:            ${X_LIBS}]"
+	echo "[x-extra-libs:      ${X_EXTRA_LIBS}]"
+	echo '-----------------------------------------------------------------------------'
+	echo "  All   themes: [${ALL_THEMES}]"
+	echo "  Base  themes: [${BASE_THEMES}]"
+	echo "  Extra themes: [${EXTRA_THEMES}]"
+	echo '============================================================================='
+fi
+
+echo "
+-----------------------------------------------------------------------------
+FVWM Themes Version:	$VERSION
+FVWM Version:		$FVWM_VERSION
+=============================================================================
+
+Run 'make; su; make install' to install $PACKAGE.
+"

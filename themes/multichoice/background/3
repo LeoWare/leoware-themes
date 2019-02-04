@@ -1,0 +1,7 @@
+DestroyFunc FuncFvwmStartThemeBackground
+AddToFunc   FuncFvwmStartThemeBackground
++ I Exec exec fvwm-themes-images --sky --sky-colors "#0000b8,#0000ff,#00ffff" --pattern-type 1 --setroot --rotate 90 --be-fast
+
+DestroyFunc FuncFvwmStopThemeBackground
+AddToFunc   FuncFvwmStopThemeBackground
++ I Nop

@@ -1,0 +1,2455 @@
+# This script is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+#-----------------------------------------------------------------------------
+# Copyright 2000, Olivier Chapuis
+#-----------------------------------------------------------------------------
+
+
+WindowTitle {FVWM Themes Center}
+WindowSize 600 480
+Font	-adobe-helvetica-bold-r-*-*-12-*
+
+Init
+Begin
+    Do {FvwmScript FvwmScript-NoteMessage "Loading Themes"}
+    Set $Lang = {}
+    Set $TextColorset = {}
+    Set $ViewerColorset = {}
+    Set $IconColorset = {}
+    # Arguments
+    Set $i = 1
+    Set $arg = (GetScriptArgument $i)
+    While $arg <> {} Do
+    Begin
+	Set $j = (Add $i 1)
+	If $arg == {--viewer-colorset} Then
+	    Set $ViewerColorset = (GetScriptArgument $j)
+	If $arg == {--text-colorset} Then
+	    Set $TextColorset = (GetScriptArgument $j)
+	If $arg == {--icon-colorset} Then
+	    Set $IconColorset = (GetScriptArgument $j)
+	If $arg == {--lang} Then
+	    Set $Lang = (GetScriptArgument $j)	
+	Set $i = (Add $i 2)
+	Set $arg = (GetScriptArgument $i)
+    End
+
+
+    If $TextColorset <> {} Then
+    Begin
+	ChangeColorset 6 $TextColorset
+	ChangeColorset 12 $TextColorset
+	ChangeColorset 17 $TextColorset
+	ChangeColorset 41 $TextColorset
+	ChangeColorset 27 $TextColorset
+	ChangeColorset 22 $TextColorset
+    End
+
+    If $ViewerColorset <> {} Then
+    Begin
+	ChangeColorset 95 $ViewerColorset
+    End
+
+    Set $SelFont = {-adobe-helvetica-bold-r-*-*-12-*}
+    Set $ShadeFont = {-adobe-helvetica-medium-r-*-*-12-*}
+    Set $FixedFont = {-*-fixed-medium-r-semicondensed-*-13-*}
+    Set $nonDefaultFont = 0
+
+    #Set $Lang = {en}
+    #Set $Lang = {ru}
+    # ------------------------------- Internationalization.
+
+    If $Lang == {} Then
+    Begin
+	Set $cmd = {echo "$LANG" | cut -c1-2}
+	Set $Lang = (GetOutput $cmd 1 -1)
+    End
+    If $Lang == {} Then
+	Set $Lang = {C}
+
+    Set $msg = {}
+    Set $id = {}
+    Set $cmd = {fvwm-themes-script --get-msg }FvwmScript-ThemesCenter{ --lang }$Lang
+    Set $MSG = (GetOutput $cmd 1 -1)
+    Set $index = 0
+    Set $notdone = 1
+    While $notdone == 1 Do
+    Begin
+	Set $index = (Add $index 1)
+	Set $id = (StrCopy $MSG $index (Add $index 11))
+	Set $index = (Add $index 12)
+	Set $tmp = (StrCopy $MSG $index (Add $index 3))
+	Set $index = (Add $index 4)
+	Set $pos = (Add $index $tmp)
+	Set $msg = (StrCopy $MSG $index $pos)
+	Set $index = (Add $index $tmp)
+	#Do {Echo id:}$id{:msg:}$msg{:}
+
+	If $index > 9999 Then
+	    Set $notdone = 0
+	If $id == {END         } Then
+	    Set $notdone = 0
+	If $id == {} Then
+	    Set $notdone = 0
+	# TS
+	If $id == {CT          } Then
+	    ChangeTitle 1 $msg
+	If $id == {CTList      } Then
+	    ChangeTitle 2 $msg
+	If $id == {ThemesList  } Then
+	    ChangeTitle 5 $msg
+	If $id == {Readme      } Then
+	    ChangeTitle 7 $msg
+	If $id == {LoadAll     } Then
+	    ChangeTitle 8 $msg
+	If $id == {LoadLook    } Then
+	    ChangeTitle 9 $msg
+	If $id == {MSelTheme   } Then
+	    Set $l_MustSelecteTheme = $msg
+	If $id == {AComponent  } Then
+	    Set $l_A_Component = $msg
+	If $id == {AComponent  } Then
+	    Set $l_A_Component = $msg
+	If $id == {NoThemeSel  } Then
+	    ChangeTitle 11 $msg
+	If $id == {Load        } Then
+	    ChangeTitle 13 $msg
+	If $id == {Info        } Then
+	Begin
+	    ChangeTitle 14 $msg
+	    ChangeTitle 24 $msg
+	End
+	If $id == {View        } Then
+	    ChangeTitle 15 $msg
+   	If $id == {MSelThemeCp } Then
+	    Set $l_MustSelectThemeComp = $msg
+   	If $id == {MSelCC      } Then
+	    Set $l_MustSelectCurrentComp = $msg
+	If $id == {NoScreenShot} Then
+	    Set $l_NoScreenShot = $msg
+	If $id == {NoHelp      } Then
+	    Set $l_NoHelp = $msg
+	If $id == {USThemeComp } Then
+	    ChangeTitle 16 $msg	    
+	If $id == {Properties  } Then
+	    ChangeTitle 18 $msg
+	If $id == {Restore     } Then
+	Begin
+	    ChangeTitle 19 $msg
+	    ChangeTitle 23 $msg
+	End
+	If $id == {Drop        } Then
+	Begin
+	    ChangeTitle 20 $msg
+	    #ChangeTitle 25 $msg
+	End
+	If $id == {Lock        } Then
+	    Set $l_Lock = $msg
+	If $id == {Unlock      } Then
+	    Set $l_Unlock = $msg
+	If $id == {NoProp      } Then
+	    Set $l_NoProperties = $msg
+	If $id == {ThreeEditor } Then
+	    Set $l_OnlyThreeEditor = $msg
+	If $id == {PropEditor  } Then
+	    Set $l_PropertyEditor = $msg
+	If $id == {AActive     } Then
+	    Set $l_AlreadyActive = $msg
+	If $id == {CompNotSet  } Then
+	    Set $l_CompNotSet = $msg
+	If $id == {DropNotImp  } Then
+	    Set $l_DropNotImp = $msg
+	If $id == {NoDrop      } Then
+	    Set $l_NoDrop = $msg
+	# GS
+	If $id == {SetUSComp   } Then
+	    ChangeTitle 21 $msg
+	If $id == {SelAComp    } Then
+	    ChangeTitle 26 $msg
+	If $id == {VariantsFor } Then
+	    Set $l_VariantsFor = $msg
+	If $id == {Set         } Then
+	    ChangeTitle 28 $msg
+	If $id == {MSelVar     } Then
+	    Set $l_MustSelectVariant = $msg
+	# SM
+	If $id == {CurSession  } Then
+	    Set $l_CurrentSession = $msg
+	If $id == {UpTime      } Then
+	    Set $l_UpTime = $msg
+	If $id == {SessionsList} Then
+	    ChangeTitle 40 $msg
+	If $id == {FinishEdit  } Then
+	    Set $l_FinishEdit = $msg
+	If $id == {SelSession  } Then
+	Begin
+	    Set $l_SelectedSession = $msg
+	    ChangeTitle 45 $msg
+	End
+	If $id == {MSelSession } Then
+	    Set $l_MustSelectSession = $msg
+	# SM
+	If $id == {BEdit       } Then
+	    Set $l_B_Edit = $msg
+	If $id == {AEdit       } Then
+	    Set $l_A_Edit = $msg
+	If $id == {Edit        } Then
+	    ChangeTitle 42 $msg
+	If $id == {Add         } Then
+	    ChangeTitle 43 $msg
+	If $id == {Remove      } Then
+	    ChangeTitle 44 $msg
+	If $id == {SessionH1   } Then
+	    ChangeTitle 46 $msg
+	If $id == {SessionH2   } Then
+	    ChangeTitle 47 $msg
+	If $id == {SessionH3   } Then
+	    ChangeTitle 48 $msg
+	If $id == {SessionH4   } Then
+	    ChangeTitle 58 $msg
+	If $id == {AddSession  } Then
+	    Set $l_AddSession = $msg
+	If $id == {NRemoveMain } Then
+	    Set $l_NotRemoveMain = $msg
+	If $id == {NRemoveCur  } Then
+	    Set $l_NotRemoveCur = $msg
+	If $id == {BReallyRem  } Then
+	    Set $l_B_ReallyRemove = $msg
+	If $id == {AReallyRem  } Then
+	    Set $l_A_ReallyRemove = $msg
+	If $id == {SessionName } Then
+	    ChangeTitle 50 $msg
+	If $id == {ConfigOf    } Then
+	    ChangeTitle 51 $msg
+	If $id == {Ok          } Then
+	    Set $l_Ok = $msg
+	If $id == {Cancel      } Then
+	    Set $l_Cancel = $msg
+	If $id == {Yes         } Then
+	    Set $l_Yes = $msg
+	If $id == {No          } Then
+	    Set $l_No = $msg
+	If $id == {NameNotValid} Then
+	    Set $l_NameNotValid = $msg
+	If $id == {NameAlreadyU} Then
+	    Set $l_NameAlreadyUse = $msg
+	If $id == {SysErr      } Then
+	    Set $l_SysErr = $msg
+	If $id == {CNewSession } Then
+	    Set $l_ClickNewSession = $msg
+	If $id == {NoChanges   } Then
+	    Set $l_NoChanges = $msg
+	If $id == {AThemeConf  } Then
+	    Set $l_ApplyThemeConfig = $msg
+	If $id == {ANewSession } Then
+	    Set $l_ApplyNewSession= $msg
+	If $id == {RefreshConf } Then
+	    Set $l_Refresh = $msg
+	If $id == {UpdateConf  } Then
+	    Set $l_Update = $msg
+	If $id == {MsgInfo     } Then
+	    ChangeTitle 95 $msg
+	If $id == {Apply       } Then
+	    ChangeTitle 96 $msg
+	If $id == {Refresh     } Then
+	    ChangeTitle 97 $msg
+	If $id == {Update      } Then
+	    ChangeTitle 94 $msg
+	If $id == {Help        } Then
+	    ChangeTitle 98 $msg
+	If $id == {Quit        } Then
+	    ChangeTitle 99 $msg
+	If $id == {ChangeFont  } Then
+	    Set $nonDefaultFont = $msg
+	If $id == {SelFont     } Then
+	    Set $SelFont = $msg
+	If $id == {ShadeFont   } Then
+	    Set $ShadeFont = $msg
+	If $id == {FixedFont   } Then
+	    Set $FixedFont = $msg
+    End
+
+    ChangeTitle 53 $l_Ok
+    ChangeTitle 54 $l_Cancel
+    ChangeTitle 100 $l_Lock
+
+    # found the FvwmScript pid
+    Set $pid = (GetPid)
+    Set $ComName = {config-}$pid
+
+    # Run fvwm-themes-config until the end of the script
+    Do {Exec fvwm-themes-config --com-mode --com-name=}$ComName{ &}
+    
+    # Get the themes list, the current config, ...etc.
+    Set $cmd = {all-startup-stuff|}
+    Set $RES = (SendMsgAndGet $ComName $cmd 1)
+    Set $ThemesList = (Parse $RES 1)
+    ChangeTitle 6 $ThemesList
+    Set $CurrentConfig = (Parse $RES 2)
+    ChangeTitle 17 $CurrentConfig
+
+    # Get the settings config
+    Set $SettingsConfig = (Parse $RES 3)
+    ChangeTitle 22 $SettingsConfig
+
+    # Get the session info
+    Set $CurrentSession = (Parse $RES 4)
+    Set $SessionUpTime = (Parse $RES 5)
+    Set $tmp = {Current Session: }$CurrentSession{                 Up Time:  }$SessionUpTime
+    ChangeTitle 39 $tmp
+    Set $SessionList = (Parse $RES 6)
+    ChangeTitle 41 $SessionList
+    Set $ConfigurationList = (Parse $RES 7)
+    ChangeTitle 52 $ConfigurationList
+    
+    # Common Variables
+    Set $SpecialMessage = {}
+    Set $NullMessage = 0
+    # TS: Themes Selector; GS: General Settings; SM: FT Sessions Management
+    Set $ConfigTool = {TS}
+
+    # TS main variables
+    Set $ThemeName = {}
+    Set $ThemeIndex = 0
+    Set $ComponentName = {}
+    Set $ComponentIndex = 0
+    Set $CSCompIndex = 0
+    Set $CSCompName = {}
+    Set $CSThemeName = {}
+    Set $CSCompHasOpt = 0
+    Set $CSCompIsSet = 0
+    Set $CSCompCanBeDropped = 0
+    Set $PropertyEditorOne = {}
+    Set $PropertyEditorOneTandC = {}
+    Set $PropertyEditorTwo = {}
+    Set $PropertyEditorTwoTandC = {}
+    Set $PropertyEditorLast = {}
+    Set $PropertyEditorLastTandC = {}
+
+    # GS main variables
+    Set $SettingsIndex = 0
+    Set $SettingsComponent = {}
+    Set $SettingsName ={}
+    Set $SettingsVariantsIndex = 0
+
+    # SM main variables
+    Set $SessionIndex = 0
+    Set $SelectedSession = {}
+    Set $SMEditorState = 0
+
+    Set $tmp = 7
+    While $tmp <> 10 Do
+    Begin
+ 	ChangeFont $tmp $ShadeFont
+	Set $tmp2 = (Add $tmp 6)
+	ChangeFont $tmp2 $ShadeFont
+	Set $tmp2 = (Add $tmp2 5)
+	ChangeFont $tmp2 $ShadeFont
+	Set $tmp = (Add $tmp 1)
+    End
+    ChangeFont 23 $ShadeFont
+    ChangeFont 24 $ShadeFont
+    #ChangeFont 25 $ShadeFont
+    ChangeFont 28 $ShadeFont
+    ChangeFont 100 $ShadeFont
+    # change the fonts for non west-european language
+    If $nonDefaultFont == 1 Then
+    Begin
+	ChangeFont 1 $SelFont
+	ChangeFont 2 $SelFont
+	ChangeFont 6 $FixedFont
+	ChangeFont 5 $SelFont
+	ChangeFont 11 $SelFont
+	ChangeFont 12 $FixedFont
+	ChangeFont 16 $SelFont
+	ChangeFont 17 $FixedFont
+	ChangeFont 21 $SelFont
+	ChangeFont 22 $FixedFont
+	ChangeFont 26 $SelFont
+	ChangeFont 27 $FixedFont
+	ChangeFont 39 $SelFont
+	ChangeFont 40 $SelFont
+	ChangeFont 41 $FixedFont
+	ChangeFont 42 $SelFont
+	ChangeFont 43 $SelFont
+	ChangeFont 44 $SelFont
+	ChangeFont 45 $SelFont
+	ChangeFont 46 $FixedFont
+	ChangeFont 47 $FixedFont
+	ChangeFont 48 $FixedFont
+	ChangeFont 58 $FixedFont
+	ChangeFont 49 $SelFont
+	ChangeFont 50 $FixedFont
+	ChangeFont 51 $FixedFont
+	ChangeFont 53 $SelFont
+	ChangeFont 54 $SelFont
+	ChangeFont 57 $SelFont
+	Set $tmp = 94
+	While $tmp <> 100 Do
+	Begin
+	    ChangeFont $tmp $SelFont
+	    Set $tmp = (Add $tmp 1)
+	End
+    End
+    #Set $tmp = 1
+    #While $tmp <> 10 Do
+    #Begin
+	
+    # Hide the widgets
+    HideWidget 21
+    Set $tmp = 21
+    While $tmp <> 25 Do
+    Begin
+	HideWidget $tmp
+	Set $tmp = (Add $tmp 1)
+    End
+    Set $tmp = 26
+    While $tmp <> 29 Do
+    Begin
+	HideWidget $tmp
+	Set $tmp = (Add $tmp 1)
+    End
+    Set $tmp = 39
+    While $tmp <> 59 Do
+    Begin
+	HideWidget $tmp
+	Set $tmp = (Add $tmp 1)
+    End
+
+    Do {All (FvwmScript-NoteMessage) Delete}
+End
+
+# ---------------------------------------------------------------------------
+#
+# Periodic Task
+#
+# ---------------------------------------------------------------------------
+
+PeriodicTasks
+Begin
+
+#----------------------------------------------------------------------------
+# config tool switching
+
+    If $HideThemeChooser == {1} Then
+    Begin
+	Set $HideThemeChooser = 0
+	Set $tmp = 5
+	While $tmp <> 10 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+	Set $tmp = 11
+	While $tmp <> 21 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+	HideWidget 100
+    End
+
+    If $HideGeneralSettings == {1} Then
+    Begin
+	Set $HideGeneralSettings = 0
+	Set $tmp = 21
+	While $tmp <> 25 Do
+	Begin
+	    HideWidget $tmp
+	    Set $tmp = (Add $tmp 1)
+	End
+	Set $tmp = 26
+	While $tmp <> 29 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $HideSession == {1} Then
+    Begin
+	Set $HideSession = 0
+	Set $tmp = 39
+	While $tmp <> 59 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+    End
+
+    If $ShowThemeChooser == {1} Then
+    Begin
+	Set $ShowThemeChooser = 0
+	Set $ConfigTool = {TS}
+	Set $tmp = 5
+	While $tmp <> 10 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+	Set $tmp = 11
+	While $tmp <> 21 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+	ShowWidget 100
+    End
+
+    If $ShowGeneralSettings == {1} Then
+    Begin
+	Set $ShowGeneralSettings = 0
+	Set $ConfigTool = {GS}
+	Set $tmp = 21
+	While $tmp <> 25 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+	ShowWidget 26
+	If $SettingsIndex <> 0 Then
+	Begin
+	    ShowWidget 27
+	    ShowWidget 28
+	End	    
+    End
+
+    If $ShowSession == {1} Then
+    Begin
+	Set $ShowSession = 0
+	Set $ConfigTool = {SM}
+	Set $tmp = 39
+	While $tmp <> 46 Do
+	Begin
+	    ShowWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+	If $SMEditorState == 0 Then
+	Begin
+	    ShowWidget 46
+	    ShowWidget 47
+	    ShowWidget 48
+	    ShowWidget 58
+	End
+	Else
+	Begin
+	    Set $tmp = 49
+	    While $tmp <> 55 Do
+	    Begin
+		ShowWidget $tmp
+		Set $tmp = (Add $tmp 1)
+	    End
+	    If $SMEditorState == 1 Then
+		ShowWidget 55
+	    Else
+		ShowWidget 56
+	End
+	Set $UpdateSessionUpTime = 1
+    End
+
+#-----------------------------------------------------------------------------
+# TS & GS & SM
+
+# -----------------------------------------------
+# Apply for TS & GS
+
+    If $ApplyTSCmdOpts == 1 Then
+    Begin
+	Set $ApplyTSCmdOpts = 0
+	Set $CMD = {apply-ts-cmd-opts|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $SwitchCmd = $RES
+	    If $SwitchCmd <> {} Then
+	    Begin
+		# fs
+		Do $SwitchCmd
+		Set $UpdateAllTSLists = 1
+		Set $UpdateSettingsListAndVariants = 1
+		Set $SendUpdateMsg = 1
+		Set $NullMessage = 1
+	    End
+	    Else
+	    Begin
+		ChangeTitle 95 $l_NoChanges
+	    End
+	End
+    End
+
+# -----------------------------------------------
+# refresh or update for TS & GS & SM 
+    If $RefreshORUpdate == 1 Then
+    Begin
+	Set $RefreshORUpdate = 0
+	Set $CMD = {update }$RefreshUpdateValue{|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RefreshUpdateValue == 1 Then
+	    Do {FuncFvwmThemesFresh}
+	Set $UpdateSMLists = 1
+	Set $UpdateAllTSLists = 1
+	Set $UpdateSettingsListAndVariants = 1
+	Set $SendUpdateMsg = 1
+	Set $NullMessage = 1
+    End
+	
+#-----------------------------------------------------------------------------
+# TS
+
+#------------------------------------------------
+# update Theme Selectors List
+
+    If $UpdateAllTSLists == {1} Then
+    Begin
+	Set $UpdateAllTSLists = 0
+	Set $CMD = {all-ts-lists }$ThemeIndex{ }$CSCompIndex{|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $ThemesList = (Parse $RES 1)
+	    ChangeTitle 6 $ThemesList
+	    Set $tmp = (Parse $RES 2)
+	    If $ThemeIndex <> 0 Then
+	    Begin
+		Set $ThemeComponents = $tmp
+		ChangeTitle 12 $ThemeComponents
+	    End
+	    Set $CurrentConfig = (Parse $RES 3)
+	    ChangeTitle 17 $CurrentConfig
+	    If $CSCompIndex <> 0 Then
+	    Begin
+		Set $CSCompName = (Parse $RES 4)
+		Set $CSThemeName = (Parse $RES 5)
+		Set $tmp = (Parse $RES 6)
+		Set $CSCompHasOpt = (StrCopy $tmp 1 1)
+		Set $CSCompIsSet = (StrCopy $tmp 2 2)
+		Set $CSCompCanBeDropped = (StrCopy $tmp 3 3)
+		Set $CSCompIsLocked = (StrCopy $tmp 4 4)
+		Set $UpdateCSButtons = 1
+	    End
+	End
+    End
+
+    If $UpdateCurrentConfig == 1 Then
+    Begin
+	Set $UpdateCurrentConfig = 0
+	Set $CMD = {current-config }$CSCompIndex{|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $CurrentConfig = (Parse $RES 1)
+	    ChangeTitle 17 $CurrentConfig
+	    If $CSCompIndex <> 0 Then
+	    Begin
+		Set $CSCompName = (Parse $RES 2)
+		Set $CSThemeName = (Parse $RES 3)
+		Set $tmp = (Parse $RES 4)
+		Set $CSCompHasOpt = (StrCopy $tmp 1 1)
+		Set $CSCompIsSet = (StrCopy $tmp 2 2)
+		Set $CSCompCanBeDropped = (StrCopy $tmp 3 3)
+		Set $CSCompIsLocked = (StrCopy $tmp 4 4)
+		Set $UpdateCSButtons = 1
+	    End
+	End
+    End
+
+    If $UpdateCurrentConfigLine == 1 Then
+    Begin
+	Set $UpdateCurrentConfigLine = 0
+	If $CSCompIndex <> 0 Then
+	Begin
+	    Set $CMD = {current-comp-name }$CSCompIndex{|}
+	    # execute the CMD
+	    SendSignal 999 2
+	    If $RES <> {0000} Then
+	    Begin
+		Set $CSCompName = (Parse $RES 1)
+		Set $CSThemeName = (Parse $RES 2)
+		Set $tmp = (Parse $RES 3)
+		Set $CSCompHasOpt = (StrCopy $tmp 1 1)
+		Set $CSCompIsSet = (StrCopy $tmp 2 2)
+		Set $CSCompCanBeDropped = (StrCopy $tmp 3 3)
+		Set $CSCompIsLocked = (StrCopy $tmp 4 4)
+		Set $UpdateCSButtons = 1
+	    End
+	End
+    End
+
+    If $UpdateCSButtons == 1 Then
+    Begin
+	ChangeFont 100 $SelFont
+	If $CSCompIsLocked == 1 Then
+	    ChangeTitle 100 $l_Unlock
+	Else
+	    ChangeTitle 100 $l_Lock
+	Set $UpdateCSButtons = 0
+	If $CSCompHasOpt == 1 Then
+	    ChangeFont 18 $SelFont
+	Else
+	    ChangeFont 18 $ShadeFont
+	If $CSCompIsSet == 1 Then
+	    ChangeFont 19 $SelFont
+	Else
+	    ChangeFont 19 $ShadeFont   
+	If $CSCompCanBeDropped == 1 Then
+	    ChangeFont 20 $SelFont
+	Else
+	    ChangeFont 20 $ShadeFont
+    End
+
+#----------------------------------------------------------------------------
+# GS
+
+    If $UpdateSettingsListAndVariants == 1 Then
+    Begin
+	Set $UpdateSettingsListAndVariants = 0
+	If $SettingsComponent <> {} Then
+	Begin
+	    Set $CMD = {settings-config-and-variant }$SettingsComponent{ default }$SettingsIndex{|}
+	End
+	Else
+	Begin
+	    Set $CMD = {settings-config-and-variant None None 0|}
+	End
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $SettingsConfig = (Parse $RES 1)
+	    ChangeTitle 22 $SettingsConfig
+	    If $SettingsComponent <> {} Then
+	    Begin
+		Set $SettingsVariants = (Parse $RES 2)
+		ChangeTitle 27 $SettingsVariants
+	    End
+	End
+    End
+
+    If $UpdateSettingsList == 1 Then
+    Begin
+	Set $UpdateSettingsList = 0
+	Set $CMD = {settings-config|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $SettingsConfig = $RES
+	    ChangeTitle 22 $SettingsConfig
+	End
+    End
+
+#----------------------------------------------------------------------------
+# SM
+
+    If $ConfigTool == {SM} Then
+    Begin
+	If (RemainderOfDiv (GetTime) 60)== 0 Then
+	    Set $UpdateSessionUpTime = 1
+    End
+
+    If $UpdateSessionUpTime == 1 Then
+    Begin
+	Set $UpdateSessionUpTime = 0
+	Set $CMD = {session-uptime|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $SessionUpTime = $RES
+	    Set $tmp = $l_CurrentSession{: }$CurrentSession{                 }$l_UpTime{:  }$SessionUpTime
+	    ChangeTitle 39 $tmp
+	End
+    End
+
+    If $ShowSMEditor == 1 Then
+    Begin
+	Set $ShowSMEditor = 0
+	HideWidget 46
+	HideWidget 47
+	HideWidget 48
+	HideWidget 58
+	If $SMEditorState == 3 Then
+	Begin
+	    ShowWidget 57
+	    ShowWidget 54
+	    ShowWidget 53
+	    ChangeTitle 53 $l_Yes
+	    ChangeTitle 54 $l_No
+	End
+	Else
+	Begin
+	    Set $tmp = 49
+	    While $tmp <> 55 Do
+	    Begin
+		ShowWidget $tmp
+		Set $tmp = (Add $tmp 1)
+	    End  
+	    If $SMEditorState == 1 Then
+		ShowWidget 55
+	    Else
+		ShowWidget 56
+	    ChangeTitle 53 $l_Ok
+	    ChangeTitle 54 $l_Cancel
+	End
+    End
+
+    If $HideSMEditor == 1 Then
+    Begin
+	Set $HideSMEditor = 0 
+	Set $tmp = 49
+	While $tmp <> 58 Do
+	Begin
+	    HideWidget $tmp
+ 	    Set $tmp = (Add $tmp 1)
+	End
+	ShowWidget 46
+	ShowWidget 47
+	ShowWidget 48
+	ShowWidget 58
+	Set $SMEditorState = 0
+    End
+
+    If $UpdateSMLists == 1 Then
+    Begin
+	Set $UpdateSMLists = 0
+	Set $CMD = {session-info|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $CurrentSession = (Parse $RES 1)
+	    Set $SessionUpTime = (Parse $RES 2)
+	    Set $tmp = {Current Session: }$CurrentSession{                 Up Time:  }$SessionUpTime
+	    ChangeTitle 39 $tmp
+	    Set $SessionList = (Parse $RES 3)
+	    ChangeTitle 41 $SessionList
+	    Set $ConfigurationList = (Parse $RES 4)
+	    ChangeTitle 52 $ConfigurationList
+	End
+    End
+
+#----------------------------------------------------------------------------
+# TS, GS and SM
+ 
+    If $NullMessage == {1} Then
+    Begin
+	Set $NullMessage = 0
+	Set $msg = {}
+	ChangeTitle 95 $msg
+    End
+
+    If $SpecialMessage <> {} Then
+    Begin
+	ChangeTitle 95 $SpecialMessage
+	Set $SpecialMessage = {}
+    End
+
+#----------------------------------------------------------------------------
+# 
+ 
+    If $SendUpdateMsg == 1 Then
+    Begin
+	Set $SendUpdateMsg = 0
+	Do {SendToModule FvwmScript-ComponentProperties SendString 1 1 update}
+    End
+
+End
+
+
+# ---------------------------------------------------------------------------
+#
+# QuitFunc
+#
+# ---------------------------------------------------------------------------
+QuitFunc
+Begin
+   Do {SendToModule FvwmScript-ComponentProperties SendString 1 1 exit}
+End
+
+# ---------------------------------------------------------------------------
+#
+# Now the widgets
+#
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+#
+# The action widget
+#
+# ---------------------------------------------------------------------------
+
+Widget 999
+Property
+    Flags Hidden
+    Position 0 0
+    Size 0 0
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+
+    SingleClic :
+    Begin
+    End
+
+    # Apply for TS & GS
+    1 :
+    Begin
+	Set $CMD = {apply-ts-cmd-opts|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $SwitchCmd = $RES
+	    If $SwitchCmd <> {} Then
+	    Begin
+		# fs
+		Do $SwitchCmd
+		Set $UpdateAllTSLists = 1
+		Set $UpdateSettingsListAndVariants = 1
+		Set $SendUpdateMsg = 1
+		Set $NullMessage = 1
+	    End
+	    Else
+	    Begin
+		ChangeTitle 95 $l_NoChanges
+	    End
+	End
+    End
+
+    2 :
+    Begin
+	Set $tmp = {}
+	Set $count = 0
+	While $tmp == {} Do
+	Begin
+	    Set $tmp = (SendMsgAndGet $ComName $CMD 1)
+	    Set $count = (Add $count 1)
+	    If $count == 10 Then
+	    Begin
+		If $tmp == {} Then
+		    Set $tmp = {0000}
+	    End
+	End
+	Set $RES = $tmp
+    End
+End
+
+# ---------------------------------------------------------------------------
+#
+# Head: GUI chooser and rectangle delimiter
+#
+# ---------------------------------------------------------------------------
+
+Widget 1
+Property
+    Flags NoReliefString NoFocus
+    Position 90 10
+    Size 175 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+
+# message from FvwmScript-ComponentProperties
+ 1 :
+ Begin
+    Set $ls = (LastString)
+    Set $id = (StrCopy $ls 1 1)
+
+    If $id == {1} Then
+    Begin
+	If $ls == {1quit} Then
+	Begin
+	    Set $PropertyEditorOne = {}
+	    Set $PropertyEditorOneTandC = {}
+	End
+	If $ls == {1update} Then
+	Begin
+	    Set $UpdateCurrentConfig = 1
+	End
+	If $ls == {1updatequit} Then
+	Begin
+	    Set $PropertyEditorOne = {}
+	    Set $PropertyEditorOneTandC = {}
+	    Set $UpdateCurrentConfig = 1
+	End
+    End
+
+    If $id == {2} Then
+    Begin
+	If $ls == {2quit} Then
+	Begin
+	    Set $PropertyEditorTwo = {}
+	    Set $PropertyEditorTwoTandC = {}
+	 End
+	 If $ls == {2update} Then
+	 Begin
+	    Set $UpdateCurrentConfig = 1
+	 End
+	 If $ls == {2updatequit} Then
+	 Begin
+	    Set $PropertyEditorTwo = {}
+	    Set $PropertyEditorTwoTandC = {}
+	    Set $UpdateCurrentConfig = 1
+	 End
+    End
+
+    If $id == {3} Then
+    Begin
+	If $ls == {3quit} Then
+	Begin
+	    Set $PropertyEditorLast = {}
+	    Set $PropertyEditorLastTandC = {}
+	 End
+	 If $ls == {3update} Then
+	 Begin
+	    Set $UpdateCurrentConfig = 1
+	 End
+	 If $ls == {3updatequit} Then
+	 Begin
+	    Set $PropertyEditorLast = {}
+	    Set $PropertyEditorLastTandC = {}
+	    Set $UpdateCurrentConfig = 1
+	End
+    End
+    Set $ls = {}
+ End
+
+End
+
+Widget 2
+Property
+    Flags NoReliefString
+    Position 270 5
+    Type PopupMenu
+    Title {       Themes Selector        |       General Settings        |        FVWM Themes Sessions     }
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $tmp = (GetValue 2)
+    If $tmp == 1 Then
+    Begin
+	Set $ShowThemeChooser = 1
+	Set $HideSession = 1
+	Set $HideGeneralSettings = 1
+    End
+    If $tmp == 2 Then
+    Begin
+	Set $HideThemeChooser = 1
+	Set $HideSession = 1
+	Set $ShowGeneralSettings = 1
+    End
+    If $tmp == 3 Then
+    Begin
+	Set $HideThemeChooser = 1
+	Set $HideGeneralSettings = 1
+	Set $ShowSession = 1
+    End
+    Set $NullMessage = 1
+ End
+End
+
+
+Widget 3
+Property
+    Size 590 410
+    Position 5 35
+    Type Rectangle
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+#-----------------------------------------------------------------------------
+#
+# Theme Chooser
+#
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# List of themes
+
+Widget 5
+Property
+    Flags NoReliefString NoFocus
+    Position 20 45
+    Size 270 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 6
+Property
+    Flags NoReliefString
+    Position 20 65
+    Size 270 150
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Type List
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $index = (GetValue 6)
+    If $index <> $ThemeIndex Then
+    Begin
+	Set $CMD = {theme-components }$index{|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $safe = (Parse $RES 1)
+	    If $safe <> {None} Then
+	    Begin
+		Set $tmp = 7
+		While $tmp <> 10 Do
+		Begin
+		    ChangeFont $tmp $SelFont
+		    Set $tmp = (Add $tmp 1)
+		End
+		Set $ThemeIndex = $index
+		Set $ThemeComponents = $safe
+		Set $ThemeName = (Parse $RES 2)
+		Set $ThemeDir = (Parse $RES 3)
+		ChangeTitle 12 $ThemeComponents
+		Set $t = $l_B_Component $ThemeName $l_A_Component
+		ChangeTitle 11 $t
+
+		Set $NullMessage = 1
+		Set $ComponentName = {}
+		ChangeValue 12 0
+		Set $tmp = 13
+		While $tmp <> 16 Do
+		Begin
+		    ChangeFont $tmp $ShadeFont
+		    Set $tmp = (Add $tmp 1)
+		End
+	    End
+	End
+    End
+ End
+End
+
+# ReadMe
+Widget 7
+Property
+    Flags NoReliefString
+    Position 25 225
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $ThemeName == {} Then
+    Begin
+ 	ChangeTitle 95 $l_msg_MustSelecteTheme
+    End
+    Else
+    Begin
+	Do {FuncFvwmViewFile }$ThemeDir{/README}
+	Set $NullMessage = 1
+    End
+ End
+End
+
+# Load All
+Widget 8
+Property
+    Flags NoReliefString
+    Position 115 225
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+ Case message of
+ SingleClic :
+ Begin
+    If $ThemeName == {} Then
+    Begin
+ 	ChangeTitle 95 $l_msg_MustSelecteTheme
+    End
+    Else
+    Begin
+	Set $CMD = {load-all }$ThemeName{|}
+	# execute the CMD
+	SendSignal 999 2
+	Set $NullMessage = 1
+	Set $UpdateAllTSLists = 1
+    End
+ End
+End
+
+# load look
+Widget 9
+Property
+    Flags NoReliefString
+    Position 205 225
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+ Case message of
+ SingleClic :
+ Begin
+    If $ThemeName == {} Then
+    Begin
+ 	ChangeTitle 95 $l_msg_MustSelecteTheme
+    End
+    Else
+    Begin
+	Set $CMD = {load-main-look }$ThemeName{|}
+	# execute the CMD
+	SendSignal 999 2
+	Set $NullMessage = 1
+	Set $UpdateAllTSLists = 1
+    End
+  End
+End
+
+#-----------------------------------------------------------------------------
+# List of component of a theme
+
+Widget 11
+Property
+    Flags NoReliefString NoFocus
+    Position 310 45
+    Size 270 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 12
+Property
+    Flags NoReliefString
+    Position 310 65
+    Size 270 150
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Type List
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $index = (GetValue 12)
+    If $ThemeName <> {} Then
+    Begin
+	Set $CMD = {component-name }$ThemeName{ }$index{|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    If $RES <> {1} Then
+	    Begin
+		Set $ComponentIndex = $index
+		# 15 is not yet avaiable
+		ChangeFont 13 $SelFont
+		ChangeFont 14 $SelFont
+		Set $ComponentName = $RES
+		Set $NullMessage = 1
+	    End
+	    Else
+	    Begin
+		Set $ComponentName = {}
+		# 15 is not yet avaiable
+		ChangeFont 13 $ShadeFont
+		ChangeFont 14 $ShadeFont
+		Set $NullMessage = 1
+	    End
+	End
+    End
+ End
+End
+
+# Load
+Widget 13
+Property
+    Flags NoReliefString
+    Position 315 225
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $ComponentName == {} Then
+    Begin
+	ChangeTitle 95 $l_MustSelectThemeComp
+    End
+    Else
+    Begin
+	Set $CMD = {load-one }$ThemeName{ }$ComponentName{|}
+	# execute the CMD
+	SendSignal 999 2
+	Set $NullMessage = 1
+	Set $UpdateAllTSLists = 1
+    End
+ End
+End
+
+# Info
+Widget 14
+Property
+    Flags NoReliefString
+    Position 405 225
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $ComponentName == {} Then
+    Begin
+    	ChangeTitle 95 $l_MustSelectThemeComp
+    End
+    Else
+    Begin
+    	#ChangeTitle 95 $l_NoHelp
+	Do {FuncFvwmShowComponentInfo }$ComponentName{@}$ThemeName
+    End
+ End
+End
+
+# View
+Widget 15
+Property
+    Flags NoReliefString
+    Position 495 225
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+	ChangeTitle 95 $l_NoScreenShot
+ End
+End
+
+#-----------------------------------------------------------------------------
+# Current/setted Config
+
+Widget 16
+Property
+    Flags NoReliefString NoFocus
+    Position 30 265
+    Size 445 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 17
+Property
+    Flags NoReliefString
+    Position 30 290
+    Size 445 115
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Type List
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $index = (GetValue 17)
+    If $index <> $CSCompIndex Then
+    Begin
+	Set $CSCompIndex = $index
+	Set $UpdateCurrentConfigLine = 1
+	Set $NullMessage = 1
+    End
+ End
+End
+
+# Properties
+Widget 18
+Property
+    Flags NoReliefString
+    Position 490 290
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+
+    Set $break = 1
+    Set $test = 0
+    If $CSCompIndex == 0 Then
+    Begin
+	ChangeTitle 95 $l_MustSelectCurrentComp
+	Set $break = 0
+    End
+    If $break == 1 Then
+    Begin
+	If $CSCompName == {} Then
+	Begin
+	    Set $break = 0
+	    ChangeTitle 95 {Internal error: no component name for Properties}
+	End
+    End
+    If $break == 1 Then
+    Begin
+	If $CSThemeName == {} Then
+	Begin
+	    Set $break = 0
+	    ChangeTitle 95 {Internal error: no theme name for Properties}
+	End
+    End
+    If $CSCompHasOpt == 0 Then
+	Set $test = 1
+    Set $test = (Mult $break $test) 
+    If $test == 1 Then
+    Begin
+	ChangeTitle 95 $l_NoProperties
+	Set $break = 0
+    End
+    If $break == 1 Then
+    Begin
+	Set $break = 0
+	Set $tmp = $CSCompName{@}$CSThemeName
+	Set $arg={FvwmScript-ComponentProperties --text-colorset }$TextColorset{ --com-pid }$pid{ --component }$CSCompName{ --theme }$CSThemeName
+	If $tmp == $PropertyEditorOneTandC Then
+	    Set $break = 1
+	If $tmp == $PropertyEditorTwoTandC Then
+	    Set $break = 1
+	If $tmp == $PropertyEditorLastTandC Then
+	    Set $break = 1
+	If $break == 1 Then
+	Begin
+	    Set $msg = $l_PropertyEditor{ }$tmp{ }$l_AlreadyActive
+	    ChangeTitle 95 $msg
+	End
+	Else
+	Begin
+	    Set $break = 1
+	    If $PropertyEditorOne == {} Then
+	    Begin
+		Set $arg = $arg{ --id 1}
+		Set $PropertyEditorOne = (LaunchScript $arg)
+		Set $PropertyEditorOneTandC = $tmp
+		Set $break = 0
+		Set $NullMessage = 1
+	    End
+	    If $PropertyEditorTwo == {} Then
+		Set $test = 1
+	    Set $test = (Mult $test $break)
+	    If $test == 1 Then
+	    Begin
+		Set $arg = $arg{ --id 2}
+		Set $PropertyEditorTwo = (LaunchScript $arg)
+		Set $PropertyEditorTwoTandC = $tmp
+		Set $break = 0
+		Set $NullMessage = 1
+	    End
+	    If $PropertyEditorLast == {} Then
+		Set $test = 1
+	    Set $test = (Mult $test $break)
+	    If $test == 1 Then
+	    Begin
+		Set $arg = $arg{ --id 3}
+		Set $PropertyEditorLast = (LaunchScript $arg)
+		Set $PropertyEditorLastTandC = $tmp
+		Set $break = 0
+		Set $NullMessage = 1
+	    End
+	    If $break == 1 Then
+	    Begin
+		ChangeTitle 95 $l_OnlyThreeEditor
+	    End
+	End
+    End
+ End
+End
+
+# Restore
+Widget 19
+Property
+    Flags NoReliefString
+    Position 490 320
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1
+    Set $test = 0
+    If $CSCompIndex == 0 Then
+    Begin
+	ChangeTitle 95 $l_MustSelectCurrentComp
+	Set $break = 0
+    End
+    If $CSCompIsSet == 0 Then
+	Set $test = 1
+    Set $test = (Mult $break $test) 
+    If $test == 1 Then
+    Begin
+	ChangeTitle 95 $l_CompNotSet
+	Set $break = 0
+    End
+    If $break == 1 Then
+    Begin
+	Set $CMD = {restore }$CSCompName{|}
+	# execute the CMD
+	SendSignal 999 2
+	Set $UpdateAllTSLists = 1
+	Set $NullMessage = 1
+	Set $SendUpdateMsg = 1
+    End
+ End
+End
+
+# Drop
+Widget 20
+Property
+    Flags NoReliefString
+    Position 490 350
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1
+    Set $test = 0
+    If $CSCompIndex == 0 Then
+    Begin
+	ChangeTitle 95 $l_MustSelectCurrentComp
+	Set $break = 0
+    End
+    If $CSCompCanBeDropped == 0 Then
+	Set $test = 1
+    Set $test = (Mult $break $test) 
+    If $test == 1 Then
+    Begin
+	ChangeTitle 95 $l_NoDrop
+	Set $break = 0
+    End
+    If $break == 1 Then
+    Begin
+	#ChangeTitle 95 $l_DropNotImp
+	Set $CMD = {drop }$CSCompName{|}
+	# execute the CMD
+	SendSignal 999 2
+	Set $UpdateAllTSLists = 1
+	Set $NullMessage = 1
+    End
+ End
+End
+
+# Lock
+Widget 100
+Property
+    Flags NoReliefString
+    Position 490 380
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1
+    Set $test = 0
+    If $CSCompIndex == 0 Then
+    Begin
+	ChangeTitle 95 $l_MustSelectCurrentComp
+	Set $break = 0
+    End
+    If $break == 1 Then
+    Begin
+	Set $CMD = {lock }$CSCompName{|}
+	# execute the CMD
+	SendSignal 999 2
+	Set $UpdateAllTSLists = 1
+	Set $NullMessage = 1
+    End
+ End
+End
+
+#-----------------------------------------------------------------------------
+#
+# General Settings Configuration
+#
+#-----------------------------------------------------------------------------
+
+Widget 21
+Property
+    Flags NoReliefString NoFocus
+    Position 15 50
+    Size 570 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+ End
+End
+
+Widget 22
+Property
+    Flags NoReliefString
+    Position 15 75
+    Size 570 114
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Type List
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $value = (GetValue 22)
+    If $value <> $SettingsIndex Then
+    Begin
+	If $SettingsIndex == 0 Then
+	Begin
+	    ShowWidget 27
+	    ShowWidget 28
+	    # info and drop not yet supported ...
+	    ChangeFont 24 $SelFont
+	    #ChangeFont 25 $SelFont
+	End
+	Set $SettingsIndex = $value
+	Set $CMD = {settings-comp }$SettingsIndex{|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $SettingsName = (Parse $RES 1)
+	    Set $tmp = $l_VariantsFor{ }$SettingsName
+	    ChangeTitle 26 $tmp
+	    Set $SettingsComponent = (Parse $RES 2)
+	    Set $SettingsComponentIsSet = (Parse $RES 3)
+	    Set $SettingsVariants = (Parse $RES 4)
+	    ChangeTitle 27 $SettingsVariants
+	    If $SettingsComponentIsSet == 1 Then
+		ChangeFont 23 $SelFont
+	    Else
+		ChangeFont 23 $ShadeFont
+	    Set $SettingsVariantsIndex = 0
+	    ChangeValue 27 0
+	    ChangeFont 28 $ShadeFont
+	    Set $NullMessage = 1
+	End
+    End
+ End
+End
+
+# Restore
+Widget 23
+Property
+    Flags NoReliefString
+    Position 130 194
+    Size 80 20
+    Type PushButton
+    Title {Restore}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1
+    Set $test = 0
+    If $SettingsIndex == 0 Then
+    Begin
+	ChangeTitle 95 $l_MustSelectCurrentComp
+	Set $break = 0
+    End
+    If $SettingsComponentIsSet == 0 Then
+	Set $test = 1
+    Set $test = (Mult $break $test)
+    If $test == 1 Then
+    Begin
+	ChangeTitle 95 $l_CompNotSet
+	Set $break = 0
+    End
+    If $break == 1 Then
+    Begin
+	Set $CMD = {restore }$SettingsComponent{|}
+	# execute the CMD
+	SendSignal 999 2
+	Set $UpdateSettingsListAndVariants = 1
+	ChangeFont 23 $ShadeFont
+	Set $NullMessage = 1
+    End
+ End
+End
+
+# Info
+Widget 24
+Property
+    Flags NoReliefString
+    Position 380 194
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    If $SettingsComponent == {} Then
+    Begin
+	ChangeTitle 95 $l_MustSelectCurrentComp
+    End
+    Else
+    Begin
+	Do {FuncFvwmShowComponentInfo }$SettingsComponent{@default}
+	#ChangeTitle 95 $l_NoHelp
+    End
+ End
+End
+
+# component
+Widget 26
+Property
+    Flags NoReliefString NoFocus
+    Position 30 235
+    Size 540 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+ End
+End
+
+Widget 27
+Property
+    Flags NoReliefString
+    Position  150 260
+    Size 280 110
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Type List
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $tmp = (GetValue 27)
+    If $tmp == 0 Then
+	ChangeFont 28 $ShadeFont
+    Else
+	ChangeFont 28 $SelFont
+    Set $NullMessage = 1
+ End
+End
+
+# Set
+Widget 28
+Property
+    Flags NoReliefString
+    Position 265 380
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $SettingsVariantsIndex = (GetValue 27)
+    If $SettingsVariantsIndex <> 0 Then 
+    Begin
+	Set $CMD = {set-options }$SettingsComponent{ default 1 }$SettingsVariantsIndex{|}
+	# execute the CMD
+	SendSignal 999 2
+	Set $SettingsComponentIsSet = 1
+	ChangeFont 23 $SelFont
+	Set $UpdateSettingsListAndVariants = 1
+	Set $NullMessage = 1
+    End
+    Else
+    Begin
+	ChangeTitle 95 $l_MustSelectVariant
+    End
+ End
+End
+
+#-----------------------------------------------------------------------------
+#
+# FT Sessions
+#
+#-----------------------------------------------------------------------------
+Widget 39
+Property
+    Flags NoReliefString  NoFocus
+    Position 20 45
+    Size 560 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# list title
+Widget 40
+Property
+    Flags NoReliefString NoFocus
+    Position 40 75
+    Size 255 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+ End
+End
+
+Widget 41
+Property
+    Flags NoReliefString
+    Position 40 100
+    Size 255 150
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Type List
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1
+    If $SMEditorState <> 0 Then
+    Begin
+	ChangeTitle 95 $l_FinishEdit
+	Set $break = 0
+	ChangeValue 41 $SessionIndex
+    End
+    If $break == 1 Then
+    Begin
+	Set $SessionIndex = (GetValue 41)
+	Set $CMD = {session-name }$SessionIndex{|}
+	# execute the CMD
+	SendSignal 999 2
+	If $RES <> {0000} Then
+	Begin
+	    Set $SelectedSession = $RES
+	    If $SelectedSession <> {1} Then
+		Set $tmp = $l_SelectedSession{ }$SelectedSession
+	    Else
+	    Begin
+		Set $tmp = $l_SelectedSession 
+		Set $SessionIndex = 0
+		Set $SelectedSession = {}
+	    End
+	    ChangeTitle 45 $tmp
+	    Set $NullMessage = 1
+	End
+    End
+ End
+End
+
+# Edit
+Widget 42
+Property
+    Flags NoReliefString
+    Position 330 115
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1
+    If $SelectedSession == {} Then
+    Begin
+	ChangeTitle 95 $l_MustSelectSession
+	Set $break = 0
+    End
+    Set $test = 0
+    If $SMEditorState <> 0 Then
+	Set $test = 1
+    Set $test = (Mult $break $test)
+    If $test == 1 Then
+    Begin
+	ChangeTitle 95 $l_FinishEdit
+	Set $break = 0
+    End
+    
+    If $break == 1 Then
+    Begin
+	If $SelectedSession == {main} Then
+	Begin
+	    ChangeTitle 56 $SelectedSession
+	    Set $SMEditorState = 2
+	End
+	Else
+	Begin
+	    Set $SMEditorState = 1
+	    ChangeTitle 55 $SelectedSession
+	End
+	Set $tmp = $l_B_Edit $SelectedSession $l_A_Edit
+	ChangeTitle 49 $tmp
+	Set $tmp = (Add $SessionIndex 1)
+	ChangeValue 52 $tmp
+	Set $SMEditorType = {Edit}
+	Set $ShowSMEditor = 1
+	Set $NullMessage = 1    
+    End
+ End
+End
+
+# Add
+Widget 43
+Property
+    Flags NoReliefString
+    Position 330 160
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1
+    If $SMEditorState <> 0 Then
+    Begin
+	ChangeTitle 95 $l_FinishEdit
+	Set $break = 0
+    End
+    
+    If $break == 1 Then
+    Begin
+	Set $SMEditorState = 1
+	ChangeTitle 55 {}
+	ChangeValue 52 1
+	ChangeTitle 49 $l_AddSession
+	Set $SMEditorType = {Add}
+	Set $ShowSMEditor = 1
+	Set $NullMessage = 1
+    End
+ End
+End
+
+# Remove
+Widget 44
+Property
+    Flags NoReliefString
+    Position 330 205
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1
+    If $SelectedSession == {} Then
+    Begin
+	ChangeTitle 95 $l_MustSelectSession
+	Set $break = 0
+    End
+    Set $test = 0
+    If $SMEditorState <> 0 Then
+	Set $test = 1
+    Set $test = (Mult $break $test)
+    If $test == 1 Then
+    Begin
+	ChangeTitle 95 $l_FinishEdit
+	Set $break = 0
+    End
+    Set $test = 0
+    If $SelectedSession == {main} Then
+	Set $test = 1
+    Set $test = (Mult $break $test)
+    If $test == 1 Then
+    Begin
+	ChangeTitle 95 $l_NotRemoveMain
+	Set $break = 0
+    End
+    Set $test = 0
+    If $SelectedSession == $CurrentSession Then
+	Set $test = 1
+    Set $test = (Mult $break $test)
+    If $test == 1 Then
+    Begin
+	ChangeTitle 95 $l_NotRemoveCur
+	Set $break = 0
+    End
+    If $break == 1 Then
+    Begin
+	Set $ShowSMEditor = 1
+	Set $SMEditorState = 3
+	Set $SMEditorType = {Remove}
+	Set $tmp = $l_B_ReallyRemove $SelectedSession $l_A_ReallyRemove
+	ChangeTitle 57 $tmp
+	Set $NullMessage = 1
+    End
+ End
+End
+
+# Selected Session
+Widget 45
+Property
+    Flags NoReliefString NoFocus
+    Position 40 260
+    Size 255 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 46
+Property
+    Flags NoReliefString NoFocus
+    Position 70 315
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {* To load a session, select it and click on Apply                              }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 47
+Property
+    Flags NoReliefString NoFocus
+    Position 70 335
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {* To Reload the current session, click on Refresh                              }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 48
+Property
+    Flags NoReliefString NoFocus
+    Position 70 355
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {* A click on "Update" will rebuild the session list                            }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 58
+Property
+    Flags NoReliefString NoFocus
+    Position 70 375
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {* If you Apply, the not applied changes in the others config tools will be lost}
+
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# "editor" title
+Widget 49
+Property
+    Flags NoReliefString NoFocus
+    Size 510 20
+    Position 45 290
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Session name
+Widget 50
+Property
+    Flags NoReliefString NoFocus
+    Position 20 331
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Type ItemDraw
+    Title {                       }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 55
+Property
+    Flags NoReliefString
+    Position 160 325
+    Size 130 20
+    Type TextField
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 56
+Property
+    Flags NoReliefString NoFocus
+    Position 160 330
+    Type ItemDraw
+    Title {main}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Configurtaion of ...
+Widget 51
+Property
+    Flags NoReliefString NoFocus
+    Position 310 331
+    Type ItemDraw
+    Font -*-fixed-medium-r-semicondensed-*-13-*
+    Title {                      }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+Widget 52
+Property
+    Flags NoReliefString
+    Position 450 325
+    Type PopupMenu
+    Title {   Default   }
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# OK
+Widget 53
+Property
+    Flags NoReliefString
+    Position  185 370
+    Size 70 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $break = 1 
+    Set $session = {main}
+    If $SMEditorState == 1 Then
+	Set $session = (GetTitle 55)
+    Set $config = (GetValue 52)
+    If $SMEditorType == {Edit} Then
+    Begin
+	Set $CMD = {edit-session }$SelectedSession{:}$session{:}$config{|}
+    End
+    If $SMEditorType == {Add} Then
+    Begin
+	Set $CMD = {add-session }$session{:}$config{|}
+    End
+    If $SMEditorType == {Remove} Then
+    Begin
+	Set $CMD = {remove-session }$SelectedSession{|}
+    End
+    # execute the CMD
+    SendSignal 999 2
+    If $RES <> {0000} Then
+    Begin
+	If $RES == {Err1} Then
+	Begin
+	    Set $break = 0
+	    ChangeTitle 95 $l_NameNotValid
+	End
+	If $RES == {Err2} Then
+	Begin
+	    Set $break = 0
+	    ChangeTitle 95 $l_NameAlreadyUse
+	End
+	If $RES == {Err3} Then
+	Begin
+	    Set $break = 0
+	    ChangeTitle 95 $l_SysErr
+	End
+	If $break == 1 Then
+	Begin
+	    # Maybe need to do the translation one day
+	    If $SMEditorType == {Add} Then
+	    Begin
+		Set $msg = {Adding }$session{ FVWM Themes Session}
+		ChangeTitle 95 $msg
+	    End
+	    If $SMEditorType == {Edit} Then
+	    Begin
+		Set $msg = {Applying Changes To }$session{ FVWM Themes Session}
+		ChangeTitle 95 $msg
+	    End
+	    If $SMEditorType == {Remove} Then
+	    Begin
+		Set $msg = {Removing }$SelectedSession{ FVWM Themes Session}
+		ChangeTitle 95 $msg
+		Set $session = (Parse $RES 1)
+		Set $RES = (Parse $RES 2)
+	    End
+	    ChangeValue 41 $RES
+	    Set $SessionIndex = $RES
+	    Set $SelectedSession = $session
+	    Set $t = {Selected Session: }$SelectedSession
+	    ChangeTitle 45 $t
+	    If $SMEditorType <> {Remove} Then
+		Set $SpecialMessage = $l_ClickNewSession
+	    Else
+		Set $NullMessage = 1
+	    Set $HideSMEditor = 1
+	    # this update also the current session ...
+	    Set $UpdateSMLists = 1
+	End
+    End
+ End
+End
+
+# Cancel
+Widget 54
+Property
+    Flags NoReliefString
+    Position 345 370
+    Size 70 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+SingleClic :
+ Begin
+    Set $HideSMEditor = 1
+    Set $NullMessage = 1         
+ End
+End
+
+# Really Remove ?
+Widget 57
+Property
+    Flags NoReliefString NoFocus
+    Size 510 20
+    Position 45 320
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+#-----------------------------------------------------------------------------
+#
+# Message, Apply, quit, ...
+#
+#-----------------------------------------------------------------------------
+
+# Message
+Widget 95
+Property
+    Flags NoReliefString NoFocus
+    Position 20 417
+    Size 560 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+    SingleClic :
+    Begin
+    End
+End
+
+# Apply
+Widget 96
+Property
+    Flags NoReliefString
+    Position 30 450
+    Size 85 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $ConfigTool == {SM} Then
+    Begin
+	ChangeTitle 95 $l_ApplyNewSession
+	Set $break = 0
+	If $SelectedSession == {} Then
+	Begin
+	    ChangeTitle 95 $l_MustSelectSession
+	    Set $break = 1
+	End
+	If $SMEditorState <> 0 Then
+	Begin
+	    ChangeTitle 95 $l_FinishEdit
+	    Set $break = 1
+	End
+	# need to fix that one day
+	#If $SelectedSession == $CurrentSession Then
+	#Begin
+	#   Set $msg = {Warn: You already use }$CurrentSession{ session}
+	#   ChangeTitle 95 $msg
+	#   Set $break = 1
+	#End
+	If $break == 0 Then
+	Begin
+	    #ChangeTitle 95 $l_ApplyNewSession
+	    Set $CMD = {apply-sm }$SelectedSession{|}
+	    # execute the CMD
+	    SendSignal 999 2
+	    Set $UpdateSMLists = 1
+	    Set $UpdateAllTSLists = 1
+	    Set $UpdateSettingsListAndVariants = 1
+	    Do {SendToModule FvwmScript-ComponentProperties SendString 1 1 exit}
+	    Set $NullMessage = 1
+	    Do {Read themes-rc-3}
+	    Do {FuncFvwmThemesFresh}
+	End
+    End
+    Else
+    Begin
+	ChangeTitle 95 $l_ApplyThemeConfig
+	#Set $ApplyTSCmdOpts = 1
+	SendSignal 999 1
+    End
+ End
+End
+
+# Refresh
+Widget 97
+Property
+    Flags NoReliefString
+    Position 145 450
+    Size 85 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+	ChangeTitle 95 $l_Refresh
+	Set $RefreshORUpdate = 1
+	Set $RefreshUpdateValue = 1
+ End
+End
+
+# Update
+Widget 94
+Property
+    Flags NoReliefString
+    Position 260 450
+    Size 85 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+	ChangeTitle 95 $l_Update
+	Set $RefreshORUpdate = 1
+	Set $RefreshUpdateValue = 0
+ End
+End
+
+# Help
+Widget 98
+Property
+    Flags NoReliefString
+    Position 375 450
+    Size 85 20
+    Type PushButton
+    Title {}
+Main
+ Case message of
+  SingleClic :
+  Begin
+    Set $arg={FvwmScript-Help --in-line-doc FvwmScript-ThemesCenter --title "Themes Center"}
+    If $TextColorset <> {} Then
+	Set $arg=$arg{ --text-colorset }$TextColorset
+    If $Lang <> {} Then
+	Set $arg=$arg{ --lang }$Lang
+    Set $dummy = (LaunchScript $arg)
+  End
+End
+
+# Quit
+Widget 99
+Property
+    Flags NoReliefString
+    Position 490 450
+    Size 85 20
+    Type PushButton
+    Title {Quit}
+Main
+ Case message of
+  SingleClic :
+  Begin
+    Do {SendToModule FvwmScript-ComponentProperties SendString 1 1 exit}
+    Set $cmd = {exit|}
+    Set $dummy = (SendMsgAndGet $ComName $cmd 0)
+    Quit
+  End
+End

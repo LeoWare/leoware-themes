@@ -1,0 +1,88 @@
+DestroyModuleConfig FvwmButtons-WMaker*Applets*
+
+#-------------------------------------
+# Buttons:
+
+*FvwmButtons-WMakerApplets: Geometry +0+0
+*FvwmButtons-WMakerApplets: Columns 1
+*FvwmButtons-WMakerApplets: Colorset 12
+*FvwmButtons-WMakerApplets: ButtonGeometry 66x6+0+0
+*FvwmButtons-WMakerApplets: (1x11, Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmCalClock" 'Exec exec wmCalClock -24', Action(Mouse 1) \
+	'FuncFvwmMyPopupPanel "FvwmButtons-WMakerClockApplets" +$right+$top@g', \
+	Action(Mouse 3) 'All (FvwmButtons-WMakerClockApplets) Close')
+# a good monitor:
+# Swallow "asmon" 'Exec exec asmon'
+*FvwmButtons-WMakerApplets: (1x11, Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmmon" 'Exec exec wmmon', Action(Mouse 1) \
+	'FuncFvwmMyPopupPanel "FvwmButtons-WMakerCpuApplets" +$right+$top@g', \
+	Action(Mouse 3) 'All (FvwmButtons-WMakerCpuApplets) Close')
+# with a laptop you may want to use:
+# Swallow "asapm" 'Exec exec asapm -u 5'
+# Swallow "wmapm" 'Exec exec wmapm'
+# in the place of wmjmail 
+*FvwmButtons-WMakerApplets: (1x11, Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmjmail" 'Exec exec wmjmail', Action(Mouse 1) \
+	'FuncFvwmMyPopupPanel "FvwmButtons-WMakerCdApplets" +$right+$top@g', \
+	Action(Mouse 3) 'All (FvwmButtons-WMakerCdApplets) Close')
+*FvwmButtons-WMakerApplets: (1x1, Colorset 12, Frame 0, Padding 1 1, NoSize, \
+	Action(Mouse 1) 'FuncFvwmMyPopupPanel "FvwmButtons-WMakerMoreApplets" \
+	+$left+$bottom@g', Action(Mouse 3) 'All (FvwmButtons-WMakerMoreApplets) Close')
+
+#--------------------------------------
+# Panels
+
+#-----------------
+# Clock
+*FvwmButtons-WMakerClockApplets: Rows 1
+*FvwmButtons-WMakerClockApplets: Colorset 12
+*FvwmButtons-WMakerClockApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmglobe" 'Exec exec  wmglobe')
+*FvwmButtons-WMakerClockApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmMoonClock" 'Exec exec  wmMoonClock')
+
+#-----------------
+# Cpu
+*FvwmButtons-WMakerCpuApplets: Rows 1
+*FvwmButtons-WMakerCpuApplets: Colorset 12
+# this one is not very good:
+#*FvwmButtons-WMakerCpuApplets: (Frame 1, Size 64 64, Colorset 12, \
+#	Swallow "wmload" 'Exec exec  wmload')
+*FvwmButtons-WMakerCpuApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "asmon" 'Exec exec asmon')
+*FvwmButtons-WMakerCpuApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmsysmon" 'Exec exec  wmsysmon')
+# a min top
+#*FvwmButtons-WMakerCpuApplets: (Frame 1, Size 64 64, Colorset 12, \
+#	Swallow "wmtop" 'Exec exec  wmtop')
+
+#-----------------
+# Cd
+*FvwmButtons-WMakerCdApplets: Rows 1
+*FvwmButtons-WMakerCdApplets: Colorset 12
+# some version need a "--" options before the options ...
+*FvwmButtons-WMakerCdApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmmount" 'Exec exec wmmount -s -position +5000+5000')
+# an other mounter:
+# Swallow "mount" 'Exec exec  mount.app -n'
+*FvwmButtons-WMakerCdApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmmixer" 'Exec exec  wmmixer -s -position +5000+5000')
+# an other mixer:
+# Swallow "mixer_app" 'Exec exec /usr/local/GNUstep/Apps/Mixer.app/Mixer')
+*FvwmButtons-WMakerCdApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmcdplay" 'Exec exec  wmcdplay -s -position +5000+5000')
+# maybe wmxmms ?
+#*FvwmButtons-WMakerCdApplets: (Frame 1, Size 64 64, Colorset 12, \
+#	Swallow "wmxmms" 'Exec exec  wmxmms -g +5000+5000')
+
+#-----------------
+# More
+*FvwmButtons-WMakerMoreApplets: Columns 1
+*FvwmButtons-WMakerMoreApplets: Colorset 12
+*FvwmButtons-WMakerMoreApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wmppp" 'Exec exec  wmppp')
+# an other ppp applets:
+# Swallow "yawmppp" 'Exec exec yawmppp'
+*FvwmButtons-WMakerMoreApplets: (Frame 1, Size 64 64, Colorset 12, \
+	Swallow "wminet" 'Exec exec  wminet')
+

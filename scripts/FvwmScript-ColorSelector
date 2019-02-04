@@ -1,0 +1,728 @@
+WindowTitle {Color Selector}
+WindowSize 316 280
+Font	-adobe-helvetica-bold-r-*-*-12-*
+
+Init
+Begin
+    Set $Lang = {}
+    Set $Color = {}
+    Set $Launched = 0
+    Set $return = {}
+    # Arguments
+    Set $i = 1
+    Set $arg = (GetScriptArgument $i)
+    While $arg <> {} Do
+    Begin
+	Set $j = (Add $i 1)
+	If $arg == {--viewer-colorset} Then
+	    Set $ViewerColorset = (GetScriptArgument $j)
+	If $arg == {--launched} Then
+	    Set $Launched = (GetScriptArgument $j)
+ 	If $arg == {--lang} Then
+	    Set $Lang = (GetScriptArgument $j)
+	If $arg == {--color} Then
+	    Set $Color = (GetScriptArgument $j)
+	Set $i = (Add $i 2)
+	Set $arg = (GetScriptArgument $i)
+    End
+
+    Set $SelFont = {-adobe-helvetica-bold-r-*-*-12-*}
+    Set $ShadeFont = {-adobe-helvetica-medium-r-*-*-12-*}
+    Set $SaveFont = {Sel}
+    Set $nonDefaultFont = 0
+
+    #Set $Lang = {en}
+    #Set $Lang = {ru}
+    # ------------------------------------- Internationalization.
+    Set $DocLoaded = 0
+    Set $nonDefaultFont = 0
+
+    If $Lang == {} Then
+    Begin
+	Set $cmd = {echo "$LANG" | cut -c1-2}
+	Set $Lang = (GetOutput $cmd 1 -1)
+	Set $localeSet = 1
+    End
+    If $Lang == {} Then
+	Set $Lang = {C}
+
+    Set $msg = {}
+    Set $id = {}
+    Set $cmd = {fvwm-themes-script --get-msg }FvwmScript-ColorSelector{ --lang }$Lang
+    Set $MSG = (GetOutput $cmd 1 -1)
+    Set $index = 0
+    Set $notdone = 1
+    While $notdone == 1 Do
+    Begin
+	Set $index = (Add $index 1)
+	Set $id = (StrCopy $MSG $index (Add $index 11))
+	Set $index = (Add $index 12)
+	Set $tmp = (StrCopy $MSG $index (Add $index 3))
+	Set $index = (Add $index 4)
+	Set $pos = (Add $index $tmp)
+	Set $msg = (StrCopy $MSG $index $pos)
+	Set $index = (Add $index $tmp)
+	#Do {Echo id:}$id{:msg:}$msg{:}
+
+	If $index > 9999 Then
+	    Set $notdone = 0
+	If $id == {END         } Then
+	    Set $notdone = 0
+	If $id == {} Then
+	    Set $notdone = 0
+	# TS
+	If $id == {Title       } Then
+	    ChangeTitle 1 $msg
+	If $id == {SelColor    } Then
+	    ChangeTitle 14 $msg
+	If $id == {Help        } Then
+	    ChangeTitle 993 $msg
+	If $id == {Ok          } Then
+	Begin
+	    ChangeTitle 992 $msg
+	End
+	If $id == {Cancel      } Then
+	    ChangeTitle 994 $msg
+	If $id == {ChangeFont  } Then
+	    Set $nonDefaultFont = $msg
+	If $id == {SelFont     } Then
+	    Set $SelFont = $msg
+	If $id == {ShadeFont   } Then
+	    Set $ShadeFont = $msg
+	If $id == {FixedFont   } Then
+	    Set $FixedFont = $msg
+    End
+
+    If $nonDefaultFont == 1 Then
+    Begin
+	ChangeFont 1 $SelFont
+	ChangeFont 14 $SelFont
+	# these 4 one display number
+	ChangeFont 17 $FixedFont
+	ChangeFont 30 $FixedFont
+	ChangeFont 32 $FixedFont
+	ChangeFont 34 $FixedFont
+	ChangeFont 992 $SelFont
+	ChangeFont 993 $SelFont
+    	ChangeFont 994 $SelFont
+	# when the doc will be written
+	#ChangeFont 994 $FixedFont
+    End
+
+    # ---------------------- Color init
+
+    Set $cmd = {echo "$FT_DATADIR"}
+    Set $FtDataDir = (GetOutput $cmd 1 -1)
+    Set $RainbowFile = $FtDataDir{/images/fvwmscript/palette-rainbow.xpm}
+    Set $GreyFile    = $FtDataDir{/images/fvwmscript/palette-gray.xpm}
+
+    # get the rainbow color line
+    Set $cmd = {if [ -f }$RainbowFile{ ]; then echo 1; else echo "0"; fi}
+    Set $test = (GetOutput $cmd 1 -1)
+    If $test == {0} Then
+    Begin
+	Do {Echo [FvwmScript-ColorSelector] Unable to find }$RainbowFile
+	Do {Echo [FvwmScript-ColorSelector] exiting!}
+	Quit
+    End
+    Else
+    Begin
+	Set $cmd = {cat }$RainbowFile
+	Set $ColorLine = (GetOutput $cmd 282 -1)
+    End
+
+    # get the grey color line
+    Set $cmd = {if [ -f }$GreyFile{ ]; then echo "1"; else echo "0"; fi}
+    Set $test = (GetOutput $cmd 1 -1)
+    If $test == {0} Then
+    Begin
+	Do {Echo [FvwmScript-ColorSelector] Unable to find }$GreyFile
+	Do {Echo [FvwmScript-ColorSelector] exiting!}
+	Quit
+    End
+    Else
+    Begin
+	Set $cmd = {cat }$GreyFile
+	Set $GreyColorLine = (GetOutput $cmd 282 -1)
+    End
+
+    If $Color <> {} Then
+	Set $CurrentColor = $Color
+    Else
+	Set $CurrentColor = {#02EEFF}
+
+    Set $UpdateColors = 1
+    Set $IsSecond = 0
+    Do {Colorset 29 fg black, bg #908090, HGradient 190 2 #000000 50 }$CurrentColor{ 50 #ffffff, NoShape}
+    Set $LightColor = $CurrentColor
+    Set $LightNumRed = (HexToNum (StrCopy $LightColor 2 3))
+    Set $LightNumGreen = (HexToNum (StrCopy $LightColor 4 5))
+    Set $LightNumBlue = (HexToNum (StrCopy $LightColor 6 7))
+End
+
+#----------------------------------------------------------------------------
+
+PeriodicTasks
+Begin
+    
+    If $UpdateColors == 1 Then
+    Begin
+	Set $UpdateColors = 0
+	ChangeBackColor 15 $CurrentColor
+	ChangeTitle 17 $CurrentColor
+	Set $Red = (StrCopy $CurrentColor 2 3)
+	Set $Green = (StrCopy $CurrentColor 4 5)
+	Set $Blue = (StrCopy $CurrentColor 6 7)
+	Set $NumRed = (HexToNum $Red)
+	Set $NumGreen = (HexToNum $Green)
+	Set $NumBlue = (HexToNum $Blue)
+	Set $NumR = $NumRed
+	Set $NumG = $NumGreen
+	Set $NumB = $NumBlue
+	Set $t ={R: } $Red
+	ChangeTitle 30 $t
+	ChangeValue 31 $NumRed
+	Set $t ={G: } $Green
+	ChangeTitle 32 $t
+	ChangeValue 33 $NumGreen
+	Set $t ={B: } $Blue
+	ChangeTitle 34 $t
+	ChangeValue 35 $NumBlue
+    End
+
+End
+
+# ----------------------------------------------------------------------------
+
+# Title
+Widget 1
+Property
+    Flags NoReliefString
+    Position 10 5
+    Size 296 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+End
+
+# main rectangle
+Widget 2
+Property
+    Flags NoReliefString
+    Position 10 25
+    Size 296 115
+    Type Rectangle
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+End
+
+#first rainbow
+Widget 10
+Property
+    Flags NoReliefString
+    Position 30 35
+    Size 256 20
+    Type ItemDraw
+    Title {}
+    Icon fvwmscript/palette-rainbow.xpm
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $X = (GetMinValue 10)
+    Set $index = (Mult $X 2)
+    Set $index = (Add $index 2)
+    Set $end = (Add $index 1)
+    Set $name = (StrCopy $ColorLine $index $end)
+    Set $a = (StrCopy $name 1 1)
+    Set $b = (StrCopy $name 2 2)
+    If $a == {^} Then
+	Set $a={\^}
+    If $b == {^} Then
+	Set $b={\^}
+    If $a == {`} Then
+	Set $a={\`}
+    If $b == {`} Then
+	Set $b={\`}
+    # do we have to protec other characters?	
+    Set $cmd = {grep "[}$a{][}$b{] c #" }$RainbowFile
+    Set $tmp = (GetOutput $cmd 1 -1)
+    Set $LightColor = (StrCopy $tmp 7 19)
+    Set $LightRed = (StrCopy $LightColor 2 3)
+    Set $LightGreen = (StrCopy $LightColor 6 7)
+    Set $LightBlue = (StrCopy $LightColor 10 11)
+    Set $LightColor = {#} $LightRed $LightGreen $LightBlue
+    Do {Colorset 29 fg black, bg #908090, HGradient 256 2 #000000 50 }$LightColor{ 50 #ffffff, NoShape}
+    Set $LightNumRed = (HexToNum $LightRed)
+    Set $LightNumGreen = (HexToNum $LightGreen)
+    Set $LightNumBlue = (HexToNum $LightBlue)
+    Set $IsSecond = 0
+ End
+End
+
+#second rainbow
+Widget 13
+Property
+    Flags NoReliefString
+    Position 30 60
+    Size 256 20
+    Type ItemDraw
+    Title {}
+    Icon fvwmscript/palette-rainbow.xpm
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $X = (GetMinValue 13)
+    Set $index = (Mult $X 2)
+    Set $index = (Add $index 2)
+    Set $end = (Add $index 1)
+    Set $name = (StrCopy $ColorLine $index $end)
+    Set $a = (StrCopy $name 1 1)
+    Set $b = (StrCopy $name 2 2)
+    If $a == {^} Then
+	Set $a={\^}
+    If $b == {^} Then
+	Set $b={\^}
+    If $a == {`} Then
+	Set $a={\`}
+    If $b == {`} Then
+	Set $b={\`}	
+    # do we have to protec other characters?	
+    Set $cmd = {grep "[}$a{][}$b{] c #" }$RainbowFile
+    Set $tmp = (GetOutput $cmd 1 -1)
+    Set $SecondColor = (StrCopy $tmp 7 19)
+    Set $SecondRed = (StrCopy $SecondColor 2 3)
+    Set $SecondGreen = (StrCopy $SecondColor 6 7)
+    Set $SecondBlue = (StrCopy $SecondColor 10 11)
+    Set $SecondColor = {#} $SecondRed $SecondGreen $SecondBlue
+    Do {Colorset 29 fg black, bg #908090, HGradient 256 }$SecondColor{ }$CurrentColor{, NoShape}
+    Set $SecondNumRed = (HexToNum $SecondRed)
+    Set $SecondNumGreen = (HexToNum $SecondGreen)
+    Set $SecondNumBlue = (HexToNum $SecondBlue)
+    Set $OrigNumRed = $NumRed
+    Set $OrigNumGreen = $NumGreen
+    Set $OrigNumBlue = $NumBlue
+    Set $IsSecond = 1
+ End
+End
+
+# grey
+Widget 11
+Property
+    Flags NoReliefString
+    Position 30 85
+    Size 256 20
+    Type ItemDraw
+    Title {}
+    Icon fvwmscript/palette-gray.xpm
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $X = (GetMinValue 11)
+    Set $index = (Mult $X 2)
+    Set $index = (Add $index 2)
+    Set $end = (Add $index 1)
+    Set $name = (StrCopy $GreyColorLine $index $end)
+    Set $a = (StrCopy $name 1 1)
+    Set $b = (StrCopy $name 2 2)
+    If $a == {^} Then
+	Set $a={\^}
+    If $b == {^} Then
+	Set $b={\^}
+    If $a == {`} Then
+	Set $a={\`}
+    If $b == {`} Then
+	Set $b={\`}
+    # do we have to protec other characters?	
+    Set $cmd = {grep "[}$a{][}$b{] c #" }$GreyFile
+    Set $tmp = (GetOutput $cmd 1 -1)
+    Set $SecondColor = (StrCopy $tmp 7 19)
+    Set $SecondRed = (StrCopy $SecondColor 2 3)
+    Set $SecondGreen = (StrCopy $SecondColor 6 7)
+    Set $SecondBlue = (StrCopy $SecondColor 10 11)
+    Set $SecondColor = {#} $SecondRed $SecondGreen $SecondBlue
+    Do {Colorset 29 fg black, bg #908090, HGradient 256 }$SecondColor{ }$CurrentColor{, NoShape}
+    Set $IsSecond = 1
+    Set $SecondNumRed = (HexToNum $SecondRed)
+    Set $SecondNumGreen = (HexToNum $SecondGreen)
+    Set $SecondNumBlue = (HexToNum $SecondBlue)
+    Set $OrigNumRed = $NumRed
+    Set $OrigNumGreen = $NumGreen
+    Set $OrigNumBlue = $NumBlue
+ End
+End
+
+Widget 12
+Property
+    Flags NoReliefString
+    Position 30 110
+    Size 256 20
+    Colorset 29
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $X = (GetMinValue 12)
+    If $IsSecond == 0 Then
+    Begin
+	If $X > 128 Then
+	Begin
+	    Set $X = (Add $X -128)
+	    Set $cmd = {perl -e '$ln = }$LightNumRed{; $x = }$X{; $r = $ln + ($x/128)*(256-$ln); $r = int($r); $r = 255 if $r > 255; print "$r\n"'}
+	    Set $NumRed = (GetOutput $cmd 1 -1)
+	    Set $cmd = {perl -e '$ln = }$LightNumGreen{; $x = }$X{; $r = $ln + ($x/128)*(256-$ln); $r = int($r); $r = 255 if $r > 255; print "$r\n"'}
+	    Set $NumGreen = (GetOutput $cmd 1 -1)
+	    Set $cmd = {perl -e '$ln = }$LightNumBlue{; $x = }$X{; $r = $ln + ($x/128)*(256-$ln); $r = int($r); $r = 255 if $r > 255; print "$r\n"'}
+	    Set $NumBlue = (GetOutput $cmd 1 -1)
+	End
+	Else
+	Begin
+	    Set $cmd = {perl -e '$ln = }$LightNumRed{; $x = }$X{; $r = ($x/128)*($ln); $r = int($r); print "$r\n"'}
+	    Set $NumRed = (GetOutput $cmd 1 -1)
+	    Set $cmd = {perl -e '$ln = }$LightNumGreen{; $x = }$X{; $r = ($x/128)*($ln); $r = int($r);print "$r\n"'}
+	    Set $NumGreen = (GetOutput $cmd 1 -1)
+	    Set $cmd = {perl -e '$ln = }$LightNumBlue{; $x = }$X{; $r = ($x/128)*($ln); $r = int($r);print "$r\n"'}
+	    Set $NumBlue = (GetOutput $cmd 1 -1)
+	End
+    End
+    Else
+    Begin
+	Set $cmd = {perl -e '$ln = }$OrigNumRed{; $g = }$SecondNumRed{; $x = }$X{; $r = (($ln - $g)*$x)/256 + $g; $r = int($r); print "$r\n"'}
+	    Set $NumRed = (GetOutput $cmd 1 -1)
+	    Set $cmd = {perl -e '$ln = }$OrigNumGreen{; $g = }$SecondNumGreen{; $x = }$X{; $r = (($ln - $g)*$x)/256 + $g; $r = int($r); print "$r\n"'}
+	    Set $NumGreen = (GetOutput $cmd 1 -1)
+	    Set $cmd ={perl -e '$ln = }$OrigNumBlue{; $g = }$SecondNumBlue{; $x = }$X{; $r = (($ln - $g)*$x)/256 + $g; $r = int($r); print "$r\n"'}
+	    Set $NumBlue = (GetOutput $cmd 1 -1)
+    End
+    Set $Red = (NumToHex $NumRed 2)
+    Set $Green = (NumToHex $NumGreen 2)
+    Set $Blue = (NumToHex $NumBlue 2)
+    Set $CurrentColor = {#} $Red $Green $Blue
+    Set $UpdateColors = 1
+ End
+End
+
+# Selected Color (title):
+Widget 14
+Property
+    Flags NoReliefString
+    Position 5 152
+    Size 145 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+End
+
+# The color
+Widget 15
+Property
+    Flags NoReliefString
+    Position 158 153
+    Size 50 20
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $LightRed = $Red
+    Set $LightGreen = $Green
+    Set $LightBlue = $Blue
+    Set $LightColor = {#} $LightRed $LightGreen $LightBlue
+    Do {Colorset 29 fg black, bg #908090, HGradient 256 2 #000000 50 }$LightColor{ 50 #ffffff, NoShape}
+    Set $LightNumRed = $NumRed
+    Set $LightNumGreen = $NumGreen
+    Set $LightNumBlue = $NumBlue
+    Set $IsSecond = 0
+ End
+End
+
+Widget 16
+Property
+    Flags NoReliefString
+    Position 157 152
+    Size 52 22
+    Type Rectangle
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+End
+
+# color in hex
+Widget 17
+Property
+    Flags NoReliefString
+    Position 220 155
+    Size 70 15
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+End
+
+# R
+Widget 30
+Property
+    Flags NoReliefString
+    Position 20 195
+    Size  40 15
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+End
+
+Widget 31
+Property
+ Size 1 1
+ Position 70 185
+ Type MiniScroll
+ Flags NoReliefString
+ Font -*-fixed-medium-r-semicondensed-*-13-*
+ MinValue 0
+ MaxValue 255
+Main
+ Case message of
+  SingleClic :
+  Begin
+    Set $NumR = (GetValue 31)
+    Set $NumG = (GetValue 33)
+    Set $NumB = (GetValue 35)
+    Set $test = (Mult $NumR -1)
+    Set $test = (Add $test $NumRed)
+    If $test > 200 Then
+	ChangeValue 31 255
+    Set $test = (Mult $NumRed -1)
+    Set $test = (Add $test $NumR)
+    If $test > 200 Then
+	ChangeValue 31 0
+    Set $NumRed = (GetValue 31)
+    Set $NumGreen = (GetValue 33)
+    Set $NumBlue = (GetValue 35)
+    Set $Red = (NumToHex $NumRed 2)
+    Set $Green = (NumToHex $NumGreen 2)
+    Set $Blue = (NumToHex $NumBlue 2)
+    Set $CurrentColor = {#} $Red $Green $Blue
+    ChangeBackColor 15 $CurrentColor
+    ChangeTitle 17 $CurrentColor
+    Set $t ={R: } $Red
+    ChangeTitle 30 $t
+    Set $t ={G: } $Green
+    ChangeTitle 32 $t
+    Set $t ={B: } $Blue
+    ChangeTitle 34 $t
+  End
+End
+
+# G
+Widget 32
+Property
+    Flags NoReliefString
+    Position 110 195
+    Size  40 15
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+End
+
+Widget 33
+Property
+ Font -*-fixed-medium-r-semicondensed-*-13-*   
+ Size 1 1
+ Position 160 185
+ Type MiniScroll
+ Flags NoReliefString
+ Value 196
+ MinValue 1
+ MaxValue 255
+Main
+ Case message of
+  SingleClic :
+  Begin
+    Set $NumR = (GetValue 31)
+    Set $NumG = (GetValue 33)
+    Set $NumB = (GetValue 35)
+    Set $test = (Mult $NumG -1)
+    Set $test = (Add $test $NumGreen)
+    If $test > 200 Then
+	ChangeValue 33 255
+    Set $test = (Mult $NumGreen -1)
+    Set $test = (Add $test $NumG)
+    If $test > 200 Then
+	ChangeValue 33 0
+    Set $NumRed = (GetValue 31)
+    Set $NumGreen = (GetValue 33)
+    Set $NumBlue = (GetValue 35)
+    Set $Red = (NumToHex $NumRed 2)
+    Set $Green = (NumToHex $NumGreen 2)
+    Set $Blue = (NumToHex $NumBlue 2)
+    Set $CurrentColor = {#} $Red $Green $Blue
+    ChangeBackColor 15 $CurrentColor
+    ChangeTitle 17 $CurrentColor
+    Set $t ={R: } $Red
+    ChangeTitle 30 $t
+    ChangeValue 31 $NumRed
+    Set $t ={G: } $Green
+    ChangeTitle 32 $t
+    ChangeValue 33 $NumGreen
+    Set $t ={B: } $Blue
+    ChangeTitle 34 $t
+    ChangeValue 35 $NumBlue
+  End
+End
+
+# B
+Widget 34
+Property
+    Flags NoReliefString
+    Position 200 195
+    Size  40 15
+    Type ItemDraw
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+ End
+End
+
+Widget 35
+Property
+ Size 250 1
+ Position 250 185
+ Type MiniScroll
+ Flags NoReliefString
+ Font -*-fixed-medium-r-semicondensed-*-13-*
+ Value 184
+ MinValue 0
+ MaxValue 255
+Main
+ Case message of
+  SingleClic :
+  Begin
+    Set $NumR = (GetValue 31)
+    Set $NumG = (GetValue 33)
+    Set $NumB = (GetValue 35)
+    Set $test = (Mult $NumB -1)
+    Set $test = (Add $test $NumBlue)
+    If $test > 200 Then
+	ChangeValue 35 255
+    Set $test = (Mult $NumBlue -1)
+    Set $test = (Add $test $NumB)
+    If $test > 200 Then
+	ChangeValue 35 0
+    Set $NumRed = (GetValue 31)
+    Set $NumGreen = (GetValue 33)
+    Set $NumBlue = (GetValue 35)
+    Set $Red = (NumToHex $NumRed 2)
+    Set $Green = (NumToHex $NumGreen 2)
+    Set $Blue = (NumToHex $NumBlue 2)
+    Set $CurrentColor = {#} $Red $Green $Blue
+    ChangeBackColor 15 $CurrentColor
+    ChangeTitle 17 $CurrentColor
+    Set $t ={R: } $Red
+    ChangeTitle 30 $t
+    ChangeValue 31 $NumRed
+    Set $t ={G: } $Green
+    ChangeTitle 32 $t
+    ChangeValue 33 $NumGreen
+    Set $t ={B: } $Blue
+    ChangeTitle 34 $t
+    ChangeValue 35 $NumBlue
+  End
+End
+
+#----------------------------------------------------------------------------
+
+# Ok
+Widget 992
+Property
+    Flags NoReliefString
+    Position 20 245
+    Size 80 20
+    Type PushButton
+    Title {OK}
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $Launched == {yes} Then
+    Begin
+	Set $ret = $CurrentColor
+	SendToScript (GetScriptFather) $ret
+    End
+    Quit
+ End
+End
+
+# Help
+Widget 993
+Property
+    Flags NoReliefString
+    Position 120 245
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    Set $arg={FvwmScript-Help --in-line-doc FvwmScript-ColorSelector --title "Color Selector"}
+    If $ViewerColorset <> {} Then
+	Set $arg=$arg{ --text-colorset }$ViewerColorset
+    If $Lang <> {} Then
+	Set $arg=$arg{ --lang }$Lang
+    Set $dummy = (LaunchScript $arg)
+ End
+End
+
+# Cancel
+Widget 994
+Property
+    Flags NoReliefString
+    Position 220 245
+    Size 80 20
+    Type PushButton
+    Title {}
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $Launched == {yes} Then
+	SendToScript (GetScriptFather) {Cancel}
+    Quit
+ End
+End
+
+
+
+

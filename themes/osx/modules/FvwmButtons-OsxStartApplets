@@ -1,0 +1,21 @@
+DestroyModuleConfig FvwmButtons-OsxStartApplets: *
+
+*FvwmButtons-OsxStartApplets: Colorset 10
+*FvwmButtons-OsxStartApplets: Frame 1
+*FvwmButtons-OsxStartApplets: Geometry 10x66+0-200
+*FvwmButtons-OsxStartApplets: (Panel(right, indicator) \
+	"FvwmButtons-OsxApplets" 'FvwmButtons FvwmButtons-OsxApplets')
+
+#-----------------
+# Panel
+DestroyModuleConfig FvwmButtons-OsxApplets: *
+*FvwmButtons-OsxApplets: Rows 1
+*FvwmButtons-OsxApplets: Frame 1
+*FvwmButtons-OsxApplets: Colorset 10
+*FvwmButtons-OsxApplets: (Size 64 64, \
+	Swallow (Kill) "FvwmApplet-Day" 'FvwmScript FvwmApplet-Day 10 13')
+*FvwmButtons-OsxApplets: (Size 64 64, \
+	Swallow (Kill) "FvwmApplet-Mixer" 'FvwmScript FvwmApplet-Mixer 10 13')
+*FvwmButtons-OsxApplets: (Title xeyes, Size 64 64, \
+	Swallow "xeyes" 'Exec exec xeyes -geometry +5000+5000')
+

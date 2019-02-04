@@ -1,0 +1,37 @@
+In this directory you can find some scripts for FvwmScript. You can run
+one of these scripts with the command:
+
+	FvwmScript NameOfTheScript [options]
+ 
+The FvwmApplet-* are more or less poor applets that can replace some more
+pretty and/or powerful applets. With the current colors implementation of
+fvwm-themes good colorset options are 10 13 or just 13 for DigitalClock.
+
+* FvwmApplet-APMMon Colorset
+  A 69x25 applet that monitor your battery charge.
+  Author: Jason White <jdwhite@jdwhite.org>
+
+* FvwmApplet-Day [Colorset [Colorset]]
+  A 64x64 applet that gives the date. You need `date`. The first colorset is
+  for the background, the second one is for the widgets.
+  Author: Olivier Chapuis
+
+* FvwmApplet-DayClock [Colorset [Colorset]]
+  A 64x64 applet that gives the date and the time. You need `date`. The first 
+  colorset is for the background, the second one is for the widgets.
+  Author: Olivier Chapuis
+
+* FvwmApplet-DigitalClock [Colorset]
+  A 60x12 digital clock applet (can replace xdaliclock). You need `date`.
+  Author: Olivier Chapuis
+
+* FvwmApplet-Mixer [Colorset [Colorset]]
+  A 64x64 applet for your sound card. You need `aumix`. The first colorset is
+  for the background, the second one is for the widgets.
+  Author: Olivier Chapuis
+
+* FvwmScript-NoteMessage ["message"]
+  Allows to display a feedback message and to be killed by the function,
+  which calls it. Used during theme switching, for example.
+  Author: Olivier Chapuis
+

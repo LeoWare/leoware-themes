@@ -1,0 +1,19 @@
+# ------------------
+# Window decorations
+
+# window title, inactive and active
+Colorset 1 fg #aaaaaa, bg #eeeeee, Plain, NoShape
+Colorset 2 fg #000000, bg #aaaaaa, Plain, NoShape
+
+# window borders, inactive and active
+Colorset 3 fg #aaaaaa, bg #d0d0d0, Plain, NoShape
+Colorset 4 fg #000000, bg #aaaaaa, Plain, NoShape
+
+# background for window title, buttons and border
+DestroyFunc FuncFvwmDecorBackground
+AddToFunc   FuncFvwmDecorBackground
++ I TitleStyle \
+	AllActive   (TiledPixmap $./images/decor/title-active.xpm) \
+	AllInactive (TiledPixmap $./images/decor/title-inactive.xpm)
+#
++ I ButtonStyle All Simple -- UseTitleStyle

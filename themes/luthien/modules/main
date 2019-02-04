@@ -1,0 +1,92 @@
+# 1. Icon related configuration
+# 2. Switch functions
+# 3. Theme module menus
+# 4. Modules configuration
+
+# ----------------------------------------------------------------------------
+# Icon related configuration
+
+Style * IconBox screen w 10 16 -130 -100, IconGrid 64 10, IconFill left top
+Style * SlipperyIcon, IconTitle
+
+# ----------------------------------------------------------------------------
+# Switch functions
+
+DestroyFunc FuncFvwmStartThemeModules
+AddToFunc   FuncFvwmStartThemeModules
++ I Colorset 23 fg $[fg.cs10], bg $[bg.cs10], Transparent, NoShape
++ I FuncFvwmStartNormalIcons
++ I FvwmButtons FvwmButtons-Bar
+
+DestroyFunc FuncFvwmReloadThemeModules
+AddToFunc   FuncFvwmReloadThemeModules
++ I Read $./styles
++ I FuncFvwmStartNormalIcons
+
+DestroyFunc FuncFvwmReloadColorsModules
+AddToFunc   FuncFvwmReloadColorsModules
++ I Colorset 23 fg $[fg.cs10], bg $[bg.cs10], Transparent, NoShape
++ I FvwmButtons FvwmButtons-Bar
+
+DestroyFunc FuncFvwmStopThemeModules
+AddToFunc   FuncFvwmStopThemeModules
++ I KillModule FvwmButtons FvwmButtons-Bar
++ I KillModule FvwmPager FvwmPager-Single
++ I KillModule FvwmPager FvwmPager-Desker
++ I KillModule FvwmIconMan
++ I KillModule FvwmWinList
++ I DestroyModuleConfig FvwmButtons-Bar: *
++ I DestroyModuleConfig FvwmPager-Single: *
++ I DestroyModuleConfig FvwmPager-Desker: *
++ I DestroyModuleConfig FvwmIconMan: *
++ I DestroyModuleConfig FvwmWinList: *
++ I DestroyFunc ToggleXMessages
++ I DestroyFunc ToggleStickyXMessages
++ I DestroyFunc ToggleSlipperyXMessages
++ I DestroyFunc ToggleFvwmConsole
++ I DestroyFunc FuncFvwmStartBarXosview
++ I FuncFvwmModulesDestroyStyle
++ I DestroyFunc FuncFvwmModulesDestroyStyle
+
+DestroyFunc FuncFvwmUnReloadColorsModules
+AddToFunc   FuncFvwmUnReloadColorsModules
++ I KillModule FvwmButtons FvwmButtons-Bar
+
+DestroyFunc FuncFvwmUnReloadThemeModules
+AddToFunc   FuncFvwmUnReloadThemeModules
+
+# ----------------------------------------------------------------------------
+# Theme module menus
+
+DestroyMenu MenuFvwmStartThemeModules
+AddToMenu   MenuFvwmStartThemeModules "Default Modules" Title
++ "%menu/item.xpm%&Buttons" FuncFvwmRestartModuleByAlias FvwmButtons FvwmButtons-Bar
+#+ "%menu/item.xpm%&Desker"  FuncFvwmRestartModuleByAlias FvwmPager FvwmPager-Desker
++ "" Nop
++ "%menu/choice-no.xpm%No normal icons" Style * NoIcon  # for NoIcon modules
++ "%menu/choice-yes.xpm%Normal icons"   Style * !NoIcon
++ "%menu/item.xpm%&WinList" FuncFvwmRestartModule FvwmWinList
+
+DestroyMenu MenuFvwmStopThemeModules
+AddToMenu   MenuFvwmStopThemeModules "Default Modules" Title
++ "%menu/quit.xpm%Stop &Buttons" FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-Bar
+#+ "%menu/quit.xpm%Stop &Desker"  FuncFvwmStopModuleByAlias FvwmPager FvwmPager-Desker
++ "%menu/quit.xpm%Stop &WinList" KillModule FvwmWinList
+
+# ----------------------------------------------------------------------------
+# Desktop names
+
+DesktopName 0 Main
+DesktopName 1 Web & Mail
+DesktopName 2 Devel
+DesktopName 3 Games     
+
+# ----------------------------------------------------------------------------
+# Modules configuration
+
+Read $./styles
+Read $./FvwmButtons
+Read $./FvwmIconMan
+Read $./FvwmPager
+Read $./FvwmWinList
+Read $./fonts

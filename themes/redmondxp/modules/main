@@ -1,0 +1,130 @@
+# 1. Icon related configuration
+# 2. Switch functions
+# 3. Theme module menus
+# 4. Modules configuration
+
+# ----------------------------------------------------------------------------
+# Icon related configuration
+
+Style "*" SlipperyIcon, IconTitle
+
+# No icons at all...
+
+DestroyFunc FuncFvwmStartNormalIcons
+AddToFunc   FuncFvwmStartNormalIcons
++ I Style * !Icon
+
+# ----------------------------------------------------------------------------
+# Switch functions
+
+DestroyFunc FuncFvwmStartThemeModules
+AddToFunc   FuncFvwmStartThemeModules
++ I FuncFvwmReloadColorsModules
++ I FuncFvwmStartNormalIcons
++ I Style * IconBox 10 10 -10 -40p, IconGrid 76 90
++ I *FvwmIconMan: resolution page
++ I FuncFvwmStartPanel
+
+DestroyFunc FuncFvwmReloadThemeModules
+AddToFunc   FuncFvwmReloadThemeModules
++ I Read $./styles
+#+ I FuncFvwmStartNormalIcons
+
+DestroyFunc FuncFvwmReloadColorsModules
+AddToFunc   FuncFvwmReloadColorsModules
+#+ I Colorset 10 fg rgb:ff/ff/f0, bg average, TiledPixmap module/panel-bg.png, NoShape
+#+ I Colorset 23 fg $[fg.cs10], bg $[bg.cs10], Transparent, NoShape
++ I Colorset 10 fg $[fg.cs10], bg $[bg.cs10], TiledPixmap module/panel-bg.png, Tint, bgTint, fgAlpha, Alpha, IconTint, IconAlpha, NoShape
++ I Colorset 23 fg $[fg.cs10], bg $[bg.cs10], TiledPixmap module/panel-bg.png, Tint, bgTint, fgAlpha, Alpha, IconTint, IconAlpha, NoShape
++ I Colorset 24 fg rgb:ff/ff/f0, bg $[bg.cs10], Pixmap module/panel-clockarea.png, Tint, bgTint, fgAlpha, Alpha, IconTint, IconAlpha, NoShape
+# plaincolorset
++ I Colorset 17 fg $[fg.cs10], bg $[bg.cs10], TiledPixmap module/panel-bg.png, Tint, bgTint, fgAlpha, Alpha, IconTint, IconAlpha, NoShape
+# focuscolorset
+#+ I Colorset 18 fg $[fg.cs10], bg $[bg.cs10], TiledPixmap module/panel-bg.png, Tint rgb:00/80/ff 30, bgTint, fgAlpha, fgTint, Alpha, IconTint, IconAlpha, NoShape
+# iconcolorset
++ I Colorset 19 fg $[fg.cs10], bg $[bg.cs10], TiledPixmap module/panel-bg.png, Tint rgb:00/00/00 40, bgTint, fgAlpha, fgTint $[bg.cs10] 35, Alpha, IconTint, IconAlpha 60, NoShape
+# selectcolorset
++ I Colorset 20 fg $[fg.cs10], bg $[bg.cs10], TiledPixmap module/panel-bg.png, Tint rgb:ff/ff/ff 30, bgTint, fgAlpha, fgTint, Alpha, IconTint, IconAlpha, NoShape
+#+ I FuncFvwmStartPanel
+
+DestroyFunc FuncFvwmStopThemeModules
+AddToFunc   FuncFvwmStopThemeModules
++ I FuncFvwmStopPanel
++ I FuncFvwmStopModuleByAlias FvwmPager FvwmPager-Single
++ I FuncFvwmStopModuleByAlias FvwmPager FvwmPager-Desker
++ I KillModule FvwmIconMan
++ I DestroyModuleConfig FvwmButtons-Panel: *
++ I DestroyModuleConfig FvwmPager-Single: *
++ I DestroyModuleConfig FvwmPager-Desker: *
++ I DestroyModuleConfig FvwmIconMan: *
++ I FuncFvwmModulesDestroyStyle
++ I DestroyFunc FuncFvwmModulesDestroyStyle
++ I DestroyFunc FuncFvwmStopPanel
++ I DestroyFunc FuncFvwmStartPanel
+#+ I Colorset 18 Tint
++ I Colorset 19 Tint
++ I Colorset 20 Tint
+# This is very bad, but we should restore modified colorsets
++ I PipeRead `fvwm-themes-config --component colors --show-value read-file | grep -v /main | xargs -r echo Read`
++ I PipeRead `fvwm-themes-config --component colors-decor --show-value read-file 2>/dev/null | xargs -r echo Read`
+
+DestroyFunc FuncFvwmUnReloadColorsModules
+AddToFunc   FuncFvwmUnReloadColorsModules
+#+ I FuncFvwmStopPanel
+
+DestroyFunc FuncFvwmUnReloadThemeModules
+AddToFunc   FuncFvwmUnReloadThemeModules
+
+DestroyFunc FuncFvwmStopPanel
+AddToFunc   FuncFvwmStopPanel
++ I Deschedule 34543  # just to be sure
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-Panel
++ I KillModule $./FvwmThemesPanelManager
++ I EWMHBaseStruts 0 0 0 0
+
+DestroyFunc FuncFvwmStartPanel
+AddToFunc   FuncFvwmStartPanel
++ I FuncFvwmStopPanel
++ I EWMHBaseStruts 0 0 0 30
++ I Schedule 45000 34543 FuncFvwmShowMessage "Error Message" "It seems that FvwmThemesPanelManager module can not be started.^nYour saved and dynamic panel configuration will not work.^nPlease check the error messages on your console and report to^nfvwm-themes-users@lists.sf.net mailing list if needed."
++ I FvwmButtons FvwmButtons-Panel
++ I $./FvwmThemesPanelManager
+
+# ----------------------------------------------------------------------------
+# Theme module menus
+
+DestroyMenu MenuFvwmStartThemeModules
+AddToMenu   MenuFvwmStartThemeModules
++ "RedmondXP Modules" Title
++ "%menu/item.xpm%&Panel" FuncFvwmStartPanel
++ "%menu/item.xpm%&Single Pager" \
+	FuncFvwmRestartModuleByAlias FvwmPager FvwmPager-Single '* *'
++ "%menu/item.xpm%&Desker Pager" \
+	FuncFvwmRestartModuleByAlias FvwmPager FvwmPager-Desker '0 3'
+
+DestroyMenu MenuFvwmStopThemeModules
+AddToMenu   MenuFvwmStopThemeModules
++ "RedmondXP Modules" Title
++ "%menu/quit.xpm%Stop &Panel" FuncFvwmStopPanel
++ "%menu/quit.xpm%Stop &Single Pager" \
+	FuncFvwmStopModuleByAlias FvwmPager FvwmPager-Single
++ "%menu/quit.xpm%Stop &Desker Pager" \
+	FuncFvwmStopModuleByAlias FvwmPager FvwmPager-Desker
+
+# ----------------------------------------------------------------------------
+# Desktop names
+
+DesktopName 0 Main
+DesktopName 1 Internet
+DesktopName 2 Devel
+DesktopName 3 Games
+
+# ----------------------------------------------------------------------------
+# Modules configuration
+
+Read $./styles
+Read $./FvwmButtons-Panel
+Read $./FvwmPager-Single
+Read $./FvwmPager-Desker
+Read $./FvwmIconMan
+Read $./fonts

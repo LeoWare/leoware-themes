@@ -1,0 +1,96 @@
+# 1. Icon related configuration
+# 2. Switch functions
+# 3. Theme module menus
+# 4. Modules configuration
+
+# ----------------------------------------------------------------------------
+# Icon related configuration
+
+# No icons at all...
+
+DestroyFunc FuncFvwmStartNormalIcons
+AddToFunc   FuncFvwmStartNormalIcons
++ I Style * NoIcon
+
+# ----------------------------------------------------------------------------
+# Switch functions
+
+DestroyFunc FuncFvwmStartThemeModules
+AddToFunc   FuncFvwmStartThemeModules
++ I FuncFvwmStartChosenButtons
++ I FuncFvwmStartChosenTaskBar
++ I FuncFvwmStartChosenTaskBarPos
++ I FuncFvwmStartChosenPager
++ I FuncFvwmStartNormalIcons
+
+DestroyFunc FuncFvwmReloadThemeModules
+AddToFunc   FuncFvwmReloadThemeModules
++ I Read $./styles
++ I FuncFvwmStartNormalIcons
+
+DestroyFunc FuncFvwmReloadColorsModules
+AddToFunc   FuncFvwmReloadColorsModules
++ I FuncFvwmStartChosenButtons
+
+DestroyFunc FuncFvwmStopThemeModules
+AddToFunc   FuncFvwmStopThemeModules
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-Bar
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-Pager
++ I KillModule FvwmTaskBar
++ I DestroyModuleConfig FvwmButtons-Bar: *
++ I DestroyModuleConfig FvwmButtons-Pager: *
++ I DestroyModuleConfig FvwmPager-Single: *
++ I DestroyModuleConfig FvwmPager-Desker: *
++ I DestroyModuleConfig FvwmTaskBar: *
++ I DestroyFunc FuncFvwmStartChosenButtons
++ I DestroyFunc FuncFvwmStartChosenTaskBar
++ I DestroyFunc FuncFvwmStartChosenTaskBarPos
++ I DestroyFunc FuncFvwmStartChosenPager
++ I FuncFvwmModulesDestroyStyle
++ I DestroyFunc FuncFvwmModulesDestroyStyle
+
+DestroyFunc FuncFvwmUnReloadColorsModules
+AddToFunc   FuncFvwmUnReloadColorsModules
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-Bar
+
+DestroyFunc FuncFvwmUnReloadThemeModules
+AddToFunc   FuncFvwmUnReloadThemeModules
+
+# ----------------------------------------------------------------------------
+# Theme module menus
+
+DestroyMenu MenuFvwmStartThemeModules
+AddToMenu   MenuFvwmStartThemeModules "Redmond98 Modules" Title
++ "%menu/item.xpm%&Button Bar"  FuncFvwmRestartModuleByAlias \
+	FvwmButtons FvwmButtons-Bar
++ "%menu/item.xpm%&Pager Panel" FuncFvwmRestartModuleByAlias \
+	FvwmButtons FvwmButtons-Pager
++ "%menu/item.xpm%&TaskBar"     FuncFvwmRestartModule FvwmTaskBar
+
+DestroyMenu MenuFvwmStopThemeModules
+AddToMenu   MenuFvwmStopThemeModules "Redmond98 Modules" Title
++ "%menu/quit.xpm%Stop Button Bar"  FuncFvwmStopModuleByAlias \
+	FvwmButtons FvwmButtons-Bar
++ "%menu/quit.xpm%Stop Pager Panel" FuncFvwmStopModuleByAlias \
+	FvwmButtons FvwmButtons-Pager
++ "%menu/quit.xpm%Stop TaskBar"	    KillModule FvwmTaskBar
+
+# ----------------------------------------------------------------------------
+# Desktop names
+
+DesktopName 0 Main
+DesktopName 1 Internet
+DesktopName 2 Developement
+DesktopName 3 Misc
+
+# ----------------------------------------------------------------------------
+# Modules configuration
+
+Read $./styles
+Read $./FvwmButtons-Bar
+Read $./FvwmPager-Single
+Read $./FvwmPager-Desker
+Read $./FvwmTaskBar
+Read $./FvwmButtons-Pager
+Read $./startmenu
+Read $./fonts

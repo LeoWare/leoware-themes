@@ -1,0 +1,20 @@
+FuncFvwmSetFont-WindowTitle * -*-tahoma-bold-r-*-*-11-*;-*-snap-*-*-*-*-10-*;-*-verdana-medium-r-*-*-10-*;-*-lucida-medium-r-*-*-10-*
+FuncFvwmSetFont-IconTitle   * -*-tahoma-bold-r-*-*-10-*;-*-snap-*-*-*-*-10-*;-*-verdana-medium-r-*-*-9-*;-*-lucida-medium-r-*-*-10-*
+
+Style *		BorderWidth 3, HandleWidth 3
+Style *		FvwmBorder, FirmBorder
+
+BorderStyle	Simple -- HiddenHandles NoInset Raised
+
+TitleStyle	Centered
+TitleStyle	-- Flat
+
+ButtonStyle	All -- Flat
+
+AddToFunc   FuncFvwmReloadDecor
++ I FuncFvwmSetFont-WindowTitle * -*-tahoma-bold-r-*-*-11-*;-*-snap-*-*-*-*-10-*;-*-verdana-medium-r-*-*-10-*;-*-lucida-medium-r-*-*-10-*
++ I FuncFvwmSetFont-IconTitle   * -*-tahoma-bold-r-*-*-10-*;-*-snap-*-*-*-*-10-*;-*-verdana-medium-r-*-*-9-*;-*-lucida-medium-r-*-*-10-*
++ I BorderStyle	Simple -- HiddenHandles NoInset Raised
++ I TitleStyle	-- Flat
++ I ButtonStyle	All -- Flat
++ I FuncFvwmOverRideWindowLook

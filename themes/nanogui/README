@@ -1,0 +1,5 @@
+This theme tries to mimic nanoGUI (is it micro microGUI?).
+Based on a configuration contributed by Kristian Peters <kristian@korseby.net>.
+
+There is a titlebar button selector, i.e. you may choose which window buttons
+are used and their order.

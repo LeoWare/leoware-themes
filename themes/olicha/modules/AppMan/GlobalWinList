@@ -1,0 +1,8 @@
+DestroyModuleConfig FvwmWinList: ShowCurrent*
+
+DestroyFunc FuncFvwmStartNormalIcons
+AddToFunc   FuncFvwmStartNormalIcons
++ I Style * !Icon
+
+AddToFunc   FuncFvwmStartThemeModules
++ I Module FvwmWinList

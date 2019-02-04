@@ -1,0 +1,30 @@
+DesktopSize 3x2
+
+DestroyMenu  MenuFvwmWindowMove
+AddToMenu    MenuFvwmWindowMove "Move to ..." Title
++ "Page	1 1%menu/window-move.xpm%"	MoveToPage 0 0
++ "Page	2 1%menu/window-move.xpm%"	MoveToPage 1 0
++ "Page	3 1%menu/window-move.xpm%"	MoveToPage 2 0
++ "Page	1 2%menu/window-move.xpm%"	MoveToPage 0 1
++ "Page	2 2%menu/window-move.xpm%"	MoveToPage 1 1
++ "Page	3 2%menu/window-move.xpm%"	MoveToPage 2 1
+
+DestroyMenu  MenuFvwmWindowGroupQuickMove
+AddToMenu    MenuFvwmWindowGroupQuickMove
++ "Page	1 1%menu/window-move.xpm%"	Pick All ($r) MoveToPage 0 0
++ "Page	2 1%menu/window-move.xpm%"	Pick All ($r) MoveToPage 1 0
++ "Page	3 1%menu/window-move.xpm%"	Pick All ($r) MoveToPage 2 0
++ "Page	1 2%menu/window-move.xpm%"	Pick All ($r) MoveToPage 0 1
++ "Page	2 2%menu/window-move.xpm%"	Pick All ($r) MoveToPage 1 1
++ "Page	3 2%menu/window-move.xpm%"	Pick All ($r) MoveToPage 2 1
+
+DestroyModuleConfig FvwmPager-Single: *
+*FvwmPager-Single: Geometry +5000+5000
+
+*FvwmPager-Single: Colorset * 14
+*FvwmPager-Single: HilightColorset * 15
+*FvwmPager-Single: BalloonColorset * 16
+*FvwmPager-Single: WindowColorsets 1 2
+
+*FvwmPager-Single: MiniIcons
+*FvwmPager-Single: SolidSeparators

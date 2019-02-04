@@ -1,0 +1,222 @@
+#!@PERL@ -w
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+use strict;
+use Getopt::Long;
+
+my $prefix = $ENV{'prefix'} || '@prefix@';
+my $ROOT_PREFIX = $ENV{'ROOT_PREFIX'} || '@ROOT_PREFIX@';
+$ROOT_PREFIX = $ENV{'DESTDIR'} if $ENV{'DESTDIR'};
+my $datadir = "@datadir@";
+my $ftDataDir = "@FT_DATADIR@";
+
+my $version = '@VERSION@';
+my $scriptName = ($0 =~ m:([^/]+)$:, $1);
+
+my $type = 'tile';
+my $bg = 'rgb:c0/c0/c0';
+my $fg = 'rgb:40/40/40';
+my $fallbackTileImage = "$ftDataDir/images/background/stone.xpm";
+
+GetOptions(
+	"help|h|?"     => \&showHelp,
+	"version|V"    => \&showVersion,
+	"tile|t"       => sub { $type = 'tile' },
+	"center|c"     => sub { $type = 'center' },
+	"adjust|fit|f" => sub { $type = 'adjust' },
+	"aspect|a"     => sub { $type = 'aspect' },
+	"solid|s"      => sub { $type = 'solid' },
+	"bg"           => \$bg,
+	"fg"           => \$fg,
+);
+
+# the additional argument should be either image or color
+my $image = $type ne 'solid'? shift: undef;
+my $color = $type eq 'solid'? shift: undef;
+
+unless (defined $image || defined $color) {
+	print STDERR "Usage: fvwm-themes-root [options] image|color\n";
+	print STDERR "Try fvwm-themes-root --help for more information.\n";
+	exit(0);
+}
+
+my $HelperImageTypeAliases = {
+	tif => 'tiff',
+	jpg => 'jpeg',
+};
+
+my $HelperImageTypeSupport = {
+	'fvwm-root' => 'png|xpm|xbm',
+	'xsetroot'  => 'xbm',
+	'xsetbg'    => 'jpeg|tiff',  # does not support some types of JPG
+	'display'   => '*',
+	'wmsetbg'   => '*',
+	'xv'        => '*',
+};
+
+my $HelperSetRootCommands = {
+	tile => [
+		'fvwm-root -r $image',
+		'wmsetbg --tile --back-color $fg $image',
+		'xsetroot -bg $bg -fg $fg -bitmap $image',
+		'xv -root -quit $image',
+		'xsetbg $image',
+	],
+	center => [
+		'wmsetbg --center --back-color $fg $image',
+		'display -window root -backdrop -foreground $fg $image',
+		'xsetbg -center $image -border $fg',
+		'xv -root -quit -rmode 5 -rfg $fg $image',
+	],
+	adjust => [
+		'wmsetbg --scale $image',
+		'xv -root -quit -max $image',
+		'display -window root -geometry `xwininfo -root | grep geometry | cut -d" " -f4`\! $image',
+	],
+	aspect => [
+		'wmsetbg --maxscale --back-color $fg $image',
+		'xv -root -quit -maxpect $image',
+		'xsetbg -fullscreen $image -border $fg',
+	],
+	solid => [
+		'xsetroot -solid $color',
+		'fvwm-themes-images --setroot --sky --sky-colors $color,$color',
+		'xv -root -quit -crop 0 0 0 0 -rmode 5 -rfg $color',  # 1x1 pixel
+	],
+};
+
+sub isExeInPath ($) {
+	my $exe = shift;
+	foreach my $dir ('/usr/local/bin', '/usr/bin', '/usr/bin/X11') {
+		return 1 if -x "$dir/$exe";
+	}
+	return 0;
+}
+
+my $commands = $HelperSetRootCommands->{$type};
+die "Internal error #1\n" unless defined $commands;
+
+my $found = 0;
+my $command;
+my ($exe, $args);
+foreach (@$commands) {
+	$command = $_;  # using $command directly in foreach fails in 5.8.0
+	($exe, $args) = split(/ /, $command, 2);
+
+	# check if exists in $PATH
+	next unless isExeInPath($exe);
+	if ($type eq 'solid') {
+		$found = 1;
+		last;
+	} else {
+		$image =~ /\.([^\.]+)(?:\.gz|\.bz2)?$/;
+		my $ext = $1;
+		$ext = $HelperImageTypeAliases->{$ext}
+			if defined $ext && defined $HelperImageTypeAliases->{$ext};
+		my $regexp = $HelperImageTypeSupport->{$exe};
+		die "Internal error #2\n" unless defined $regexp;
+		if ($regexp eq "*" || defined $ext && $ext =~ /^$regexp$/) {
+			$found = 1;
+			last;
+		}
+	}
+}
+
+if (!$found) {
+	my $what = defined $color? "solid color $color": "image $image";
+	warn "[fvwm-themes-root]: No utilities found to set root $what\n"
+		. "\tFalling back to default image $fallbackTileImage\n";
+	$image = $fallbackTileImage;
+	$command = $HelperSetRootCommands->{tile}->[0] || "false";
+}
+
+$command =~ s/(\$\w+)/'"' . eval("qq($1)") . '"'/sge;
+$command =~ s/rgb:[\w\/]+/gray40/sg if $exe eq 'wmsetbg';  # dumb workaround
+print $command, "\n" if $ENV{DEBUG};
+system($command);
+
+#-----------------------------------------------------------------------------
+# The starndard functions
+
+sub showHelp {
+	print "The fvwm-themes root utility.\n";
+	print "Usage: $scriptName [OPTIONS] image|color\n";
+	print "Options:\n";
+	print "\t--help              show this help and exit\n";
+	print "\t--version           show the version and exit\n";
+	print "\t--tile              display image tiled\n";
+	print "\t--center            display image centered\n";
+	print "\t--adjust            display image adjusted to the full size\n";
+	print "\t--aspect            display image adjusted keeping aspect\n";
+	print "\t--solid             display solid color\n";
+	print "\t--bg color          use bg in some modes that need it\n";
+	print "\t--fg color          use fg in some modes that need it\n";
+	exit 0;
+}
+
+sub showVersion {
+	print "$version\n";
+	exit 0;
+}
+
+sub wrongUsage {
+	print STDERR "Try '$scriptName --help' for more information.\n";
+	exit -1;
+}
+
+__END__
+
+# ---------------------------------------------------------------------------
+
+=head1 NAME
+
+fvwm-themes-root - fvwm-themes utility for setting root image/color
+
+=head1 SYNOPSIS
+
+B<fvwm-themes-root>
+[ B<--help|h> ]
+[ B<--version|V> ]
+I<image> | I<color>
+
+=head1 DESCRIPTION
+
+The aim of this script is to set the root image in fvwm-themes without
+worrying about exact image viewer installed on a user system.
+
+=head1 OPTIONS
+
+B<--help>    - show the help and exit
+
+B<--version> - show the version and exit
+
+=head1 AUTHORS
+
+Mikhael Goikhman <migo@homemail.com>.
+
+=head1 COPYING
+
+The script is distributed by the same terms as fvwm-themes itself.
+See GNU General Public License for details.
+
+=head1 BUGS
+
+Report bugs to fvwm-themes-devel@lists.sourceforge.net.
+
+=cut
+
+# ==========================================================================
+

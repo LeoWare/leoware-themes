@@ -1,0 +1,38 @@
+# ------------------
+# Window decorations
+
+# window title, inactive and active
+Colorset 1 fg black, bg rgb:cc/cc/cc, Plain, NoShape, \
+	sh rgb:99/99/99, hi rgb:ff/ff/ff
+Colorset 2 fg black, bg rgb:cc/cc/ff, Plain, NoShape, \
+	sh rgb:99/99/cc, hi rgb:ff/ff/ff
+
+# window borders, inactive and active
+Colorset 3 fg black, bg rgb:66/66/66, Plain, NoShape, \
+	sh rgb:33/33/33, hi rgb:99/99/99
+Colorset 4 fg black, bg rgb:66/66/99, Plain, NoShape, \
+	sh rgb:33/33/66, hi rgb:99/99/cc
+
+# background for window title, buttons and border
+DestroyFunc FuncFvwmDecorBackground
+AddToFunc   FuncFvwmDecorBackground
++ I TitleStyle AllActive MultiPixmap \
+	Main      TiledPixmap $./images/decor/title-active.xpm, \
+	UnderText AdjustedPixmap $./images/decor/underline-active.xpm, \
+	Buttons   AdjustedPixmap $./images/decor/underline-active.xpm
++ I TitleStyle AllInactive MultiPixmap \
+	Main      TiledPixmap $./images/decor/title-inactive.xpm, \
+	UnderText AdjustedPixmap $./images/decor/underline-inactive.xpm, \
+	Buttons   AdjustedPixmap $./images/decor/underline-inactive.xpm
+#
++ I ButtonStyle All Simple -- UseTitleStyle
+
+#AddToFunc   FuncFvwmStartColors
+#+ I BorderStyle \
+#	Active     (TiledPixmap $./images/decor/border-active.xpm -- flat) \
+#	Inactive   (TiledPixmap $./images/decor/border-inactive.xpm -- flat HiddenHandles)
+## this does not really work
+#AddToFunc   FuncFvwmReloadDecor
+#+ I BorderStyle \
+#	Active     (TiledPixmap $./images/decor/border-active.xpm -- flat) \
+#	Inactive   (TiledPixmap $./images/decor/border-inactive.xpm -- flat HiddenHandles)

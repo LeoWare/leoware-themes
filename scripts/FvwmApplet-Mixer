@@ -1,0 +1,552 @@
+WindowTitle {FvwmApplet-Mixer}
+WindowSize 64 64		# Taille
+Font -*-fixed-medium-r-normal-*-10-*
+
+Init
+ Begin
+  Set $MainColorset=(GetScriptArgument 1)
+  If $MainColorset <> {} Then
+  Begin
+   ChangeColorset 0 $MainColorset
+   ChangeColorset 3 $MainColorset
+   ChangeColorset 10 $MainColorset
+   ChangeColorset 11 $MainColorset
+   ChangeColorset 2 $MainColorset
+   ChangeColorset 20 $MainColorset
+  End
+
+  Set $Colorset=(GetScriptArgument 2)
+  If $Colorset <> {} Then
+  Begin
+   #ChangeColorset 11 $Colorset
+   #ChangeColorset 2 $Colorset
+   #ChangeColorset 20 $Colorset
+   #ChangeColorset 3 $Colorset
+   ChangeColorset 96 $Colorset
+   ChangeColorset 97 $Colorset
+   ChangeColorset 98 $Colorset
+   ChangeColorset 99 $Colorset
+  End
+
+  Set $COPT = {v}
+  Set $VOLUME={volume} 
+  Set $CD={cd vol}
+  Set $SYNT={synth}
+  Set $LINE={line}
+  Set $PCM={pcm}
+  Set $SPEAKER={speaker}
+  Set $MIC={mic}
+  Set $REC={record}
+  Set $LINE2={line2}
+  
+  ChangeTitle 3 $VOLUME
+
+  Set $cmd = {fvwm-themes-script --check-exec aumix}
+  Set $HaveAumix =(GetOutput $cmd 1 1)
+
+  If $HaveAumix == 1 Then
+  Begin
+    HideWidget 96
+    HideWidget 97
+    HideWidget 98
+    HideWidget 99    
+    Set $VAL = (GetOutput {exec aumix -vq} 1 3)
+  End
+  Else
+  Begin
+    HideWidget 11
+    HideWidget 2
+    HideWidget 20    
+    HideWidget 3
+  End
+  ChangeTitle 2 $VAL
+  ChangeValue 11 $VAL
+End
+
+PeriodicTasks
+ Begin
+ Set $test = 0
+ If (RemainderOfDiv (GetTime) 5)==0 Then
+    Set $test = 1
+ If $HaveAumix == 0 Then
+    Set $test = 0
+
+ If $test == 1 Then
+ Begin
+    Set $GET = {exec aumix -} $COPT {q}	
+    Set $tmp = (GetOutput $GET 1 3)
+    # Supression de la virgule
+    Set $TMP = (StrCopy $tmp 2 2)
+    If $TMP=={,} Then
+      Set $tmp = (StrCopy $tmp 1 1)
+    Else
+    Begin
+      Set $TMP = (StrCopy $tmp 3 3)
+      If $TMP=={,} Then
+        Set $tmp = (StrCopy $tmp 1 2)
+      Else
+        Begin
+        Set $TMP = (StrCopy $tmp 4 4)
+        If $TMP=={,} Then
+          Set $tmp = (StrCopy $tmp 1 3)
+        End
+    End
+    If $tmp <> $VAL Then
+    Begin
+     ChangeTitle 2 $tmp
+     ChangeValue 11 $tmp
+     Set $VAL = $tmp
+    End
+  End
+End
+
+Widget 10
+Property
+ Size 54 44
+ Position 5 2
+ Type Rectangle
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+Widget 11
+Property
+ Size 10 10
+ Position 10 8
+ Value 50
+ MaxValue 100
+ MinValue 0
+ Type MiniScroll
+Main
+ Case message of
+  SingleClic :
+  Begin
+   Set $VAL = (GetValue 11)
+   ChangeTitle 2 $VAL
+   Do {Exec exec aumix -} $COPT { } $VAL
+  End
+End
+
+
+Widget 2
+Property
+ Position 34 29
+ Size 20 10
+ Type ItemDraw
+ Flags NoReliefString
+ Title {50}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+Widget 3
+Property
+ Position 24 50
+ Size 39 11
+ Type ItemDraw
+ Flags NoReliefString
+ Title {}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+Widget 4
+Property
+ Position 1 50
+ Size 11 11
+ Type ItemDraw
+ Icon fvwmscript/mini-left-arrow.xpm
+Main
+ Case message of
+  SingleClic :
+  Begin
+    If $COPT == {v} Then
+    Begin
+      ChangeTitle 3 $LINE2
+      Set $COPT = {2}
+      ChangeIcon 20 16x16/sound.xpm
+    End
+    Else
+    Begin
+     If $COPT == {2} Then
+     Begin
+       ChangeTitle 3 $REC
+       Set $COPT = {r}
+       ChangeIcon 20 16x16/sound.xpm
+     End
+     Else
+     Begin
+       If $COPT == {r} Then
+       Begin
+         ChangeTitle 3 $MIC
+         Set $COPT = {m}
+         ChangeIcon 20 16x16/sound.xpm
+       End
+       Else
+       Begin
+         If $COPT == {m} Then
+         Begin
+           ChangeTitle 3 $SPEAKER
+           Set $COPT = {p}
+           ChangeIcon 20 16x16/sound.xpm
+         End
+         Else
+         Begin
+           If $COPT == {p} Then
+           Begin
+             ChangeTitle 3 $PCM
+             Set $COPT = {w}
+             ChangeIcon 20 16x16/music.xpm
+           End
+           Else
+           Begin
+             If $COPT == {w} Then
+             Begin
+               ChangeTitle 3 $LINE
+               Set $COPT = {l}
+               ChangeIcon 20 16x16/sound.xpm
+             End
+             Else
+             Begin
+               If $COPT == {l} Then
+               Begin
+                 ChangeTitle 3 $SYNT
+                 Set $COPT = {s}
+                 ChangeIcon 20 16x16/sound.xpm
+               End
+               Else
+               Begin
+                 If $COPT == {s} Then
+                 Begin
+                   ChangeTitle 3 $CD
+                   Set $COPT = {c}
+                   ChangeIcon 20 16x16/cd-player.xpm
+                 End
+                 Else
+                 Begin
+                   If $COPT == {c} Then
+                   Begin
+                     ChangeTitle 3 $VOLUME
+                     Set $COPT = {v}
+                     ChangeIcon 20 16x16/sound.xpm
+                   End
+                 End
+               End
+             End
+           End
+         End
+       End
+     End
+    End
+    Set $GET = {exec aumix -} $COPT {q}	
+    Set $VAL = (GetOutput $GET 1 3)
+    # Supression de la virgule
+    Set $TMP = (StrCopy $VAL 2 2)
+    If $TMP=={,} Then
+      Set $VAL = (StrCopy $VAL 1 1)
+    Else
+    Begin
+      Set $TMP = (StrCopy $VAL 3 3)
+      If $TMP=={,} Then
+        Set $VAL = (StrCopy $VAL 1 2)
+      Else
+        Begin
+        Set $TMP = (StrCopy $VAL 4 4)
+        If $TMP=={,} Then
+          Set $VAL = (StrCopy $VAL 1 3)
+        End
+    End
+    ChangeTitle 2 $VAL
+    ChangeValue 11 $VAL
+  End
+End
+
+Widget 6
+Property
+ Position 13 50
+ Size 11 11
+ Type ItemDraw
+ Icon fvwmscript/mini-right-arrow.xpm
+Main
+ Case message of
+  SingleClic :
+  Begin
+    If $COPT == {v} Then
+    Begin
+      ChangeTitle 3 $CD
+      Set $COPT = {c}
+      ChangeIcon 20 16x16/cd-player.xpm
+    End
+    Else
+    Begin
+     If $COPT == {c} Then
+     Begin
+       ChangeTitle 3 $SYNT
+       Set $COPT = {s}
+       ChangeIcon 20 16x16/sound.xpm
+     End
+     Else
+     Begin
+       If $COPT == {s} Then
+       Begin
+         ChangeTitle 3 $LINE
+         Set $COPT = {l}
+         ChangeIcon 20 16x16/sound.xpm
+       End
+       Else
+       Begin
+         If $COPT == {l} Then
+         Begin
+           ChangeTitle 3 $PCM
+           Set $COPT = {w}
+           ChangeIcon 20 16x16/music.xpm
+         End
+         Else
+         Begin
+           If $COPT == {w} Then
+           Begin
+             ChangeTitle 3 $SPEAKER
+             Set $COPT = {p}
+             ChangeIcon 20 16x16/sound.xpm
+           End
+           Else
+           Begin
+             If $COPT == {p} Then
+             Begin
+               ChangeTitle 3 $MIC
+               Set $COPT = {m}
+               ChangeIcon 20 16x16/sound.xpm
+             End
+             Else
+             Begin
+               If $COPT == {m} Then
+               Begin
+                 ChangeTitle 3 $REC
+                 Set $COPT = {r}
+                 ChangeIcon 20 16x16/sound.xpm
+               End
+               Else
+               Begin
+                 If $COPT == {r} Then
+                 Begin
+                   ChangeTitle 3 $LINE2
+                   Set $COPT = {2}
+                   ChangeIcon 20 16x16/sound.xpm
+                 End
+                 Else
+                 Begin
+                   If $COPT == {2} Then
+                   Begin
+                     ChangeTitle 3 $VOLUME
+                     Set $COPT = {v}
+                     ChangeIcon 20 16x16/sound.xpm
+                   End
+                 End
+               End
+             End
+           End
+         End
+       End
+     End
+    End
+    Set $GET = {exec aumix -} $COPT {q}	
+    Set $VAL = (GetOutput $GET 1 3)
+    # Supression de la virgule
+    Set $TMP = (StrCopy $VAL 2 2)
+    If $TMP=={,} Then
+      Set $VAL = (StrCopy $VAL 1 1)
+    Else
+    Begin
+      Set $TMP = (StrCopy $VAL 3 3)
+      If $TMP=={,} Then
+        Set $VAL = (StrCopy $VAL 1 2)
+      Else
+        Begin
+        Set $TMP = (StrCopy $VAL 4 4)
+        If $TMP=={,} Then
+          Set $VAL = (StrCopy $VAL 1 3)
+        End
+    End
+    ChangeTitle 2 $VAL
+    ChangeValue 11 $VAL
+  End
+End
+
+Widget 20
+Property
+ Position 36 10
+ Size 10 10
+ Type ItemDraw
+ Icon 16x16/sound.xpm
+Main
+Case message of
+ SingleClic :
+ Begin
+    If $COPT == {v} Then
+    Begin
+      ChangeTitle 3 $CD
+      Set $COPT = {c}
+      ChangeIcon 20 16x16/cd-player.xpm
+    End
+    Else
+    Begin
+     If $COPT == {c} Then
+     Begin
+       ChangeTitle 3 $SYNT
+       Set $COPT = {s}
+       ChangeIcon 20 16x16/sound.xpm
+     End
+     Else
+     Begin
+       If $COPT == {s} Then
+       Begin
+         ChangeTitle 3 $LINE
+         Set $COPT = {l}
+         ChangeIcon 20 16x16/sound.xpm
+       End
+       Else
+       Begin
+         If $COPT == {l} Then
+         Begin
+           ChangeTitle 3 $PCM
+           Set $COPT = {w}
+           ChangeIcon 20 16x16/music.xpm
+         End
+         Else
+         Begin
+           If $COPT == {w} Then
+           Begin
+             ChangeTitle 3 $SPEAKER
+             Set $COPT = {p}
+             ChangeIcon 20 16x16/sound.xpm
+           End
+           Else
+           Begin
+             If $COPT == {p} Then
+             Begin
+               ChangeTitle 3 $MIC
+               Set $COPT = {m}
+               ChangeIcon 20 16x16/sound.xpm
+             End
+             Else
+             Begin
+               If $COPT == {m} Then
+               Begin
+                 ChangeTitle 3 $REC
+                 Set $COPT = {r}
+                 ChangeIcon 20 16x16/sound.xpm
+               End
+               Else
+               Begin
+                 If $COPT == {r} Then
+                 Begin
+                   ChangeTitle 3 $LINE2
+                   Set $COPT = {2}
+                   ChangeIcon 20 16x16/sound.xpm
+                 End
+                 Else
+                 Begin
+                   If $COPT == {2} Then
+                   Begin
+                     ChangeTitle 3 $VOLUME
+                     Set $COPT = {v}
+                     ChangeIcon 20 16x16/sound.xpm
+                   End
+                 End
+               End
+             End
+           End
+         End
+       End
+     End
+    End
+    Set $GET = {exec aumix -} $COPT {q}	
+    Set $VAL = (GetOutput $GET 1 3)
+    # Supression de la virgule
+    Set $TMP = (StrCopy $VAL 2 2)
+    If $TMP=={,} Then
+      Set $VAL = (StrCopy $VAL 1 1)
+    Else
+    Begin
+      Set $TMP = (StrCopy $VAL 3 3)
+      If $TMP=={,} Then
+        Set $VAL = (StrCopy $VAL 1 2)
+      Else
+        Begin
+        Set $TMP = (StrCopy $VAL 4 4)
+        If $TMP=={,} Then
+          Set $VAL = (StrCopy $VAL 1 3)
+        End
+    End
+    ChangeTitle 2 $VAL
+    ChangeValue 11 $VAL
+ End
+End
+
+# -----------------------------------------------------------------------------
+
+Widget 96
+Property
+ Position 10 10
+ Size 45 10
+ Type ItemDraw
+ Flags NoReliefString
+ Title {You need}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+Widget 97
+Property
+ Position 10 20
+ Size 45 10
+ Type ItemDraw
+ Flags NoReliefString
+ Title {aumix}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+Widget 98
+Property
+ Position 10 30
+ Size 45 10
+ Type ItemDraw
+ Flags NoReliefString
+ Title {for this}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+
+Widget 99
+Property
+ Position 10 40
+ Size 45 10
+ Type ItemDraw
+ Flags NoReliefString
+ Title {applet}
+Main
+ Case message of
+  SingleClic :
+  Begin
+  End
+End
+

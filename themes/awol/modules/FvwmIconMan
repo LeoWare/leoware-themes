@@ -1,0 +1,36 @@
+DestroyModuleConfig FvwmIconMan: *
+
+*FvwmIconMan: Colorset		12
+*FvwmIconMan: IconColorset	19
+*FvwmIconMan: PlainColorset	17
+*FvwmIconMan: SelectColorset	20
+*FvwmIconMan: FocusColorset	18
+*FvwmIconMan: FocusAndSelectColorset 20
+
+*FvwmIconMan: Title "   awol's customised button bar for Fvwm2003 -:- to boldly GNU..."
+*FvwmIconMan: Resolution desk
+#*FvwmIconMan: Font -adobe-*chancery-*-*-*-*-24-*-*-*-*-*-*-*
+*FvwmIconMan: Font -adobe-times-*-*-*-*-20-*-*-*-*-*-*-*
+*FvwmIconMan: ButtonGeometry 50x25
+#*FvwmIconMan: ManagerGeometry 15x1+45-80
+*FvwmIconMan: ManagerGeometry 15x1
+*FvwmIconMan: DontShow icon=Untitled
+*FvwmIconMan: UseWinList true
+*FvwmIconMan: Resolution desk
+*FvwmIconMan: Sort name
+*FvwmIconMan: DrawIcons always
+*FvwmIconMan: Shape true
+*FvwmIconMan: Format "%i"
+*FvwmIconMan: Action Mouse 1 A sendcommand FuncFvwmDeiconifyFocusAndRaise
+*FvwmIconMan: Action Mouse 2 A sendcommand FvwmIdent
+*FvwmIconMan: Action Mouse 3 A sendcommand Iconify
+
+*FvwmIconMan: PlainButton sunkedge
+*FvwmIconMan: SelectButton sunkedge
+*FvwmIconMan: FocusAndSelectButton down
+*FvwmIconMan: TitleButton raisededge
+*FvwmIconMan: IconButton raisededge
+*FvwmIconMan: FocusButton down
+*FvwmIconMan: FollowFocus true
+
+*FvwmIconMan: NoIconAction "SendToModule FvwmAnimate animate"

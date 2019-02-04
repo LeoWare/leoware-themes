@@ -1,0 +1,25 @@
+DestroyFunc FuncFvwmStartThemeBackground
+AddToFunc   FuncFvwmStartThemeBackground
++ I Exec exec fvwm-root $FT_DATADIR/images/background/stone.xpm
+
+DestroyFunc FuncFvwmStopThemeBackground
+AddToFunc   FuncFvwmStopThemeBackground
++ I Nop
+
+DestroyFunc FuncFvwmBackgroundSolidColor
+AddToFunc   FuncFvwmBackgroundSolidColor
++ I DestroyFunc FuncFvwmStartThemeBackground
++ I AddToFunc   FuncFvwmStartThemeBackground
++ I + I Exec exec fvwm-themes-root --solid "$0"
+
+DestroyFunc FuncFvwmBackgroundPixmapColors
+AddToFunc   FuncFvwmBackgroundPixmapColors
++ I DestroyFunc FuncFvwmStartThemeBackground
++ I AddToFunc   FuncFvwmStartThemeBackground
++ I + I Exec exec fvwm-themes-images --in-file $FT_DATADIR/images/background/stone.xpm --colorize --colorize-colors $* --setroot
+
+DestroyFunc FuncFvwmBackgroundImage
+AddToFunc   FuncFvwmBackgroundImage
++ I DestroyFunc FuncFvwmStartThemeBackground
++ I AddToFunc   FuncFvwmStartThemeBackground
++ I + I Exec exec fvwm-themes-root --adjust $./images/background/'$0'

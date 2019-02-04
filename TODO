@@ -1,0 +1,104 @@
+                      Things to do before 1.0.0
+                      -------------------------
+
+* Localization (actual translations).
+  [In progress]
+
+* Optimizing reload commands needed for changes in components.
+  [Needs only clean up now]
+
+* Fix a bug, when an option is removed, it is still here (due to 'current').
+  The same if the option is added.
+
+* To verify: seems like GUI loads @personal theme when not asked.
+  [olicha: never see this recently]
+
+* Check fvwm-themes and fvwm with kde2.
+  [finished but the documentation]
+
+* Split swallow colorset to 2 colorsets. There are shading problems.
+
+* Write a full documentation à la HOWTO
+
+Optional items to do:
+--------------------
+
+* Add fvwm-themes-config --random-change.
+
+* Add twm theme (probably menustyle@, windowlook@, buttons@, colors@), like in
+  ftp://fvwm-themes.sourceforge.net/pub/fvwm-themes/samples/nikke/
+  We need a twm user here, maybe, nikke.
+
+* Add SGI theme like in http://www.canonical.org/~kragen/sgi_snap.gif .
+
+* Improve fvwm-themes-images:
+  + support the X standard rgb:rr/gg/bb better then #rrggbb
+  + implement sky on the transparent image color
+  + enable specifying transparent border, and before applying --tile or --sky
+
+* Think where belong all functions sitting in different components.
+
+* Providing some ready to use functions for background@ components.
+  Like functions dealing with image types and formats (tiles, gradients).
+
+* A form/script/gtk for FvwmRearrange.
+
+* A better web page. Does someone want to help on this?
+
+* Better integration of fvwm-themes-xres.
+
+* Creating fvwm-themes-gtk. Jos?
+
+* Creating fvwm-themes-qt. Someone?
+
+* settings@default: think which subcomponents to remove/move.
+
+* Rewrite fvwm-themes-menuapp: use a database for building menu-user
+and (mini)icons styles. These database may have the power to use
+the other database about menus in the machine (kde, gnome, wmconfig,
+debian sys menu, ...). Rename menu-user by menus-programs.
+
+* Work on the menu editor. By default only edit "MenuFvwmPersonal"
+because menus-programs have to be regenerated after (un)installation
+of applications on the machine.
+
+Ideas:
+-----
+
+* Component's scalar property, which unlike options, where only values
+  from a range (1 .. options) are accepted, can be freely set by a user.
+  Examples of scalar types: Color, String, Minutes, Milliseconds etc.
+  There should be individual editors for this scalar property.
+
+  Or alternatively, extend a functionality of option. It may have type (File,
+  Color, String, Minutes, Milliseconds) for choices, which are all either
+  predefined or user-defined. Every choice (that is currently called value)
+  has name and value. The user-defined choice has user-value and user-defined
+  keys; it may be represented in a menu as "user-value ... Change".
+
+* background-auto@ component (with a scalar of type Minutes), which will
+  iterate over a background@ options randomly or sequencially every n minutes.
+
+* Introduce option-value/variant groups, which only affect presentation menus,
+  not logic; for example it is possible to have 6 groups of variants, say,
+  6 types of backgrounds. With inline=1 groups are simply delimited ("" Nop),
+  with inline=0 there are 6 submenus of variants.
+
+* Add @random theme with "virtual" components.
+
+* Add @gtk theme, which uses FvwmGtk when possible. For example, it may
+  convert menus*@default using fvwm-themes-gtk or similar.
+
+Problems without obvious soluton:
+--------------------------------
+
+Closed items (will be deleted after 0.7.0):
+------------------------------------------
+* Add theme(s) similar to some enlightenment themes.
+
+* Rereading iconstyles/style-icon-miniicon file dynamically is not enough
+  if someone (me) have icon style extentions. Should be solved using
+  dependances somehow (using 'extends').
+  [olicha: I think this is fixed with the iconstyles-extra component?]
+  [migo: I mean, "Read style-icon-miniicon" in modules/main is not enough.]
+  [Seems we have now !NoIcon to undo NoIcon, just what is needed!]

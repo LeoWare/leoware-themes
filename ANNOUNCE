@@ -1,0 +1,34 @@
+   _______________________________________________________________
+  (   _________________________   ________________________________)
+   ) (__  _  _  _    _  .      ) (  __ __  ____       .  ____* ___
+  (   __)( \/ )( \/\/ )/\/\ * (   )(  )  )(  __)* /\/\  (  __)/ __)
+   ) ( .  \  /* \    //    \ . ) (  ) _ ( *) _). /    \* ) _).\__ \
+  (___)  * \/  . \/\/(_/\/\_) (___)(__(__)(____)(_/\/\_)(____)(___/
+
+
+We are pleased to announce FVWM Themes version 0.6.2.
+All info about FVWM Themes and sources are available at the Home Page:
+
+  http://fvwm-themes.sourceforge.net/
+
+FVWM Themes is a powerful configuration framework for the modern FVWM,
+designed to be easily extensible and configurable
+
+fvwm-themes 0.6.2 requires stable fvwm 2.4.8 or unstable 2.5.1+ (say 2.5.5),
+so if needed, first upgrade your fvwm version.
+
+The rpm packages for both fvwm and fvwm-themes 0.6.2 are at:
+
+  http://fvwm-themes.sf.net/rpm/
+
+New features in fvwm-themes 0.6.2 as compared to fvwm-themes 0.6.1:
+
+  * Fixes for perl-5.8.0 and a unicode locale (RedHat 8.0).
+  * File names are now compatible with Solaris's pkgmk.
+  * Included 48x48-infox icon set (was 48x48-general) for normal icons.
+  * Added support for wheel mouse in settings.
+  * Several improvements including better mini icons and more bindings.
+  * Now the packages are called fvwm-themes and fvwm-themes-extra.
+  * This is probably the last version for fvwm-2.4.x.
+
+The FVWM Themes developers, 6 December 2002

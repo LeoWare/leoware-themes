@@ -1,0 +1,18 @@
+FuncFvwmSetFont-ModuleSmallWindowList FvwmIconMan Font \
+	"-*-fixed-medium-r-normal-*-7-*"
+
+FuncFvwmSetFont-ModuleTips FvwmPager-Single BalloonFont \
+	-*-lucidatypewriter-medium-r-normal-sans-12-*
+FuncFvwmSetFont-ModuleTips FvwmPager-Desker BalloonFont \
+	-*-lucidatypewriter-medium-r-normal-sans-12-*
+
+FuncFvwmSetFont-ModuleSmall FvwmPager-Single SmallFont \
+	"-*-fixed-medium-r-normal-*-8-*"
+FuncFvwmSetFont-ModuleSmall FvwmPager-Desker SmallFont \
+	"-*-fixed-medium-r-normal-*-8-*"
+
+*FvwmPager-Single: Font none
+*FvwmPager-Desker: Font none
+
+FuncFvwmSetFont-ModuleSmallLabel FvwmButtons-Bar Font \
+	"-*-fixed-medium-r-normal-*-8-*"

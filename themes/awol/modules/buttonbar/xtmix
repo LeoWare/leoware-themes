@@ -1,0 +1,3 @@
+DestroyFunc FuncFvwmStartChosenButtons
+AddToFunc   FuncFvwmStartChosenButtons
++ I ModuleSynchronous FvwmButtons FvwmButtons-XtMix

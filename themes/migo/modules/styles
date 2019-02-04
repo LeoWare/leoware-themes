@@ -1,0 +1,30 @@
+Style "FvwmButtons-Compact" !Title, !Handles, Sticky, WindowListSkip, \
+	NeverFocus, TitleAtTop
+Style "FvwmButtons-Pager" !Title, !Handles, Sticky, NeverFocus, \
+	WindowListSkip, CirculateSkip
+Style "FvwmPager-Compact" !Title, !Handles, Sticky, WindowListSkip, \
+	!Lenience, TitleAtTop
+Style "FvwmPager-Desker" !Title, !Handles, Sticky, WindowListSkip, \
+	!Lenience, TitleAtTop
+Style "FvwmPager-Single" !Title, !Handles, Sticky, WindowListSkip, \
+	!Lenience, TitleAtTop
+Style "FvwmIconBox" !Title, !Handles, Sticky, WindowListSkip, \
+	CirculateSkip, TitleAtBottom, NeverFocus
+Style "FvwmIconMan" !Title, !Handles, Sticky, WindowListSkip, \
+	CirculateSkip, TitleAtBottom, NeverFocus
+Style "FvwmTaskBar" !Title, !Handles, Sticky, WindowListSkip, \
+	CirculateSkip, TitleAtBottom, NeverFocus
+Style "FvwmWinList" !Title, !Handles, Sticky, WindowListSkip, \
+	CirculateSkip, TitleAtBottom, NeverFocus
+
+DestroyFunc FuncFvwmModulesDestroyStyle
+AddToFunc   FuncFvwmModulesDestroyStyle
++ I DestroyStyle "FvwmButtons-Compact"
++ I DestroyStyle "FvwmButtons-Pager"
++ I DestroyStyle "FvwmPager-Compact"
++ I DestroyStyle "FvwmPager-Desker"
++ I DestroyStyle "FvwmPager-Single"
++ I DestroyStyle "FvwmIconBox"
++ I DestroyStyle "FvwmIconMan"
++ I DestroyStyle "FvwmTaskBar"
++ I DestroyStyle "FvwmWinList"

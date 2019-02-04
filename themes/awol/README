@@ -1,0 +1,31 @@
+The theme by Alex Wallis. (awol@prepaidonline.com.au)
+ 
+This is close the the config I used for many years
+with earlier versions of fvwm and fvwm95.
+The button bars are continually evolving.
+
+Since I moved to redhat I haven't been able to 
+get kLo_mix to work, so I switched to XtMix 
+which is a KDE applet that FvwmButtons is only 
+too happy to swallow. A right click brings
+up a mixer panel. You can get rpm's of XtMix from
+http://www.unix-ag.uni-kl.de/~mdenn/xtmix/xtmix_en.html
+
+I've added a few new icons and routines, and
+basically "prettied" it up to suit my new
+xineramic dual head display! For example a left
+click on the first icon brings up a menu and you 
+can change both the icon and the menu with a right 
+click. I stole the logo's I'm using from my redhat 
+system, so I hope they're ok to use. I may add more 
+of them later, with more elaborate routines.
+
+Please send any comments or queries about this theme,
+or on any other topic of interest to
+	awol@prepaidonline.com.au
+
+Enjoy!
+Alex
+      ...
+     (o -)
+ ooO--(_)--Ooo-

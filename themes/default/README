@@ -1,0 +1,26 @@
+This is the default theme. It is complete and may be used by itself.
+You can use it as a prototype to create your own themes.
+
+If you do not plan to create your own themes, skip the rest.
+
+If you want to create a theme for submission, please consider to provide
+a partial theme including components:
+  buttons
+  menustyle
+  windowlook
+  colors
+  modules
+
+The following components usually should be only personal or default:
+  bindings
+  functions
+  menus
+  styles
+
+You can choose to include or not include:
+  background
+  cursors
+  globalfeel
+  sound
+
+And you may create new non-standard components too if you really need this.

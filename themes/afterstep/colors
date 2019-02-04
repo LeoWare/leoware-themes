@@ -1,0 +1,134 @@
+# colors@afterstep
+
+# more details and comments can be found in colors@default
+# I.   FVWM Colorsets
+# II.  Module Colorsets
+# III. Application Colorsets
+# IV.  Start/Stop Functions
+
+# ----------------------------------------------------------------------------
+# I. FVWM Colorsets
+
+# ----------------
+# Default colorset
+
+Colorset 0 fg black, bg grey50
+
+# ------------------
+# Window decorations
+
+# window title, inactive and active
+Colorset 1 fg #050505, bg #6e5b52, Plain, NoShape
+Colorset 2 fg #E5E2E8, bg #475293, VGradient 20 #6068DB #475293, NoShape
+
+# window borders, inactive and active
+Colorset 3 fg #050505, bg #6e5b52, Plain, NoShape
+Colorset 4 fg #E5E2E8, bg #475293, Plain, NoShape
+
+# background for window title, buttons and border
+DestroyFunc FuncFvwmDecorBackground
+AddToFunc   FuncFvwmDecorBackground
++ I TitleStyle AllInactive Colorset 1
++ I TitleStyle AllActive   Colorset 2
+#
++ I ButtonStyle All Simple -- UseTitleStyle
+
+# --------------
+# Menu Colorsets
+
+# inactive menu item fg+bg and menu face
+Colorset 5 fg #E5E2E8, bg grey30, Plain, NoShape
+
+# active menu item fg+bg
+Colorset 6 fg white, bg #475293, Plain, NoShape
+
+# greyed menu item fg
+Colorset 7 fg grey40, bg grey40, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# II. Module Colorsets
+
+# ----------------
+# Common Colorsets
+
+# default for modules
+Colorset 10 fg black, bg grey50, Plain, NoShape
+
+# default hilight
+Colorset 11 fg red, bg black, Plain, NoShape
+
+# special
+Colorset 12 fg grey60, bg grey20, VGradient 50 grey35 black, NoShape
+
+# swallowed window
+Colorset 13 fg grey60, bg black,  hi grey60, sh gray40, Plain, NoShape
+
+# default2 (FvwmPager or to get more colors in Buttons)
+Colorset 14 fg grey70, bg grey35, Plain, NoShape
+
+# default hilight2: (FvwmPager or to get more colors in a Buttons)
+Colorset 15 fg grey70, bg #475293, Plain, NoShape
+
+# tips/balloons
+Colorset 16 fg black, bg grey70, Plain, NoShape
+
+# ----------------------------
+# Window List Module Colorsets
+
+# standard item
+Colorset 17 fg grey, bg grey40, \
+	TiledPixmap background/as-back.xpm, NoShape
+
+# active item
+Colorset 18 fg white, bg grey40, \
+	TiledPixmap background/as-back.xpm, NoShape
+
+# iconified item
+Colorset 19 fg grey50, bg grey40, \
+	TiledPixmap background/as-back.xpm, NoShape
+
+# pointed item
+Colorset 20 fg grey, bg grey40, \
+	TiledPixmap background/as-back.xpm, NoShape
+
+# ----------------------
+# Other Module Colorsets
+
+# FvwmIdent
+Colorset 21 fg grey70, bg grey30, Plain, NoShape
+
+# FvwmConsole
+Colorset 22 fg yellow4, bg grey30, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# III. Application Colorsets
+
+# regular terminal
+Colorset 30 fg white, bg rgb:00/00/30, Plain, NoShape
+
+# admin terminal
+Colorset 31 fg white, bg rgb:00/30/30, Plain, NoShape
+
+# remote terminal
+Colorset 32 fg white, bg rgb:30/00/00, Plain, NoShape
+
+# viewer terminal
+Colorset 33 fg white, bg rgb:00/30/00, Plain, NoShape
+
+# application run in the terminal, text editor
+Colorset 34 fg black, bg grey70, Plain, NoShape
+
+# dialog main area
+Colorset 35 fg grey80, bg grey30, Plain, NoShape
+
+# dialog text area
+Colorset 36 fg black, bg grey70, Plain, NoShape
+
+# ----------------------------------------------------------------------------
+# IV. Start/Stop Functions
+
+DestroyFunc FuncFvwmStartColors
+AddToFunc   FuncFvwmStartColors
+
+DestroyFunc FuncFvwmStopColors
+AddToFunc   FuncFvwmStopColors

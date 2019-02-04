@@ -1,0 +1,60 @@
+DeskTopSize 2 2
+
+DestroyMenu  MenuFvwmWindowMove
+AddToMenu    MenuFvwmWindowMove "Move to ..." Title
++ "&Right	Page%menu/window-move.xpm%"	AnimatedMove w+100 w
++ "&Left	Page%menu/window-move.xpm%"	AnimatedMove w-100 w
++ "&Down	Page%menu/window-move.xpm%"	AnimatedMove w w+100
++ "&Up  	Page%menu/window-move.xpm%"	AnimatedMove w w-100
+
+DestroyMenu  MenuFvwmWindowGroupQuickMove
+AddToMenu    MenuFvwmWindowGroupQuickMove
++ "&Right	Page%menu/window-move.xpm%" Pick All ($r) MoveToPage +1p +0p
++ "&Left	Page%menu/window-move.xpm%" Pick All ($r) MoveToPage -1p +0p
++ "D&own	Page%menu/window-move.xpm%" Pick All ($r) MoveToPage +0p +1p
++ "&Up  	Page%menu/window-move.xpm%" Pick All ($r) MoveToPage +0p -1p
+
+DestroyModuleConfig FvwmPager-Single: *
+
+*FvwmPager-Single: Colorset * 23
+*FvwmPager-Single: HilightColorset * 15
+*FvwmPager-Single: WindowColorsets 1 2
+*FvwmPager-Single: BalloonColorset * 16 
+
+*FvwmPager-Single: Geometry +5000+5000
+*FvwmPager-Single: Columns 1
+*FvwmPager-Single: Balloons            All
+*FvwmPager-Single: BalloonYOffset      +2
+*FvwmPager-Single: BalloonBorderWidth  1
+
+*FvwmPager-Single: WindowLabelFormat %r
+*FvwmPager-Single: SloppyFocus
+
+# ----------------------------------------------------------------------------
+
+AddToMenu MenuFvwmWindowMove "" Nop
++ "Desk 0%menu/window-move.xpm%"	MoveToDesk 0 0
++ "Desk 1%menu/window-move.xpm%"	MoveToDesk 0 1
++ "Desk 2%menu/window-move.xpm%"	MoveToDesk 0 2
++ "Desk 3%menu/window-move.xpm%"	MoveToDesk 0 3
+
+AddToMenu MenuFvwmWindowGroupQuickMove "" Nop
++ "Desk 0%menu/window-move.xpm%"	Pick All ($r) MoveToDesk 0 0
++ "Desk 1%menu/window-move.xpm%"	Pick All ($r) MoveToDesk 0 1
++ "Desk 2%menu/window-move.xpm%"	Pick All ($r) MoveToDesk 0 2
++ "Desk 3%menu/window-move.xpm%"	Pick All ($r) MoveToDesk 0 3
+
+DestroyModuleConfig FvwmPager-Desker: *
+
+*FvwmPager-Desker: Colorset * 14
+*FvwmPager-Desker: HilightColorset * 15
+*FvwmPager-Desker: WindowColorsets 1 2
+*FvwmPager-Desker: BalloonColorset * 16 
+
+*FvwmPager-Desker: Columns 1
+*FvwmPager-Desker: Balloons            All
+*FvwmPager-Desker: BalloonYOffset      +2
+*FvwmPager-Desker: BalloonBorderWidth  1
+
+*FvwmPager-Desker: WindowLabelFormat %r
+*FvwmPager-Desker: SloppyFocus

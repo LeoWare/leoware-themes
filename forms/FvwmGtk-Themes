@@ -1,0 +1,174 @@
+# This or similar config should be automatically produced by something like:
+#   fvwm-themes-gtk --edit --component settings --display
+
+# This dialog is invoked using:
+#   KillModule FvwmGtk FvwmGtk-Themes
+#   Read FvwmGtk-Themes
+#   Module FvwmGtk FvwmGtk-Themes
+#   SendToModule FvwmGtk-Themes SettingsDialog
+
+DestroyModuleConfig FvwmGtk-Themes: *
+
+*FvwmGtk-Themes: Destroy SettingsDialog
+*FvwmGtk-Themes: Dialog SettingsDialog "FVWM Theme Settings" center
+*FvwmGtk-Themes: Box vertical 10 10
+
+*FvwmGtk-Themes: Notebook " General Settings " 
+*FvwmGtk-Themes: Box vertical spacing 10 5
+
+*FvwmGtk-Themes: Frame " Switches " 5
+*FvwmGtk-Themes: Box homogeneous
+*FvwmGtk-Themes: CheckButton animation Animation 2 1 on
+*FvwmGtk-Themes: CheckButton background Background 2 1 on
+*FvwmGtk-Themes: CheckButton banner Banner 2 1 on
+*FvwmGtk-Themes: CheckButton stroke Stroke 2 1 
+*FvwmGtk-Themes: CheckButton headlines Headlines 2 1 on
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndFrame
+
+*FvwmGtk-Themes: Frame " Sound Player " 5
+*FvwmGtk-Themes: Box homogeneous spacing 5 6 
+*FvwmGtk-Themes: Label "Choose Variant:            "
+*FvwmGtk-Themes: OptionMenu sound-player -- expand fill
+#*FvwmGtk-Themes: Destroy sound-player2
+#*FvwmGtk-Themes: Menu sound-player2
+*FvwmGtk-Themes: Item "Disabled" 1 on
+*FvwmGtk-Themes: Item "play (sox)" 2
+*FvwmGtk-Themes: Item "esdplay (esd not needed)" 3
+*FvwmGtk-Themes: Item "audioplay" 4
+*FvwmGtk-Themes: Item "auplay" 5
+*FvwmGtk-Themes: Item "rplay" 6
+*FvwmGtk-Themes: Item "rplayD (needs rplayd)" 7
+*FvwmGtk-Themes: Item "artsplay (kde2, needs artsd)" 7
+*FvwmGtk-Themes: EndOptionMenu
+#*FvwmGtk-Themes: Label "          "
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndFrame
+
+*FvwmGtk-Themes: Frame " Auto Raise " 5
+*FvwmGtk-Themes: Box homogeneous spacing 5 6
+*FvwmGtk-Themes: Label "Choose Variant:            "
+*FvwmGtk-Themes: OptionMenu autoraise -- expand fill
+*FvwmGtk-Themes: Item "Disabled" 1 on
+*FvwmGtk-Themes: Item "Auto Raise (1/2 sec)" 2
+*FvwmGtk-Themes: Item "Auto Raise (2 sec)" 3
+*FvwmGtk-Themes: Item "Auto Raise Modules" 4
+*FvwmGtk-Themes: EndOptionMenu
+#*FvwmGtk-Themes: Label "          "
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndFrame
+
+*FvwmGtk-Themes: Frame " Icon Styles " 5
+*FvwmGtk-Themes: Box homogeneous spacing 5 6
+*FvwmGtk-Themes: Label "Choose Variant:            "
+*FvwmGtk-Themes: OptionMenu iconstyles -- expand fill
+*FvwmGtk-Themes: Item "Disabled" disabled
+*FvwmGtk-Themes: Item "Internal wm-icons" native on
+*FvwmGtk-Themes: Item "External wm-icons" wm-icons
+*FvwmGtk-Themes: EndOptionMenu
+#*FvwmGtk-Themes: Label "          "
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndFrame
+
+*FvwmGtk-Themes: Frame " Session Manager " 5
+*FvwmGtk-Themes: Box homogeneous spacing 5 6 
+*FvwmGtk-Themes: RadioGroup session-manager
+*FvwmGtk-Themes: RadioButton "None" 1 on
+*FvwmGtk-Themes: RadioButton "Generic" 2
+*FvwmGtk-Themes: RadioButton "gnome-session" 3
+*FvwmGtk-Themes: RadioButton "xsm" 4
+*FvwmGtk-Themes: EndRadioGroup
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndFrame
+
+*FvwmGtk-Themes: EndBox
+# End of Notebook page #1.
+
+*FvwmGtk-Themes: Notebook " GNOME/KDE Settings "
+*FvwmGtk-Themes: Box vertical spacing 10 5
+
+*FvwmGtk-Themes: Frame " GNOME " 5
+*FvwmGtk-Themes: Box vertical spacing 5 10
+*FvwmGtk-Themes: CheckButton gnome/panel-staysput "Panel stays put" 2 1
+*FvwmGtk-Themes: Box spacing 0 6
+*FvwmGtk-Themes: Label "System Menus                    "
+*FvwmGtk-Themes: OptionMenu "gnome/system-menu" -- expand fill
+*FvwmGtk-Themes: Item "Disabled" 1 on
+*FvwmGtk-Themes: Item "GTK Menu" 2
+*FvwmGtk-Themes: Item "GTK Menu && Styles" 3
+*FvwmGtk-Themes: Item "Fvwm Menu (wm icons)" 4
+*FvwmGtk-Themes: Item "Fvwm Menu (gnome icons)" 5
+*FvwmGtk-Themes: Item "Fvwm Menus && Styles" 6
+*FvwmGtk-Themes: EndOptionMenu
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: Box spacing 0 6
+*FvwmGtk-Themes: Label "User Menus                        "
+*FvwmGtk-Themes: OptionMenu "gnome/user-menu" -- expand fill
+*FvwmGtk-Themes: Item "Disabled" 1 on
+*FvwmGtk-Themes: Item "GTK Menu" 2
+*FvwmGtk-Themes: Item "Fvwm Menu" 3
+*FvwmGtk-Themes: EndOptionMenu
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: Box spacing 0 6
+*FvwmGtk-Themes: Label "AnotherLevel Menus           "
+*FvwmGtk-Themes: OptionMenu "gnome/anotherlevel-menu" -- expand fill
+*FvwmGtk-Themes: Item "Disabled" 1 on
+*FvwmGtk-Themes: Item "GTK Menu" 2 
+*FvwmGtk-Themes: Item "Fvwm Menu" 3
+*FvwmGtk-Themes: EndOptionMenu
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndFrame
+
+*FvwmGtk-Themes: Frame " KDE " 5
+*FvwmGtk-Themes: Box vertical spacing 5 10
+*FvwmGtk-Themes: CheckButton kde/kfm-icons "kfm icons workaround" 2 1
+*FvwmGtk-Themes: Box spacing 0 6
+*FvwmGtk-Themes: Label "System Menus                    "
+*FvwmGtk-Themes: OptionMenu "kde/system-menu" -- expand fill
+*FvwmGtk-Themes: Item "Disabled" 1 on
+*FvwmGtk-Themes: Item "Menu && Styles (48x48 icons)" 2
+*FvwmGtk-Themes: Item "Menu && Styles (32x32 icons)" 3
+*FvwmGtk-Themes: Item "Menus Only" 4
+*FvwmGtk-Themes: EndOptionMenu
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: Box spacing 0 6
+*FvwmGtk-Themes: Label "User Menus                        "
+*FvwmGtk-Themes: OptionMenu "kde/user-menu" -- expand fill
+*FvwmGtk-Themes: Item "Disabled" 1 on
+*FvwmGtk-Themes: Item "Menu && Styles" 2
+*FvwmGtk-Themes: Item "Menus Only" 3
+*FvwmGtk-Themes: EndOptionMenu
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndBox
+*FvwmGtk-Themes: EndFrame
+
+*FvwmGtk-Themes: EndBox
+# End of Notebook page #2.
+
+*FvwmGtk-Themes: EndBox
+
+# Box for buttons
+*FvwmGtk-Themes: Box homogeneous -- padding 10
+# Maybe to add "close" before "--"?
+*FvwmGtk-Themes: Button " Apply " "FuncFvwmThemesConfigAndUpdate ' \
+	--variant settings/animation=$(animation) \
+	--variant settings/background=$(background) \
+	--variant settings/banner=$(banner) \
+	--variant settings/stroke=$(stroke) \
+	--variant settings/automenus/headlines=$(headlines) \
+	--variant settings/sound-player=$(sound-player) \
+	--variant settings/autoraise=$(autoraise) \
+	--variant settings/iconstyles=$(iconstyles) \
+	--variant settings/kde/kfm-icons=$(kde/kfm-icons) \
+	--variant settings/kde/system-menu=$(kde/system-menu) \
+	--variant settings/kde/user-menu=$(kde/user-menu) \
+	--variant settings/gnome/panel-staysput=$(gnome/panel-staysput) \
+	--variant settings/gnome/system-menu=$(gnome/system-menu) \
+	--variant settings/gnome/user-menu=$(gnome/user-menu) \
+	--variant settings/gnome/anotherlevel-menu=$(gnome/anotherlevel-menu) \
+	--variant settings/session-manager=$(session-manager) \
+	'" -- default can-default
+
+*FvwmGtk-Themes: Button " Close " close
+*FvwmGtk-Themes: EndBox

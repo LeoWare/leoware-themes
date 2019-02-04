@@ -1,0 +1,36 @@
+DefaultColorset 0
+
+DestroyModuleConfig FvwmScroll: Colorset*
+*FvwmScroll: Colorset 0
+
+Style * Colorset 1
+Style * HilightColorset 2
+Style * BorderColorset 3
+Style * HilightBorderColorset 4
+
+MenuStyle * MenuFace, ActiveFore, HilightBack
+MenuStyle * MenuColorset 5, ActiveColorset 6, GreyedColorset 7
+
+DestroyModuleConfig FvwmIdent: *
+FuncFvwmSetFont-FvwmIdent
+*FvwmIdent: Colorset 21
+
+DestroyModuleConfig FvwmScript: DefaultColorset*
+*FvwmScript: DefaultColorset 35
+
+DestroyModuleConfig FvwmFormDefault: Colorset*
+*FvwmFormDefault: Colorset 35
+
+DestroyModuleConfig FvwmFormDefault: ItemColorset*
+*FvwmFormDefault: ItemColorset 36
+
+DestroyFunc FuncFvwmUnReloadGlobalLook
+AddToFunc   FuncFvwmUnReloadGlobalLook
++ I DestroyModuleConfig FvwmIdent: Font*
++ I MenuStyle * MenuFace, ActiveFore, HilightBack
+#+ I MenuStyle * MenuColorset 5, ActiveColorset 6, GreyedColorset 7
+
+DestroyFunc FuncFvwmReloadGlobalLook
+AddToFunc   FuncFvwmReloadGlobalLook
++ I FuncFvwmSetFont-FvwmIdent
+

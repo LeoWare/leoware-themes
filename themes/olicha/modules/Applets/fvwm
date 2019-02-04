@@ -1,0 +1,8 @@
+AddToFunc   FuncFvwmStartThemeModules
++ I FvwmButtons FvwmButtons-FvwmApplets
+
+AddToFunc   FuncFvwmReloadColorsModules
++ I FvwmButtons FvwmButtons-FvwmApplets
+
+AddToFunc   FuncFvwmUnReloadColorsModules
++ I FuncFvwmStopModuleByAlias FvwmButtons FvwmButtons-FvwmApplets

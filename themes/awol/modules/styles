@@ -1,0 +1,18 @@
+Style "FvwmButtons-XtMix" !Title, !Icon, !Handles, Sticky, WindowListSkip, \
+	BorderWidth 4, CirculateSkip, NeverFocus, TitleAtBottom
+Style "FvwmButtons-Default" !Title, !Icon, !Handles, Sticky, WindowListSkip, \
+	BorderWidth 4, CirculateSkip, NeverFocus, TitleAtBottom
+Style "FvwmIconMan" !Title, WindowListSkip, Sticky, \
+	!Handles, BorderWidth 0
+Style "FvwmPager-Single" !Handles, !Title, Sticky, WindowListSkip, \
+	CirculateSkip
+Style "FvwmPager-Desker" !Handles, !Title, Sticky, WindowListSkip, \
+	CirculateSkip, TitleAtTop
+
+DestroyFunc FuncFvwmModulesDestroyStyle
+AddToFunc   FuncFvwmModulesDestroyStyle
++ I DestroyStyle "FvwmButtons-XtMix"
++ I DestroyStyle "FvwmButtons-Default"
++ I DestroyStyle "FvwmIconMan"
++ I DestroyStyle "FvwmPager-Single"
++ I DestroyStyle "FvwmPager-Desker"

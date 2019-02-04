@@ -1,0 +1,4398 @@
+#!@PERL@ -w 
+# for speed testing add: -d:DProf and use dprofpp
+
+# Filter this script to pod2man to get a man page:
+#   pod2man -c "FVWM Utility" fvwm-themes-config | nroff -man | less -e
+
+use strict;
+use Getopt::Long;
+
+my $prefix = $ENV{'prefix'} || '@prefix@';
+my $ROOT_PREFIX = $ENV{'ROOT_PREFIX'} || '@ROOT_PREFIX@';
+$ROOT_PREFIX = $ENV{'DESTDIR'} if $ENV{'DESTDIR'};
+my $bindir = "@bindir@";
+my $datadir = "@datadir@";
+my $ftDataDir = "@FT_DATADIR@";
+
+my $version = '@VERSION@';
+my $fvwmVersion = '@FVWM_VERSION@';
+my $fvwmDefaultImagePath = '@FVWM_DEFAULT_IMAGEPATH@';
+my $versionInfo = '@FT_VERSION_INFO@';
+my $buildId = '@FT_BUILD_ID@';
+
+my $scriptName = ($0 =~ m:([^/]+)$:, $1);
+my $scriptFile = "$bindir/$scriptName";
+my $rcFile = "themes-rc";
+my $rcFile2 = "$rcFile-2";
+# maybe we may use .$rcFile-3
+my $rcFile3 = "$rcFile-3";
+my $userHome = $ENV{'HOME'} || "./.";
+my $userDir = $ENV{'FVWM_USERDIR'} || "$userHome/.fvwm";
+my @searchPath = ($userDir, $ftDataDir);
+my ($workDir, $siteDir);
+my $themesSubDir = 'themes';
+my $currentThemeName = 'current';
+my $currentThemeSubDir = "$themesSubDir/$currentThemeName";
+my $imagesSubDir = 'images';
+my $themeCfgFile = 'theme.cfg';
+my $mainDirFile = 'main';
+my $defaultReadCommand = 'Read "%f"';
+my $cfgCacheFileName = '.cfg-cache.pl';
+
+my $idKey = 'file';
+my $themeKey = 'theme';
+my $componentKey = 'component';
+my $componentGroupKey = 'group';
+my $pipe = 0;  # produce fvwm commands for fvwm's PipeRead if set
+my $printRc3 = 0; # experimental (no doc)
+my $useRestart = $ENV{'FT_USE_RESTART'}? 1: 0;
+#ccds 1 (here for easy Minimal/Global switching)
+my $setMinimalReload = "";
+
+# ----------------------------------------------------------------------------
+
+sub showHelp {
+	print "The fvwm-themes management utility.\n";
+	print "Usage: $scriptName [OPTIONS]\n";
+	print "Options:\n";
+	print "\t--help             show this help and exit\n";
+	print "\t--version          show the version and exit\n";
+	print "\t--info             show the configured information and exit\n";
+	print "\t--site             use site config dir for output, not user's\n";
+	print "\t--com-mode         run under the communication mode\n";
+	print "\t--com-name name    name for communication with fvwm-themes-com\n";
+	print "\t--show-themes      show all themes list\n";
+	print "\t--show-components  show components in all themes\n";
+	print "\t--show-dir         show all theme directory full paths\n";
+	print "\t--theme theme      limit --show-* only to this/these theme(s)\n";
+	print "\t--show-info        shows info for component given in --component\n";
+	print "\t--show-cfg         shows cfg for component given in --component\n";
+	print "\t--show-value key   shows value for component given in --component\n";
+	print "\t--component comp   defines a working component\n";
+	print "\t--only-site        limit --show-* only to the site directory\n";
+	print "\t--only-user        limit --show-* only to the user directory\n";
+	print "\t--fvwmscript       format output of --show-* differently\n";
+	print "\t--expand-rc file   expand fvwm configuration file to stdout\n";
+	print "\t--fresh            refresh (regenerate) current theme configs\n";
+	print "\t--reset            reset all components to default theme\n";
+	print "\t--no-cfg-cache     don't use (build) the configuration cache file\n";
+	print "\t--set-minimal-reload=i switch between minimal and full reloading\n";
+	print "\t--load [cmp]\@theme load the given theme component(s)\n";
+	print "\t--drop cmp[\@theme] unload the current theme component\n";
+	print "\t--option cmp:opt=v change the component option value.\n";
+	print "\t--variant cmp=var  change the component variant\n";
+	print "\t--set-locked cmp=v set or unset the component's lock\n";
+	print "\t--pipe             generate fvwm commands\n";
+	#print "\t--print-rc3        print to STDOUT themes-rc-3\n";
+	print "\t--install theme..  install theme.tar.gz or theme.tar.bz2 files\n";
+	print "\t--force-install    replace old themes without prompting\n";
+	print "\t--create-pack pack theme..   create a pack from given themes\n";
+	print "\t--pack-prefix pre  replace ft by pre in the name of the pack\n";
+	print "\t--pack-extra-version x.x   add _x.x to the version of the pack\n";
+	print "\t--tmp-dir          full path to a temporary directory\n";
+	exit 0;
+}
+
+sub showVersion {
+	print "$version\n";
+	exit 0;
+}
+
+sub showInfo {
+	print "Package: @PACKAGE@\n";
+	print "Version: $version\n";
+	print "FVWM version when this package was built: $fvwmVersion\n";
+	print "\n";
+	print "Instalation options:\n";
+	print "\tprefix: $prefix\n";
+	print "\tbindir: $bindir\n";
+	print "\tdatadir: $datadir\n";
+	print "\tmandir: @mandir@\n";
+	print "\n";
+	print "Built-in paths:\n";
+	print "\tData directory: $ftDataDir\n";
+	print "\tDefault UserDir: $userDir\n";
+	print "\tDefault ImagePath: $fvwmDefaultImagePath\n";
+	exit 0;
+}
+
+sub wrongUsage {
+	print STDERR "Try '$scriptName --help' for more information.\n";
+	exit -1;
+}
+
+sub errDie ($) {
+	my $msg = shift;
+	$msg .= "\n" unless $msg =~ /\n$/s;
+	if ($pipe) {
+		$msg =~ s/\n/^n/sg;
+		$msg =~ s/"/^q/sg;
+		print qq(FuncFvwmShowMessage "$scriptName error" "$msg" '-center -xrm "*form*background:rgb:c0/50/50" -xrm "*form*okay*background:rgb:90/40/40" -xrm "*form*message*background:rgb:f0/60/60"'\n);
+		exit -1;
+	} else {
+		die $msg;
+	}
+}
+
+#" <- a fix for my xemacs (olicha)
+
+sub errWarn ($) {
+	my $msg = shift;
+	$msg .= "\n" unless $msg =~ /\n$/s;
+	if ($pipe) {
+		$msg =~ s/\n/^n/sg;
+		$msg =~ s/"/^q/sg;
+		print qq(FuncFvwmShowMessage "$scriptName warning" "$msg" '-center -xrm "*form*background:rgb:90/90/50" -xrm "*form*okay*background:rgb:70/70/40" -xrm "*form*message*background:rgb:b0/b0/60"'\n);
+	} else {
+		warn $msg;
+	}
+}
+
+#" <- a fix for my xemacs (olicha)
+
+sub sysDie ($) {
+	my $msg = shift;
+	$msg =~ s/\s+$//s;
+	errDie("$msg: [$!]");
+}
+
+sub isArrayElement ($$) {
+	my $array = shift;
+	my $element = shift;
+	return int(grep { /^\Q$element\E$/ } @$array);
+}
+
+sub getArrayElementIndex ($$) {
+	my $array = shift;
+	my $element = shift;
+	my $i;
+	foreach ($i = 0; $i < @$array; $i++) {
+		return $i if $array->[$i] eq $element;
+	}
+	return undef;
+}
+
+sub conjunctArrays ($$) {
+	my $array1 = shift;
+	my $array2 = shift;
+	return [ grep { isArrayElement($array2, $_) } @$array1 ];
+}
+
+sub dumpPerlValue ($;$$) {
+	my ($value, $level, $inline) = @_;
+	$level ||= 0;
+	$inline ||= 0;
+	my $ref = ref($value);
+	my $str = $ref;
+	my @subValues = ();
+
+	if (!$ref) {
+		$str = $value;
+		$str = '(undef)' unless defined $str;
+	} elsif ($ref eq 'ARRAY') {
+		@subValues = @$value;
+	} elsif ($ref eq 'HASH') {
+		@subValues = map {
+			"$_\t" . &dumpPerlValue($value->{$_}, $level + 1, 1)
+		} sort keys %$value;
+	} elsif ($ref eq 'SCALAR') {
+		@subValues = ($$value);
+	} else {
+		#errDie("Unsupported perl type $ref");
+	}
+	$str = ("\t" x $level) . "$str\n" unless $inline;
+	my $str2 = "";
+	foreach (@subValues) { $str2 .= &dumpPerlValue($_, $level + 1); }
+	if ($inline && $str2 =~ /^(.*)\n$/s) { $str .= "\n"; $str2 = $1; }
+	return "$str$str2";
+}
+
+sub clonePerlValue ($) {
+	my $value = shift;
+	my $ref = ref($value);
+
+	if (!$ref) {
+		return $value;
+	} elsif ($ref eq 'ARRAY') {
+		my $array = [ map { &clonePerlValue($_) } @$value ];
+		return $array;
+	} elsif ($ref eq 'HASH') {
+		my $hash = {};
+		foreach (keys %$value) { $hash->{$_} = &clonePerlValue($value->{$_}); }
+		return $hash;
+	} elsif ($ref eq 'SCALAR') {
+		my $scalar = $$value;
+		return \$scalar;
+	} else {
+		#errDie("Unsupported perl type $ref");
+		return $value;
+	}
+}
+
+# ----------------------------------------------------------------------------
+
+sub loadFile ($) {
+	my $fileName = shift;
+
+	open(FILE, "<$fileName") || sysDie("Can't open $fileName");
+	my $fileContent = join("", <FILE>);
+	close(FILE) || sysDie("Can't close $fileName");
+	return \$fileContent;
+}
+
+sub saveFile ($$;$$) {
+	my ($fileName, $fileContentRef, $createDirs, $perm) = @_;
+
+	if ($createDirs) {
+		my $dirName = $fileName; $dirName =~ s:(^|/)[^/]*$::;
+		makePath($dirName, $perm) unless -d $dirName;
+	}
+	open(FILE, ">$fileName") || sysDie("Can't open $fileName");
+	print FILE $$fileContentRef;
+	close(FILE) || sysDie("Can't close $fileName");
+}
+
+sub makePath ($;$) {
+	my $dirName = shift;
+	my $perm = shift || 0775;
+	return if -d $dirName;
+
+	my $parentDir = $dirName; $parentDir =~ s:(^|/)[^/]+/?$::;
+	&makePath($parentDir, $perm) unless -d $parentDir;
+	mkdir($dirName, $perm) || sysDie("Can't mkdir $dirName");
+}
+
+# should be internationalized?
+sub quantifyString ($$) {
+	my ($num, $str) = @_;
+	return "$num $str" . ($num != 1? "s": "");
+}
+
+# ----------------------------------------------------------------------------
+
+sub getExpandedRc ($) {
+	my $file = shift;
+	### should detect infinitive loops?
+	if (!-f $file) {
+		foreach (@searchPath) {
+			if (-f "$_/$file") { $file = "$_/$file"; last; }
+		}
+	}
+	if (!-f $file) {
+		return "#| File '$file' is not found\n";
+	}
+	my $dir = "";
+	$dir = $1 if ($file =~ /^(\/.+\/)/);
+
+	my $output = "";
+	foreach (`cat $file`) {
+		chomp; $_ .= "\n";
+		/^read\s+['`"]?([^\s'`"]+)/i && do { #`
+			my $file = $1;
+			if ($dir ne "" && $file =~ /^\$\.\/(.+)$/) {
+				$file = "$dir/$1";
+			}
+			$output .= "#.---- start: $_";
+			$output .= &getExpandedRc($file);
+			$output .= "#`====== end: $_\n";
+			next;
+		};
+		$output .= $_;
+	}
+	return $output;
+}
+
+sub searchThemeCfgIncludeFile ($$) {
+	my ($file, $theme) = @_;
+	my @subDirs = ($theme);
+	if ($file =~ /^\.\.\/(.*)/) {
+		$file = $1;
+		unshift @subDirs, ".";
+	}
+	my $dir;
+	foreach $dir (@searchPath) {
+		foreach (@subDirs) {
+			my $file = "$dir/$themesSubDir/$_/$file";
+			return $file if -f $file;
+		}
+	}
+	return undef;
+}
+
+# unfortunately fvwm is inconsistent, so the second parameter.
+sub escapeMenuName ($;$) {
+	my $name = shift;
+	$name = "unknown" unless defined $name;  # maybe die?
+	my $hasUnderline = shift;
+	my $escapeStr = $hasUnderline? '\\': '&';
+	$name =~ s/\\/\\\\/g;
+	$name =~ s/&/$escapeStr&/g;
+	$name;
+}
+
+sub decodeCfgEntry ($;$) {
+	my $str = shift;
+	my $entry = shift || {};
+
+	$str =~ s/\s+$//s;
+	$str =~ s/\r/\n/sg;
+	foreach (split(/\n/s, $str)) {
+		s/^\s+//s;
+		next if /^#/;
+		next if $_ eq '';
+
+		my ($key, $value) = split(/=/, $_, 2);
+		errDie("Incorrect cfg line: $_\n") unless $key && defined $value;
+		## key1.key2:key3+key=value
+		## $entry->{key1}->[-1]->{key2}->{key3}->[-1]->{key}=value
+		my $hash = $entry;
+		$key =~ /^(.*?)([^\+\.\:]+\+?)$/;
+		$key = $2;
+		my $lastKey = "_";
+		foreach (split(/([\+\.\:]+)/, $1)) {
+			/^:/ and do {
+				$hash = ($hash->{$lastKey} ||= {});
+				next;
+			};
+			/^[\+\.]/ and do {
+				my $array = ($hash->{$lastKey} ||= []);
+				/^\+/ and push @$array, {};
+				$hash = $array->[-1];
+				next;
+			};
+			errDie("Incorrect line key $_, not enough +'s")
+				unless defined $hash;
+			$lastKey = $_;
+		}
+		if ($key =~ /^(.*)\+$/) {
+			$key = $1;
+			$hash->{$key} = []
+				unless exists $hash->{$key} && ref($hash->{$key}) eq 'ARRAY';
+			push @{$hash->{$key}}, $value;
+		} else {
+			$hash->{$key} = $value;
+		}
+	}
+	return $entry;
+}
+
+sub encodeCfgEntry ($) {
+	my $entry = shift;
+	my $str = "";
+
+	foreach (sort keys %$entry) {
+		my ($key, $value) = ($_, $entry->{$_});
+		if (!ref($value)) {
+			$str .= "$key=$value\n";
+		} elsif (ref($value) eq 'ARRAY') {
+			# ARRAY in HASH
+			next unless @$value;
+			my $ref = ref($value->[0]);
+			if (!$ref) {
+				foreach (@$value) {
+					$str .= "$key+=$_\n";
+				}
+			} elsif ($ref eq 'ARRAY') {
+				errDie("ARRAY in ARRAY is not supported");
+			} elsif ($ref eq 'HASH') {
+				# ARRAY of HASH's in HASH
+				foreach (@$value) {
+					my $subStr = &encodeCfgEntry($_);
+					my ($d, $c) = ('+', '.');
+					$subStr =~ s/^(.*)$/my $a = "$key$d$1"; $d = $c; $a/mge;
+					$str .= $subStr;
+				}
+			} else {
+				errDie("Unsupported perl type ($ref) in ARRAY");
+			}
+		} elsif (ref($value) eq 'HASH') {
+			# HASH in HASH
+			my $subStr = &encodeCfgEntry($value);
+			my $d = ':';
+			$subStr =~ s/^(.*)$/$key$d$1/mg;
+			$str .= $subStr;
+		} else {
+			errDie("Unsupported perl type ($value) in HASH");
+		}
+	}
+	return $str;
+}
+
+use vars qw($cfgFileCache $cfgCacheFileStatus);
+BEGIN { $cfgFileCache = {}; $cfgCacheFileStatus = 0; }
+
+my @dependencyKeys = qw(
+	provides requires complements precedes follows
+	local-imagepath start-stop uses auto-drops
+	load-unload reload-unreload reload-read-command
+	depends stronglydepends weakdepends
+);
+
+# returns 0 if the given condition is false (so should be hidden), 1 - if true
+sub checkUnhideIf ($) {
+	my $check = shift;
+
+	my ($cmd, $arg) = split(/[\s:]+/, $check, 2);
+	if ($cmd eq 'in-path') {
+		my $dir;
+		my @pathDirs = split(':', $ENV{'PATH'});
+		foreach $dir (@pathDirs) {
+			return 1 if -x "$dir/$arg";
+		}
+		return 0;
+	}
+	if ($cmd eq 'env') {
+		# it is good to have the same logic as perl, 0 or "" is false
+		return !!$ENV{$arg};
+	}
+	if ($cmd eq 'fvwm-supports') {
+		return system("fvwm-config --supports-$arg") == 0;
+	}
+	if ($cmd eq 'has-fonts') {
+		my @fonts = split(',', $arg);
+		foreach (@fonts) {
+			s/^\s+//; s/\s+$//;
+			return 0 if `xlsfonts -fn '$_' 2> /dev/null` eq "";
+		}
+		return 1;
+	}
+
+	#errWarn("Unsupported condition ($check) in unhide-if");
+	return 1;
+}
+
+sub loadThemeCfg ($) {
+	my $theme = shift;
+	loadCfgCacheFile() if $cfgCacheFileStatus == 0;
+	return $cfgFileCache->{$theme} if exists $cfgFileCache->{$theme};
+	my $cfgFile = searchThemeCfgIncludeFile($themeCfgFile, $theme);
+	$cfgFile ||= searchThemeCfgIncludeFile($themeCfgFile, "default");
+	errDie("No $themeCfgFile for $theme found") unless defined $cfgFile;
+
+	#return $cfgFileCache->{$theme} if exists $cfgFileCache->{$theme};
+	my $cfg = [{}, {}];
+
+	my $strRef = loadFile($cfgFile);
+	my %visitedFiles = ();
+	while ($$strRef =~ s/^!include(-quiet)?\s+(.*)\s*$/
+		my $subCfgFile = searchThemeCfgIncludeFile($2, $theme);
+		errDir("No include $2 in $cfgFile") unless $1 || defined $subCfgFile;
+		if (defined $subCfgFile) {
+			if ($visitedFiles{$subCfgFile}) { errWarn(
+				"Endless loop $cfgFile - $subCfgFile"); $subCfgFile = undef }
+			else { $visitedFiles{$subCfgFile} = 1; }
+		}
+		defined $subCfgFile? ${loadFile($subCfgFile)}: ""
+	/meg) {}
+
+	while (1) {
+		last unless $$strRef =~ /(?:^|\n)\[(\w+)\](.*?)(|\n\[.*)$/s;
+		$$strRef = $3;
+		my $entryTag = $1;
+		my $entryStr = $2;
+		my $entry = {};
+
+		if ($entryTag eq 'theme') {
+			$cfg->[0] = $entry;
+		} elsif ($entryTag eq 'component') {
+			$entryStr =~ /^$idKey\s*=\s*(.*)\s*$/m;
+			my $key = $1;
+			errDie("No '$idKey' value in entry [$entryTag] in $cfgFile") unless $key;
+			# check for unhide-if
+			while ($theme ne 'current' &&
+				$entryStr =~ s/^unhide-if\s*=\s*(.*)\s*$//m)
+			{
+				my $cmd = $1;
+				$entry->{'hidden'} = 1 unless checkUnhideIf($cmd);
+			}
+
+			# these defaults are probably ok
+			my $reuseDependences = 1;
+			my $reuseProperties = 0;
+			while ($entry =~ s/^!(reuse|reset)-(dependences|properties)\s*$//) {
+				($2 eq "dependences"? $reuseDependences: $reuseProperties) =
+					($1 eq "reuse"? 1: 0);
+			}
+
+			if ($cfg->[1]->{$key} && ($reuseDependences || $reuseProperties)) {
+				my $oldEntry = $cfg->[1]->{$key};
+				if ($reuseProperties) {
+					$entry = $oldEntry;
+					unless ($reuseDependences) {
+						foreach (@dependencyKeys) {
+							delete $entry->{$_} if exists $entry->{$_};
+						}
+					}
+				} else {  # if ($reuseDependences)
+					foreach (@dependencyKeys) {
+						$entry->{$_} = $oldEntry->{$_} if exists $oldEntry->{$_};
+					}
+				}
+			}
+			$cfg->[1]->{$key} = $entry;
+		} else {
+			print STDERR "Warning: unknown entry [$entryTag], ignoring...\n";
+			next;
+		}
+		decodeCfgEntry($entryStr, $entry);
+	}
+
+	# check for unhide-if
+	my $components = $cfg->[0]->{$componentKey};
+	my @allComponents = ();
+	if ($theme ne 'current' && defined $components) {
+		push @allComponents, @$components;
+	}
+	my $comp;
+	foreach $comp (@allComponents) {
+		my $contains = $cfg->[1]->{$comp}->{'contains'};
+		next unless ref($contains) eq 'ARRAY';
+		my $subComponent;
+		foreach $subComponent (@$contains) {
+			push @allComponents, "$comp/$subComponent";
+			if ($cfg->[1]->{"$comp"}->{'hidden'}) {
+				$cfg->[1]->{"$comp/$subComponent"}->{'hidden'} = 1;
+			}
+		}
+	}
+	foreach $comp (@allComponents) {
+		my $variants = $cfg->[1]->{$comp}->{'variant'};
+		next unless ref($variants) eq 'ARRAY';
+		my $i;
+		for ($i = 0; $i < @$variants; $i++) {
+			my $unhideIfs = $variants->[$i]->{'unhide-if'};
+			next unless defined $unhideIfs;
+			$unhideIfs = [ $unhideIfs ] if ref($unhideIfs) ne 'ARRAY';
+			foreach (@$unhideIfs) {
+				$variants->[$i]->{'hidden'} = 1 unless checkUnhideIf($_);
+			}
+			delete $variants->[$i]->{'unhide-if'};
+		}
+	}
+
+#	# leave only real components
+#	my $components = $cfg->[0]->{$componentKey};
+#	errDie("No '$componentKey' in entry [theme]") unless ref($components) eq 'ARRAY';
+#	my @realComponents = ();
+#	foreach (@$components) {
+#		my $themeDir = getThemeDir($cfg->[1]->{$_}->{$themeKey});
+#		my $file = "$themeDir/$_";
+#		push @realComponents, $_ if -e $file;
+#	}
+#	$cfg->[0]->{$componentKey} = [sort @realComponents];
+
+	$cfgFileCache->{$theme} = $cfg;
+	saveCfgCacheFile($theme,$cfg);
+	return $cfg;
+}
+
+sub loadCfgCacheFile () {
+	$cfgCacheFileStatus = 1;
+	return if $workDir ne $userDir;
+
+	my @cacheFiles = ("$userDir/$cfgCacheFileName");
+	my $file;
+	foreach $file (@cacheFiles) {
+		if (-f "$file") {
+			eval {
+				require "$file";
+			};
+			if ($@) {
+				print STDERR "Warning: a problem arised when loading " .
+					"$file:\n$@\n";
+				unlink "$file";
+			}
+		}
+	}
+}
+
+sub saveCfgCacheFile ($$) {
+	my $theme = shift;
+	my $cfg = shift;
+	return if $theme eq "current" || $workDir ne $userDir;
+	if ($cfgCacheFileStatus == 1) {
+		open(CACHE_FILE,">$userDir/$cfgCacheFileName");
+		$cfgCacheFileStatus = 2;
+	}
+	{
+		require Data::Dumper;
+		# compact as possible: 50% more fast
+		local $Data::Dumper::Indent;
+		local $Data::Dumper::Quotekeys;
+		$Data::Dumper::Indent = 0;
+		$Data::Dumper::Quotekeys = 0;
+		my $str = "";
+		my $var = "\$cfgFileCache->{'$theme'}";
+		$str = Data::Dumper->Dump([$cfg],["$var"]);
+		print CACHE_FILE $str . "\n";
+	}
+}
+
+sub saveThemeCfg ($$) {
+	my ($theme, $cfg) = @_;
+	errDie("Parameter should be ARRAY") unless ref($cfg) eq 'ARRAY';
+	my ($themeCfg, $componentCfgs) = @$cfg;
+	errDie("Parameter should be [HASH, HASH]")
+		unless ref($themeCfg) eq 'HASH' && ref($componentCfgs) eq 'HASH';
+
+	my $str = "";
+	$str .= "[theme]\n" . encodeCfgEntry($themeCfg) . "\n";
+	foreach (sort keys %$componentCfgs) {
+		$str .= "[component]\n" . encodeCfgEntry($componentCfgs->{$_}) . "\n";
+	}
+
+	my $cfgFile = "$workDir/$themesSubDir/$theme/$themeCfgFile";
+	saveFile($cfgFile, \$str, 1);
+}
+
+sub parseComponentName ($) {
+	my $name = shift;
+	return ($2, $1) if $name =~ /^(.*?)@(.*)$/;
+#	errDie("Incorrect component name $name, should be component\@theme");
+	return (undef, $name);
+}
+
+sub getThemeDir ($) {
+	my $theme = shift;
+	my $dir;
+	foreach $dir (@searchPath) {
+		my $dir = "$dir/$themesSubDir/$theme";
+		return $dir if -d $dir;
+	}
+	errDie("No theme '$theme' found");
+}
+
+sub getThemeComponents ($) {
+	my $theme = shift;
+
+	my $themeDir = getThemeDir($theme);
+	my @allComponents = keys %{loadThemeCfg($theme)->[1]};
+	return [ sort @allComponents ] if $theme eq $currentThemeName;
+
+	my @components = ();
+	foreach (@allComponents) {
+		next if m:/:; ### for now
+		my $file = "$themeDir/$_";
+		push @components, $_ if -e $file || -d "$file.d";
+	}
+	return [sort @components];
+
+#	my @components = keys %{loadThemeCfg($theme)->[1]};
+#	return \@components;
+}
+
+sub getThemeNameAndComponentsAndGroups ($) {
+	my $theme = shift;
+
+	my $components = getThemeComponents($theme);
+	my $themeCfg = loadThemeCfg($theme)->[0];
+	my $name = $themeCfg->{'name'} || ucfirst($theme);
+	my $groups = clonePerlValue($themeCfg->{$componentGroupKey});
+	# use reasonable default if not given
+	$groups = [ { 'name' => "all", $componentKey => ['*'] } ] unless ref($groups) eq 'ARRAY';
+	foreach (@$groups) {
+		my $groupComponents = $_->{$componentKey};
+		# for technical reasons [ "" ] represents all components to load
+		$_->{$componentKey} =
+			(ref($groupComponents) ne 'ARRAY' || @$groupComponents == 1 && $groupComponents->[0] =~ /^\*?$/)?
+			[ "" ]: conjunctArrays($components, $groupComponents);
+	}
+	return ($name, $components, $groups);
+}
+
+### for backward compatibility, should be removed and all usage updated
+sub getThemeComponentsAndGroups ($) {
+	my ($name, $components, $groups) = getThemeNameAndComponentsAndGroups($_[0]);
+	return ($components, $groups);
+}
+
+sub getAllThemes (;$$) {
+	my $onlySite = shift || 0;
+	my $onlyUser = shift || 0;
+	my @dirList = ();
+	push @dirList, $siteDir if $onlySite;
+	push @dirList, $userDir if $onlyUser;
+	@dirList = @searchPath unless @dirList;
+	my $themes = {};
+	my $dir;
+	foreach $dir (@dirList) {
+		my $dir = "$dir/$themesSubDir";
+		opendir(DIR, $dir);
+		foreach (readdir(DIR)) {
+			next if /^\./ || $_ =~ /^$currentThemeName/;
+			next unless -d "$dir/$_";
+			next if exists $themes->{$_};
+			$themes->{$_} = 1;
+		}
+		closedir(DIR);
+	}
+	return [sort keys %$themes];
+}
+
+sub showThemeComponents ($$$$$$) {
+	my ($themes, $withComponents, $component, $script, $onlySite, $onlyUser) = @_;
+	my $output = "";
+	my $delim0 = $script? "    ": "\t";
+	my $delim1 = $script? "|": "\n";
+	$themes = getAllThemes($onlySite, $onlyUser) unless @$themes;
+
+	my $theme;
+	foreach $theme (@$themes) {
+		my $components = getThemeComponents($theme);
+		next if defined $component && !isArrayElement($components, $component);
+		$output .= $theme . $delim1;
+		if ($withComponents) {
+			foreach (@$components) {
+				$output .= $delim0 . $_ . $delim1;
+			}
+		}
+		$output =~ s/\Q$delim1\E$/\n/ if $script;
+	}
+	print $output;
+	exit(0);
+}
+
+sub showThemeDirs ($) {
+	my $themes = shift;
+	$themes = getAllThemes() unless @$themes;
+	my $theme;
+	foreach $theme (@$themes) {
+		print getThemeDir($theme) . "\n";
+	}
+	exit(0);
+}
+
+sub getComponentCfgByName ($) {
+	my $component = shift;
+	my $theme;
+	($theme, $component) = parseComponentName($component);
+	errDie("No component name in '$component' given") unless $component;
+	$theme ||= 'current';
+
+	my $cc = loadThemeCfg($theme)->[1]->{$component};
+	errDie("Can't find component '$component' in theme '$theme'") unless $cc;
+	return ($cc, $theme, $component);
+}
+
+sub showThemeComponentInfo ($) {
+	my $component = shift;
+	my ($cc, $theme);
+	($cc, $theme, $component) = getComponentCfgByName($component);
+
+	$theme = $cc->{'theme'} if $cc->{'theme'};
+	my $numComponents = @{getThemeComponents($theme)};
+	my ($str, @propStrs, @currStrs) = ("");
+	my $lockedStr = $cc->{'locked'}? " (locked)": "";
+	my $readFile = $cc->{'read-file'};
+
+	push @propStrs, quantifyString(0 + @{$cc->{'contains'}}, "subcomponent")
+		if $cc->{'contains'};
+	my $variants = $cc->{'variant'};
+	if (ref($variants) eq 'ARRAY') {
+		push @propStrs, quantifyString(0 + @$variants, "variant");
+		push @currStrs, $variants->[$cc->{'current'} - 1]->{'name'} || '*error*';
+	}
+	my $options = $cc->{'option'};
+	if (ref($options) eq 'ARRAY') {
+		my $num = @$options;
+		my $valuesStr = join(' * ', map { 0 + @{$_->{'value'}} } @$options);
+		push @propStrs, quantifyString($num, "option") . " ($valuesStr choices)";
+		foreach (@$options) {
+			push @currStrs, $_->{'name'} . ": " .
+				($_->{'value'}->[$_->{'current'} - 1]->{'name'} || '*error*');
+		}
+	}
+
+	
+	$str .= "Theme:      $theme ($numComponents components)\n";
+	$str .= "Component:  $component$lockedStr\n";
+	$str .= "Properties: " . (@propStrs? join(", ", @propStrs): "none") . "\n";
+	$str .= "Current:    " . join("; ", @currStrs) . "\n" if @currStrs;
+	$str .= "Read File:  $readFile\n" if $readFile;
+
+	$str = q(FuncFvwmShowMessage "Component Info" ') .
+		join('^n', split(/\n/, $str)) . q(') if $pipe;
+	print $str;
+	exit(0);
+}
+
+sub showThemeComponentCfg ($) {
+	my $component = shift;
+	my ($cc, $theme);
+	($cc, $theme, $component) = getComponentCfgByName($component);
+
+	print dumpPerlValue($cc);
+	exit(0);
+}
+
+sub showThemeComponentValues ($$) {
+	my ($component, $keys) = @_;
+	my ($cc, $theme);
+	($cc, $theme, $component) = getComponentCfgByName($component);
+
+	my $key;
+	foreach $key (@$keys) {
+		my $value = $cc->{$key};
+#		errDie("No key '$key' defined in component '$component\@$theme' cfg")
+		$value = "*undefined*"
+			unless defined $value;
+		print dumpPerlValue($value);
+	}
+	exit(0);
+}
+
+sub createCurrentImageDirLinks ($$) {
+	my ($theme, $subdirs) = @_;
+	my $srcDir = getThemeDir($theme) . "/$imagesSubDir";
+	my $dstDir = "$workDir/$currentThemeSubDir/$imagesSubDir";
+	makePath($dstDir) unless -d $dstDir;
+	foreach (@$subdirs) {
+		my $srcFile = "$srcDir/$_";
+		my $dstLink = "$dstDir/$_";
+		unlink($dstLink); # || sysDie("Can't unlink $dstLink")
+			#if -e $dstLink;
+		symlink($srcFile, $dstLink) || sysDie("Can't symlink $srcFile $dstLink");
+	}
+}
+
+sub getHashIdArrayIndex ($$) {
+	my ($array, $id) = @_;
+	my ($index, $i) = -1;
+	for ($i = 0; $i < @$array; $i++) {
+		if ($id eq $array->[$i]->{$idKey}) {
+			$index = $i + 1; last;
+		}
+	}
+	$index = $1 if $index < 0 && $id =~ /^\s*(\d+)\s*$/;
+	return $index;
+}
+
+# ----------------------------------------------------------------------------
+
+package FVWM::ThemeCfg;
+
+sub AUTOLOAD ($@) {
+	my $func = $FVWM::ThemeCfg::AUTOLOAD;
+	$func =~ s/.*://g;
+	$func = "main::$func";
+	no strict 'refs';
+	&$func(@_);
+}
+
+sub DESTROY ($) {}
+
+sub new ($$;$$) {
+	my $this  = shift;
+	my $class = ref($this) || $this;
+	my $theme = shift;
+	my $loadTheme = shift || $theme;
+	my $fresh = shift || 0;
+
+	my $self = {
+		$idKey => $theme,
+		'name' => ucfirst($theme),
+		'cc'   => {},
+	};
+	bless($self, $class);
+	$self->setModified($fresh || $theme ne $loadTheme? 1: 0);
+
+	my ($themeCfg, $componentCfgs) = @{loadThemeCfg($loadTheme)};
+	my ($key, $value);
+	while (($key, $value) = each %$themeCfg) {
+		$self->{$key} = ($key eq $componentKey
+			&& $loadTheme !~ /^$currentThemeName/)?
+			getThemeComponents($loadTheme): $value;
+	}
+	errDie("No '$componentKey' key in theme '$loadTheme' cfg") unless exists $self->{$componentKey};
+	my $dir = getThemeDir($loadTheme);
+	my @components = ('_core', @{$self->{$componentKey}});
+
+	my $subComponentParentTheme = {};  # to handle newly added subcomponents
+	my $cindex = -1;  # because of '_core'
+	my $component;
+	while ($component = shift(@components)) {
+		my $componentCfg = $componentCfgs->{$component};
+		my $realTheme = $loadTheme;
+		my $cc;
+		if ($fresh) {
+			$realTheme = $componentCfg->{$themeKey}
+				|| $subComponentParentTheme->{$component} || "*unknown*";
+			my $origComponentCfg = loadThemeCfg($realTheme)->[1]->{$component};
+			unless ($origComponentCfg) {
+				errWarn("Theme '$realTheme' has no component '$component' anymore, auto-dropping");
+				splice(@{$self->{$componentKey}}, $cindex, 1);
+				next;
+			}
+			$dir = getThemeDir($realTheme);
+			$cc = clonePerlValue($origComponentCfg);
+
+			$cc->{'memory'} = $componentCfg->{'memory'}
+				if exists $componentCfg->{'memory'};
+			$cc->{'stop'} = $componentCfg->{'stop'}
+				if exists $componentCfg->{'stop'};
+			$cc->{'locked'} = $componentCfg->{'locked'}
+				if exists $componentCfg->{'locked'};
+			$cc->{'current'} = $componentCfg->{'current'}
+				if exists $componentCfg->{'current'};
+			$cc->{'minimalReload'} = $componentCfg->{'minimalReload'}
+				if exists $componentCfg->{'minimalReload'};
+			if (ref($componentCfg->{'option'}) eq 'ARRAY') {
+				my $i;
+				for ($i = 0; $i < @{$componentCfg->{'option'}}; $i++) {
+					my $currIndex = $componentCfg->{'option'}->[$i]->{'current'};
+					$cc->{'option'}->[$i]->{'current'} = $currIndex if $currIndex;
+				}
+			}
+		} else {
+			$cc = clonePerlValue($componentCfg);
+		}
+		$cc->{$themeKey} = $realTheme unless $cc->{$themeKey};
+		if (ref($cc->{'contains'}) eq 'ARRAY') {
+			push @components, map {
+				my $component0 = "$component/$_";
+				$subComponentParentTheme->{$component0} = $cc->{$themeKey};
+				$component0
+			} @{$cc->{'contains'}};
+		}
+		
+		my $readFile;
+		unless (exists $cc->{'read-file'}) {
+			if (ref($cc->{'contains'}) eq 'ARRAY') {
+				$readFile = "";
+			} elsif ($component eq '_core') {
+				$readFile = "*virtual*";
+			} else {
+				$readFile = "$dir/$component";
+				$readFile .= ".d" if -d "$readFile.d" && !-e $readFile;
+				$readFile .= "/$mainDirFile" if -d $readFile;
+			}
+			$cc->{'read-file'} = $readFile;
+		}
+		$cc->{'locked'} = 0 unless exists $cc->{'locked'};
+		$cc->{'used'} = 1;
+		$cc->{'used'} = 3 if (($fresh && $cc->{'used'})||$loadTheme eq 'default');
+		errDie("Duplicated component '$component' for theme '$theme'")
+			if exists $self->{'cc'}->{$component} &&
+				$self->{'cc'}->{$component}->{'used'};
+		$self->{'cc'}->{$component} = $cc;
+		$cindex++;
+	}
+	return $self;
+}
+
+sub save ($) {
+	my $self = shift;
+
+	my ($themeCfg, $componentCfgs) = ( {}, {} );
+
+	my ($key, $value, $comp, $cfg);
+	while (($key, $value) = each %$self) {
+		next if $key =~ /^_/ || $key eq 'cc' || $key eq 'mc';
+		$themeCfg->{$key} = $value;
+	}
+	while (($comp, $cfg) = each %{$self->{'cc'}}) {
+		$componentCfgs->{$comp} = {};
+		while (($key, $value) = each %$cfg)
+			{ $componentCfgs->{$comp}->{$key} = $value; }
+	}
+	saveThemeCfg($self->{$idKey}, [$themeCfg, $componentCfgs]);
+}
+	
+sub isModified ($) {
+	my $self = shift;
+	return $self->{'_isModified'};
+}
+
+sub setModified ($;$) {
+	my $self = shift;
+	$self->{'_isModified'} = @_? shift: 1;
+}
+
+sub setMinimalReload ($;$) {
+	my $self = shift;
+	my $value = shift;
+	my $mr = 1;
+	if (defined $self->{'cc'}->{'_core'}->{'minimalReload'}) {
+		$mr = $self->{'cc'}->{'_core'}->{'minimalReload'}
+	}
+	if ($value != $mr) {
+		$self->{'cc'}->{'_core'}->{'minimalReload'} = $value;
+		$self->setModified();
+	}
+}
+
+sub isMinimalReload ($) {
+	my $self = shift;
+	my $value = 1;
+	if (defined $self->{'cc'}->{'_core'}->{'minimalReload'}) {
+		$value = $self->{'cc'}->{'_core'}->{'minimalReload'}
+	}
+	return $value;
+}
+
+sub hasComponent ($$) {
+	my $self = shift;
+	my $component = shift;
+	return isArrayElement($self->{$componentKey}, $component);
+}
+
+#olicha: maybe not useful??
+sub hasComponentCfg ($$) {
+	my $self = shift;
+	my $component = shift;
+	return 1 if $self->{'cc'}->{$component};
+	return 0;
+}
+
+sub getComponentCfg ($$) {
+	my $self = shift;
+	my $component = shift;
+	my $cfg = $self->{'cc'}->{$component};
+	errDie("No component '$component' cfg in theme $self->{'name'}")
+		unless defined $cfg;
+	return $cfg;
+}
+
+sub setComponentCfg ($$$) {
+	my $self = shift;
+	my $component = shift;
+	$self->{'cc'}->{$component} = shift;
+}
+
+sub storeThemeComponentMemory ($$$) {
+	my $self = shift;
+	my ($theme, $component) = @_;
+	my $cc = $self->getComponentCfg($component);
+	my $cm = {};
+
+	if (ref($cc->{'variant'}) eq 'ARRAY' && $cc->{'current'} &&
+		!$cc->{'variant'}->[$cc->{'current'} - 1]->{'hidden'})
+	{
+		$cm->{'current'} = $cc->{'current'};
+	}
+	my $options = $cc->{'option'};
+	if (ref($options) eq 'ARRAY' && @$options) {
+		my $o;
+		$cm->{'option'} = [];
+		my $isSet = 0;
+		for ($o = 0; $o < @$options; $o++) {
+			my $index = $options->[$o]->{'current'};
+			### we should probably store names not indexes (or both)
+			push @{$cm->{'option'}}, { 'current' => ($index || "") };
+			$isSet = 1 if $index;
+		}
+		delete $cm->{'option'} unless $isSet;
+	}
+
+	return unless keys %$cm;
+	$cm->{'time'} = time();
+
+	my $_c = $self->getComponentCfg("_core");
+	my $memory = ( $_c->{'memory'} ||= {} );
+	my $themeMemory = ( $memory->{$theme} ||= {} );
+	$themeMemory->{$component} = $cm;
+}
+
+sub applyThemeComponentMemory ($$$) {
+	my $self = shift;
+	my ($theme, $component) = @_;
+
+	my $_c = $self->getComponentCfg("_core");
+	my $memory = $_c->{'memory'};
+	return unless ref($memory) eq 'HASH';
+	my $themeMemory = $memory->{$theme};
+	return unless ref($themeMemory) eq 'HASH';
+	my $cm = $themeMemory->{$component};
+	return unless ref($cm) eq 'HASH';
+
+	# delete component memory if older then 6 months
+	if (time() - $cm->{'time'} > 6 * 30 * 24 * 60 * 60) {
+		delete $themeMemory->{$component};
+		return;
+	}
+	my $cc = $self->getComponentCfg($component);
+	
+	if ($cm->{'current'} && ref($cc->{'variant'}) eq 'ARRAY') {
+		if ($cc->{'variant'}->[$cm->{'current'} - 1]->{'hidden'}) {
+			delete $themeMemory->{$component};
+			return;
+		}
+		$cc->{'current'} = $cm->{'current'};
+	}
+
+	my $mOptions = $cm->{'option'};
+	my $options = $cc->{'option'};
+	if (ref($mOptions) eq 'ARRAY' && ref($options) eq 'ARRAY') {
+		if (@$mOptions != @$options) {
+			delete $themeMemory->{$component};
+			return;
+		}
+		my $o;
+		for ($o = 0; $o < @$options; $o++) {
+			my $currIndex = $mOptions->[$o]->{'current'};
+			$options->[$o]->{'current'} = $currIndex if $currIndex;
+		}
+	}
+}
+
+# olicha: I've done a lot of modif in this function:
+# subcomponent are automaticaly (un)loaded and option and
+# variant are saved here. I've used a new "cfg command" called
+# 'used' for unloading the 'cc' component since I've got some
+# difficulty to do the unloading by freeing memory ...
+sub useNewComponents ($$$;$) {
+	my $self = shift;
+	my $loadComponents = shift;
+	my $dropComponents = shift;
+	my $isSubComponent = shift || 0;
+	return unless @$loadComponents || @$dropComponents;
+	$self->setModified();
+
+	foreach (@$dropComponents) {
+		my ($theme, $component) = parseComponentName($_);
+		errDie("Wrong component '$_' to drop specified")
+			unless $component;
+		my $index = getArrayElementIndex($self->{$componentKey}, $component);
+		errDie("Can't find component '$component' to drop")
+			unless (defined $index || $isSubComponent);
+		my $cc = $self->getComponentCfg($component);
+		my $origTheme = $cc->{'theme'};
+		errDie("Can't find component '$component\@$theme' to drop")
+			if $theme && $theme ne $origTheme;
+
+		### not finished, should check dependancies before deleting
+		### olicha: still not finished but subcomponent are automatically
+		### unloaded
+		splice(@{$self->{$componentKey}}, $index, 1) if defined $index;
+
+		if ($self->hasComponentCfg($component)) {
+			$self->storeThemeComponentMemory($origTheme, $component);
+			$cc->{'used'} = 0;
+			my $contains = $cc->{'contains'};
+			if (ref($contains) eq 'ARRAY') {
+				my @dropSubComponents =
+					map { "$component/$_" } @$contains;
+				$self->useNewComponents([], \@dropSubComponents, 1);
+			}
+		} else {
+			errDie("Internal error; component $component.");
+		}
+	}
+
+	### not very correct implementation temporarily
+	### olicha: still not correct but there is a support for sub components
+	foreach (@$loadComponents) {
+		my ($theme, $component) = parseComponentName($_);
+		if ($theme && $component eq "") {
+			my @components = grep {
+				my $cc = $self->{'cc'}->{$_}; !$cc || !$cc->{'locked'}
+			} @{getThemeComponents($theme)};
+			foreach (@components) { $_ .= "\@$theme"; }
+			errDie("All components in \@$theme are locked, unlock first")
+				unless @components;
+			$self->useNewComponents(\@components, []);
+			next;
+		}
+		errDie("Wrong component '$_' to load specified")
+			unless $component && $theme;
+
+		$self->useNewComponents([], [$component], 0)
+			if $self->hasComponent($component);
+		push @{$self->{$componentKey}}, $component
+			unless $isSubComponent;
+
+		my $themeCfg = new FVWM::ThemeCfg($theme);
+		my $cc = $themeCfg->getComponentCfg($component);
+		#ccds 1
+		$cc->{'used'} = 3;
+		$self->setComponentCfg($component, $cc);
+		$self->applyThemeComponentMemory($theme, $component);
+
+		if (ref($cc->{'auto-drops'}) eq 'ARRAY') {
+			my @compsToDrop = grep {
+				$self->hasComponent($_) &&
+					!($self->getComponentCfg($_)->{'locked'} || 0)
+			} @{$cc->{'auto-drops'}};
+			$self->useNewComponents([], \@compsToDrop, 0) if @compsToDrop;
+		}
+
+		my $imageDirs = $cc->{'local-imagepath'};
+		createCurrentImageDirLinks($theme, $imageDirs)
+			if ref($imageDirs) eq 'ARRAY';
+
+		my $contains = $cc->{'contains'};
+		if (ref($contains) eq 'ARRAY') {
+			my $load = [];
+			@$load = map { "$component/$_\@$theme" } @{$cc->{'contains'}};
+			$self->useNewComponents($load, [], 1);
+		}
+
+	}
+}
+
+sub setNewComponentValues ($$$$) {
+	my $self = shift;
+	my ($options, $variants, $setLocks) = @_;
+	return unless keys %$options || keys %$variants || keys %$setLocks;
+	$self->setModified();
+
+	my ($key, $value);
+	while (($key, $value) = each %$options) {
+		my ($component, $option) = split(':', $key);
+		errDie("Bad option format '$key'")
+			unless defined $component && defined $option;
+		my $cc = $self->getComponentCfg($component);
+		my $options = $cc->{'option'};
+		my $index = getHashIdArrayIndex($options, $option);
+		errDie("Unexisting option '$option' in component '$component'")
+			if $index <= 0 || $index > @$options;
+		my $optionEntry = $options->[$index - 1];
+		my $values = $optionEntry->{'value'};
+		my $index2 = getHashIdArrayIndex($values, $value);
+		$index2 = ($optionEntry->{'default'} || 1) if $index2 == 0;
+		errDie("Unexisting option value '$index2' in option '$component:$option'")
+			if $index2 <= 0 || $index2 > @$values;
+		#ccds: 1
+		$cc->{'used'} = 3;
+		$self->setComponentCfg($component, $cc);
+		$optionEntry->{'current'} = $index2;
+	}
+
+	my ($component, $variant);
+	while (($component, $variant) = each %$variants) {
+		my $cc = $self->getComponentCfg($component);
+		my $variants = $cc->{'variant'};
+		my $index = getHashIdArrayIndex($variants, $variant);
+		$index = $cc->{'default'} if $index == 0;
+		errDie("Unexisting variant '$variant' in component '$component'")
+			if $index <= 0 || $index > @$variants;
+		if ($variants->[$index-1]->{'hidden'}) {
+			$index = $cc->{'default'};
+			errWarn(
+				"Variant '$variant' in component '$component' is not supported " .
+				"by your system.\nUse the default variant, you may need " .
+				"to refresh with no cache.\n"
+			);
+		}
+		#ccds: 1
+		$cc->{'used'} = 3;
+		$self->setComponentCfg($component, $cc);
+		$cc->{'current'} = $index;
+	}
+
+	while (($component, $value) = each %$setLocks) {
+		errDie("The locked value should be 0 or 1, not '$value'")
+			if $value !~ /^[01]$/;
+		my $cc = $self->getComponentCfg($component);
+		$cc->{'locked'} = $value;
+	}
+}
+
+sub getAllThemeSubMenusRc ($) {
+	my $self = shift;
+	my $currentComponents = $self->{$componentKey};
+	my $allThemes = getAllThemes();
+	my $listRc = "";
+	my $menuRc = "";
+
+	my $theme;
+	foreach $theme (@$allThemes) {
+		my ($name, $components, $groups) =
+			getThemeNameAndComponentsAndGroups($theme);
+		my $used = 0;
+
+		$menuRc .= qq(DestroyMenu "MenuFvwmTheme-$theme"\n);
+		$menuRc .= qq(AddToMenu   "MenuFvwmTheme-$theme" "Load components" Title\n);
+		foreach (@$groups) {
+			my $name = escapeMenuName($_->{'name'});
+			my $groupComponents = $_->{$componentKey};
+			my $groupAction = !@$groupComponents? "Nop":
+				'FuncFvwmThemesConfigAndUpdate "' . join(' ',
+					map { "--load $_\@$theme" } @$groupComponents) . '"';
+			$menuRc .= qq(+ "[ $name ]%menu/item.xpm%"\t$groupAction\n);
+		}
+		$menuRc .= qq(+ "" Nop\n);
+		$menuRc .= join('', map {
+			my $used0 = isArrayElement($currentComponents, $_) &&
+				($self->getComponentCfg($_)->{$themeKey} || "") eq $theme;
+			$used ||= $used0;
+			my $label = "$_"; $label .= "\t(used)" if $used0;
+#			m:/:? "":  # ignore contained components for now
+			qq(+ "$label%menu/item.xpm%"\tFuncFvwmThemesLoad "$_\@$theme"\n)
+		} @$components);
+
+		my $readmeFile = getThemeDir($theme) . "/README";
+		if (-r $readmeFile) {
+			$menuRc .= qq(+ "" Nop\n);
+			$menuRc .= qq(+ "README%menu/information.xpm%"\tFuncFvwmViewFile "$readmeFile"\n);
+		}
+		my $label = "$name"; $label .= "\t(used)" if $used;
+		$listRc .= qq(+ "$label%menu/folder.xpm%"\tPopup "MenuFvwmTheme-$theme"\n);
+	}
+	return ($listRc, $menuRc);
+}
+
+sub getOwnThemeSubMenusRc ($) {
+	my $self = shift;
+	my $currentComponents = [sort keys %{$self->{cc}}];  # $self->{$componentKey};
+	my $name = $self->{'name'};
+	my $id = $self->{$idKey};
+	my $selfMenuName = "MenuFvwmTheme-$id";
+	my $listRc = qq(+ "$name%menu/folder.xpm%"\tPopup "$selfMenuName"\n);
+	my @menuRc = ("", "", "");  # 3 parts of the component menu
+	my $menusRc = "";
+	my $dropExtraArgs = "";
+
+	# check if the menustyle implies no mini icon:
+	my $noIconsInMenus = 0;
+	my $hints = $self->getComponentNamedValue("menustyle", 'hints');
+	if (defined $hints) {
+		foreach (@$hints) {
+			$noIconsInMenus = 1 if $_ eq "no_icons_in_menus";
+		}
+	}
+
+	$menuRc[0] .= qq(DestroyMenu "$selfMenuName"\n);
+	$menuRc[0] .= qq(AddToMenu   "$selfMenuName" "$name Theme" Title\n);
+	foreach (@$currentComponents) {
+		next if /^_/;
+		my $cc = $self->getComponentCfg($_);
+		next unless $cc->{'used'};
+		next if $cc->{'hidden'};
+		$dropExtraArgs .= " --drop $_" if /-extra$/;
+
+		my $name = escapeMenuName($cc->{'name'} || $_);
+		my $currMenu = "$selfMenuName/$_";
+		$menusRc .= qq(DestroyMenu "$currMenu"\n);
+		$menusRc .= qq(AddToMenu   "$currMenu" "$name" Title\n);
+		my $m = 2;
+		my $contains = $cc->{'contains'};
+
+		if (ref($contains) eq 'ARRAY') {
+			# a complex component, create a menu of subcomponents
+			my $subComponent;
+			foreach $subComponent (@$contains) {
+				my $subcc = $self->getComponentCfg("$_/$subComponent");
+				next if $subcc->{'hidden'};
+				my $name = $subcc->{'name'};
+				$name = escapeMenuName($name || $subComponent);
+				$menusRc .= qq(+ "$name"\tPopup "$currMenu/$subComponent"\n);
+			}
+			$m = $cc->{'priority'}? 0: 1;
+		} else {
+			my $options = $cc->{'option'};
+			if (ref($options) eq 'ARRAY') {
+				my $o;
+				my $inline = $cc->{'inline'};
+				my $subRc1 = "";
+				my $subRc2 = "";
+				for ($o = 0; $o < @$options; $o++) {
+					my $optionEntry = $options->[$o];
+					my $name = escapeMenuName($optionEntry->{'name'});
+					my $optionFile = $optionEntry->{'file'};
+					my $values = $optionEntry->{'value'};
+					errDie("option.value missing, incorrect cfg for some $_ option")
+						if ref($values) ne 'ARRAY';
+					$optionEntry->{'current'} ||= ($optionEntry->{'default'} || 1);
+					my $index = $optionEntry->{'current'} - 1;
+					if ($index < 0 || $index >= @$values) {
+						$index = 0;  # maybe die on this error?
+						$optionEntry->{'current'} = $index + 1;
+					}
+					if ($inline || $name eq "") {
+						$menusRc .= $name ne ""? qq(+ "$name" Title\n):
+							$menusRc =~ / Title\n$/? "": qq(+ "" Nop\n);
+					} else {
+						$subRc1 .= qq(+ "$name"\tPopup "$currMenu-$optionFile"\n);
+						$subRc2 .= qq(DestroyMenu "$currMenu-$optionFile"\n);
+						$subRc2 .= qq(AddToMenu   "$currMenu-$optionFile"\n);
+					}
+					my $i;
+					for ($i = 0; $i < @$values; $i++) {
+						my $isCurrent = $i eq $index;
+						my $name = escapeMenuName($values->[$i]->{'name'}, !$isCurrent);
+						my $star = $isCurrent? "": "&";
+						my $icon = $isCurrent? "choice-yes": "empty";
+						my $mark = ($isCurrent && $noIconsInMenus) ? "\t(+)" : "";
+						my $n = $i + 1;
+						my $menuItem = qq(+ "%menu/$icon.xpm%$star$name$mark"\tFuncFvwmThemesOption $_:$optionFile=$n\n);
+						($inline? $menusRc: $subRc2) .= $menuItem;
+					}
+					#$menusRc .= qq(+ "" Nop\n);
+				}
+				$menusRc .= "$subRc1$subRc2" . "AddToMenu   $currMenu\n"
+					unless $inline;
+				$m = 1;
+			}
+			my $variants = $cc->{'variant'};
+			if (ref($variants) eq 'ARRAY') {
+				$cc->{'current'} ||= $cc->{'default'};
+				my $index = $cc->{'current'} - 1;
+				if ($variants->[$index]->{'hidden'}) {
+					errWarn(
+						"Variant $variants->[$index]->{'name'} of component " .
+						"$name\@$cc->{'theme'}\nis not supported by your " .
+						"system, you may need to refresh with no cache.\n"
+					);
+					$cc->{'current'} = $cc->{'default'};
+					$index = $cc->{'current'} - 1;
+				}
+				if ($index < 0 || $index >= @$variants) {
+					$index = 0;  # maybe die on this error?
+					$cc->{'current'} = $index + 1;
+				}
+				my $readFile = $cc->{'read-file'};
+				$readFile =~ s:/[^/]+$:/$variants->[$index]->{'file'}:;
+				if ($readFile ne $cc->{'read-file'}) {
+					$cc->{'read-file'} = $readFile;
+					$self->setModified();
+				}
+				my $i;
+				for ($i = 0; $i < @$variants; $i++) {
+					next if $variants->[$i]->{'hidden'};
+					my $isCurrent = $i eq $index;
+					my $name = escapeMenuName($variants->[$i]->{'name'}, !$isCurrent);
+					my $icon = $isCurrent? "choice-yes": "empty";
+					my $star = $isCurrent? "": "&";
+					my $mark = ($isCurrent && $noIconsInMenus) ? "\t(+)" : "";
+					my $n = $i + 1;
+					$menusRc .= qq(+ "%menu/$icon.xpm%$star$name$mark"\tFuncFvwmThemesVariant $_=$n\n);
+				}
+				$m = 1;
+			}
+		}
+		$menusRc .= qq(+ "" Nop\n) unless $m == 2;
+		### Temporarily hardcoded
+		my $dropCommand = !/^(settings|colors$|menus|globallook)/ || /-extra$/?
+			qq(FuncFvwmThemesDrop "$_"):
+			'Exec xmessage "Dropping of this component is not supported"';
+		my $lockLabel = $cc->{'locked'}? "Unlock": "Lock";
+		my $nonLocked = 1 - $cc->{'locked'};
+		my $lockCommand = qq(FuncFvwmThemesSetLocked "$_=$nonLocked");
+		my $infoCommand = qq(FuncFvwmShowComponentInfo "$_");
+		$menusRc .= qq(+ "%menu/choice-no.xpm%&Drop this component"\t$dropCommand\n);
+		$menusRc .= qq(+ "%menu/lock.xpm%&$lockLabel this component"\t$lockCommand\n);
+		$menusRc .= qq(+ "%menu/information.xpm%&Info for $_\@$cc->{'theme'}"\t$infoCommand\n);
+
+		my $lockIcon = $cc->{'locked'}? "lock": "empty";
+		# use $name instead of $_?
+		$menuRc[$m] .= qq(+ "%menu/$lockIcon.xpm%$_"\tPopup "$selfMenuName/$_"\n) unless m:/:;
+	}
+	if ($dropExtraArgs) {
+		push @menuRc, qq(+ "%menu/choice-no.xpm%&Drop all extra"\tFuncFvwmThemesConfigAndUpdate "$dropExtraArgs"\n);
+	}
+	my $menuRc = join(qq(+ "" Nop\n), @menuRc) . "\n$menusRc";
+	$menuRc =~ s/(\+ "" Nop\n){2,}/$1/sg;
+	return ($listRc, $menuRc);
+}
+
+# sorts all current components to be read according to their dependancies
+sub getSortedComponentsToRead ($) {
+	my $self = shift;
+	my @currentComponents;
+
+	my $precedes = {};
+	my $requires = {};
+	my $provides = {};
+	my $complements = {};
+	my $component;
+
+	# prepare components to be sorted
+	foreach $component (sort keys %{$self->{'cc'}}) {
+		my $cc = $self->getComponentCfg($component);
+		next if $component =~ /^_/;
+		#olicha 1
+		next unless $cc->{'used'};
+		next if $cc->{'hidden'};
+		next unless $cc->{'read-file'};
+		if (exists $cc->{'complements'}) {
+			my $mainComponent = $cc->{'complements'} || '*none*';
+			$complements->{$mainComponent} ||= [];
+			push @{$complements->{$mainComponent}}, $component;
+			next;
+		}
+		push @currentComponents, $component;
+		$precedes->{$component} = {};
+	}
+
+	# process 'precedes' and 'follows' dependances; prepare to the next step
+	foreach $component (@currentComponents) {
+		my $cc = $self->getComponentCfg($component);
+		my $precedes0 = {};
+		if (ref($cc->{'precedes'}) eq 'ARRAY') {
+			foreach (@{$cc->{'precedes'}}) {
+				$precedes0->{$_} = 1;
+			}
+		}
+		if (ref($cc->{'follows'}) eq 'ARRAY') {
+			foreach (@{$cc->{'follows'}}) {
+				$precedes0->{$_} = -1;
+			}
+		}
+		if (keys %$precedes0) {
+			my ($c2, $cmp);
+			while (($c2, $cmp) = (each %$precedes0)) {
+				$precedes->{$component}->{$c2} = +$cmp;
+				$precedes->{$c2}->{$component} = -$cmp;
+			}
+		}
+
+		$requires->{$component} = $cc->{'requires'} || [];
+
+		if (ref($cc->{'provides'}) eq 'ARRAY') {
+			$provides->{$component} = {};
+			foreach (@{$cc->{'provides'}}) {
+				$provides->{$component}->{$_} = 1;
+			}
+		}
+		#$provides->{$component}->{$component} = 1;
+	}
+
+	# process 'provides' and 'requires' dependances
+	my $cnum = @currentComponents;
+	my ($i, $j);
+	for ($i = 0; $i < $cnum - 1; $i++) {
+		my $c1 = $currentComponents[$i];
+		for ($j = $i + 1; $j < $cnum; $j++) {
+			my $c2 = $currentComponents[$j];
+			my $cmp = undef;
+			foreach (@{$requires->{$c1}}) {
+				$cmp = -1 if $_ eq $c2
+					|| exists $provides->{$c2} && $provides->{$c2}->{$_};
+			}
+			foreach (@{$requires->{$c2}}) {
+				$cmp = +1 if $_ eq $c1
+					|| exists $provides->{$c1} && $provides->{$c1}->{$_};
+			}
+			next unless defined $cmp;
+			$precedes->{$c1}->{$c2} = +$cmp;
+			$precedes->{$c2}->{$c1} = -$cmp;
+		}
+	}
+
+	for ($i = 0; $i < $cnum - 1; $i++) {
+		my $d = 1;
+		CURRENT_COMPONENT: while (1) {
+			my $c1 = $currentComponents[$i];
+			for ($j = $i + $d; $j < $cnum; $j++) {
+				my $c2 = $currentComponents[$j];
+				my $cmp = $precedes->{$c1}->{$c2};
+				next unless defined $cmp;
+				if ($cmp < 0) {
+					splice(@currentComponents, $j, 1);
+					splice(@currentComponents, $i, 0, $c2);
+					$d++;
+					redo CURRENT_COMPONENT;
+				}
+			}
+			last;
+		}
+	}
+
+	# implant complementing components into the sorted array
+	foreach $component (keys %$complements) {
+		my $index = getArrayElementIndex(\@currentComponents, $component);
+		errDie("Complemented component '$component' for (@{$complements->{$component}}) does not exist")
+			unless defined $index;
+		splice @currentComponents, $index + 1, 0, @{$complements->{$component}};
+	}
+
+	return \@currentComponents;
+}
+
+# set the 'used' flag:
+#  0: component is dropped during this theme switching!
+#  1: the component is used but nothing have to be done about this component
+#     during theme switching (if isMinimalReloading !!!!)
+#  2: the component must be reloaded but not (re)started
+#  3: the component must be (re)started
+sub setUsedFlags($) {
+	my $self = shift;
+
+	my @currentComponents;
+	my $component;
+
+	my $isModified = 1;
+	my $step = 0;
+
+	while($isModified) {
+		$isModified = 0;
+		$step++;
+		foreach $component (keys %{$self->{'cc'}}) {
+			next if $component =~ /^_/;
+			my $cc = $self->getComponentCfg($component);
+			#next unless $cc->{'used'};
+			next if $cc->{'hidden'};
+
+			my @strongComp = ();
+			my @weakComp = ();
+			my @symStrongComp = ();
+			my @dependsComp = ();
+			my $comp;
+			push @symStrongComp, $cc->{'complements'}
+				if (exists $cc->{'complements'});
+			push @strongComp, @{$cc->{'stronglydepends'}} 
+				if defined $cc->{'stronglydepends'} &&
+					ref($cc->{'stronglydepends'}) eq 'ARRAY';
+			push @weakComp, @{$cc->{'weakdepends'}} 
+				if defined $cc->{'weakdepends'} &&
+					ref($cc->{'weakdepends'}) eq 'ARRAY';
+			push @dependsComp, @{$cc->{'depends'}}
+				if defined $cc->{'depends'} &&
+					ref($cc->{'depends'}) eq 'ARRAY';
+		
+			foreach $comp (@symStrongComp) {
+				next if !defined $self->{'cc'}->{$comp};
+				my $dd = $self->getComponentCfg($comp);
+				if ($dd->{'used'}) {
+					if ($cc->{'used'} >= 2 && $dd->{'used'} < $cc->{'used'}) {
+						$dd->{'used'} = $cc->{'used'};
+						$self->setComponentCfg($comp, $dd);
+						$isModified = 1;
+					}
+					if ($cc->{'used'} == 0 && $dd->{'used'} < 3) {
+						$dd->{'used'} = 3;
+						$self->setComponentCfg($comp, $dd);
+						$isModified = 1;
+					}
+				}
+				if ($cc->{'used'}) {
+					if ($dd->{'used'} >= 2 && $cc->{'used'} < $dd->{'used'}) {
+						$cc->{'used'} = $dd->{'used'};
+						$self->setComponentCfg($component, $cc);
+						$isModified = 1;
+					}
+					if ($dd->{'used'} == 0 && $cc->{'used'} < 3 && $cc->{'used'}) {
+						$cc->{'used'} = 3;
+						$self->setComponentCfg($component, $cc);
+						$isModified = 1;
+					}
+				}
+			}
+			next unless $cc->{'used'};
+			foreach $comp (@strongComp) {
+				next if !defined $self->{'cc'}->{$comp};
+				my $dd = $self->getComponentCfg($comp);
+				if ($dd->{'used'} >= 2 && $cc->{'used'} < $dd->{'used'}) {
+					$cc->{'used'} = $dd->{'used'};
+					$self->setComponentCfg($component, $cc);
+					$isModified = 1;
+				}
+				if ($dd->{'used'} == 0 && $cc->{'used'} < 3) {
+					$cc->{'used'} = 3;
+					$self->setComponentCfg($component, $cc);
+					$isModified = 1;
+				}
+			}
+			foreach $comp (@weakComp) {
+				next if !defined $self->{'cc'}->{$comp};
+				my $dd = $self->getComponentCfg($comp);
+				if (($dd->{'used'} >= 3||$dd->{'used'} == 0)&& $cc->{'used'} < 2) {
+					$cc->{'used'} = 2;
+					$self->setComponentCfg($component, $cc);
+					$isModified = 1;
+				}
+			}
+			foreach $comp (@dependsComp) {
+				next if !defined $self->{'cc'}->{$comp};
+				my $dd = $self->getComponentCfg($comp);
+				if (($dd->{'used'} >= 2||$dd->{'used'} == 0) && $cc->{'used'} < 2) {
+					$cc->{'used'} = 2;
+					$self->setComponentCfg($component, $cc);
+					$isModified = 1;
+				}
+			}
+		}
+		$isModified = 0 if ($step > 100);
+	}
+
+	if ($self->isMinimalReload()) {
+		return;
+	}
+
+	# every thing have to be at least reloaded
+	foreach $component (keys %{$self->{'cc'}}) {
+		my $cc = $self->getComponentCfg($component);
+		if ($cc->{'used'} == 1) {
+			$cc->{'used'} = 2;
+			$self->setComponentCfg($component, $cc);
+		}
+	}
+
+}
+								
+# returns component key value, which can be overridden by the current variant
+# or options key values. If it is array, all found values are joined together.
+sub getComponentNamedValue ($$$) {
+	my $self = shift;
+	my $component = shift;
+	my $name = shift;
+
+	my $cc = $self->getComponentCfg($component);
+	return undef unless $cc->{'used'};
+	my $value = $cc->{$name};
+
+	my $variants = $cc->{'variant'};
+	if (ref($variants) eq 'ARRAY') {
+		my $index = defined $cc->{'current'}?
+			$cc->{'current'}: $cc->{'default'};
+		$index = $index - 1;
+		$index = 0 if ($index < 0 || $index >= @$variants);
+		my $variant = $variants->[$index];
+		my $newValue = $variant->{$name};
+		if (defined $newValue) {
+			errDie("Mixed '$name' types (" . (ref($value) || "scalar") . " and "
+				. (ref($newValue) || "scalar") . ") for component $component")
+				if defined $value && ref($value) ne ref($newValue);
+			if (ref($newValue) eq 'ARRAY') {
+				$value ||= [];
+				push @$value, @$newValue;
+			} else {
+				$value = $newValue;
+			}
+		}
+	}
+	### should probably handle the named value of all current options here
+
+	return $value;
+}
+
+sub getAdditionalImagePath ($) {
+	my $self = shift;
+	my $currentComponents = [keys %{$self->{cc}}];
+	my @imagePathDirs = ([], []);  # one before and one after '+'
+
+	foreach (@$currentComponents) {
+		my $dirs = $self->getComponentNamedValue($_, 'external-imagepath');
+		next unless defined $dirs;
+		errDie("external-imagepath ($dirs) in component '$_' is not ARRAY")
+			unless ref($dirs) eq 'ARRAY';
+		foreach (@$dirs) {
+			my $i = /wm-icons(;.*)?$/? 0: 1;  # we are wm-icons compatible
+			next if isArrayElement($imagePathDirs[$i], $_);
+			push @{$imagePathDirs[$i]}, $_;
+		}
+	}
+	my $imagePath = "+";
+	$imagePath = join(':', @{$imagePathDirs[0]}, $imagePath);
+	$imagePath = join(':', $imagePath, @{$imagePathDirs[1]});
+	return $imagePath;
+}
+
+sub getAllHooksRc ($) {
+	my $self = shift;
+	my $currentComponents = [keys %{$self->{cc}}];
+	my $startItems = [];
+	my $stopItems = [];
+	my $loadItems = [];
+	my $colorsIsChanged = 0;
+	my $colorsModules = 0;
+
+	my $_c = $self->getComponentCfg("_core");
+	my $saveStop = ( $_c->{'stop'} ||= {} );
+	my $cs = {};
+
+	my $startHooksRc =
+		"DestroyFunc FuncFvwmStartAllHooks\n" .
+		"AddToFunc   FuncFvwmStartAllHooks\n";
+	my $stopHooksRc = "";
+	my $loadHooksRc =
+		"DestroyFunc FuncFvwmLoadAllHooks\n" .
+		"AddToFunc   FuncFvwmLoadAllHooks\n";
+	my $hardCodedStopHooks = "";
+	my $hardCodedStartHooks = "";
+	my $c;
+	foreach $c (@$currentComponents) {
+		my $cc = $self->getComponentCfg($c);
+		next if defined $cc->{'hidden'};
+
+		# get the saved "stop" functions
+		my @savedStopFunctions = ();
+		my @savedUnloadFunctions = ();
+		my @savedUnReloadFunctions = ();
+		if (defined $saveStop->{$c} && ref($saveStop->{$c}) eq 'HASH') {
+			if (defined $saveStop->{$c}->{'start-stop'} &&
+				ref($saveStop->{$c}->{'start-stop'}) eq 'ARRAY')
+			{
+				@savedStopFunctions = @{$saveStop->{$c}->{'start-stop'}};
+			}
+			if (defined $saveStop->{$c}->{'load-unload'} &&
+				ref($saveStop->{$c}->{'load-unload'}) eq 'ARRAY')
+			{
+				@savedUnloadFunctions = @{$saveStop->{$c}->{'load-unload'}};
+			}
+			if (defined $saveStop->{$c}->{'reload-unreload'} &&
+				ref($saveStop->{$c}->{'reload-unreload'}) eq 'ARRAY')
+			{
+				@savedUnReloadFunctions = @{$saveStop->{$c}->{'reload-unreload'}};
+			}
+			delete $saveStop->{$c};
+		}
+
+		# for "ColorsModules" be independent of the order
+		if ($c eq "colors" && $cc->{'used'} >= 2) {
+			$hardCodedStopHooks .= "FuncFvwmRestartFvwmTheme\n"
+				if $fvwmVersion =~ /^2\.4\..*/;
+			$colorsIsChanged = 1;
+			if ($colorsModules) {
+				$hardCodedStopHooks .= "FuncFvwmUnReloadColorsModules\n";
+				$hardCodedStartHooks .= "+ I FuncFvwmReloadColorsModules\n";
+			}
+		}
+		if ($c eq "modules" && $cc->{'used'} == 2) {
+			my $hints = $self->getComponentNamedValue($c,'hints');
+			if (defined $hints) {
+				foreach(@$hints) {
+					$colorsModules = 1 if $_ eq "reload-unreload-ColorsModules";
+				}
+			}
+			if ($colorsIsChanged && $colorsModules) {
+				$hardCodedStopHooks .= "FuncFvwmUnReloadColorsModules\n";
+				$hardCodedStartHooks .= "+ I FuncFvwmReloadColorsModules\n";
+			}
+		}
+
+		my $startStop = $self->getComponentNamedValue($c,'start-stop');
+		my $loadUnload = $self->getComponentNamedValue($c,'load-unload');
+		my $reloadUnreload = $self->getComponentNamedValue($c,'reload-unreload');
+
+		next unless defined $startStop || $loadUnload || $reloadUnreload ||
+			@savedStopFunctions || (@savedUnloadFunctions && $cc->{'used'} >= 3) ||
+				(@savedUnReloadFunctions &&  $cc->{'used'} < 3);
+
+		errDie("start-stop ($startStop) in component '$c' is not ARRAY")
+			unless !defined $startStop || ref($startStop) eq 'ARRAY';
+		errDie("start-stop ($loadUnload) in component '$c' is not ARRAY")
+			unless !defined $loadUnload || ref($loadUnload) eq 'ARRAY';
+		errDie("start-stop ($reloadUnreload) in component '$c' is not ARRAY")
+			unless !defined $reloadUnreload || ref($reloadUnreload) eq 'ARRAY';
+
+		# prepare to save the "stop" functions
+		if (defined $startStop) {
+			$cs->{$c}->{'start-stop'} = $startStop;
+		}
+		if (defined $loadUnload) {
+			$cs->{$c}->{'load-unload'} = $loadUnload;
+		}
+		if (defined $reloadUnreload) {
+			$cs->{$c}->{'reload-unreload'} = $reloadUnreload;
+		}
+
+		my $startFunctions = [];
+		my $loadFunctions = [];
+		my @stopFunctions = ();
+		my $loadFunctionsType = "Start";
+		my $startFunctionsType = "Start";
+		my $stopFunctionsType = "Stop";
+		if (defined $loadUnload) {
+			$loadFunctions = $loadUnload;
+			$loadFunctionsType = "Load";
+		}
+		elsif (defined $startStop) {
+			$loadFunctions = $startStop;
+		}
+		if ($cc->{'used'} < 3) {
+			if (defined $reloadUnreload) {
+				$startFunctions = $reloadUnreload;
+				$startFunctionsType = "Reload";
+			}
+			elsif (defined $startStop) {
+				$startFunctions = $startStop;
+			}
+			if (@savedUnReloadFunctions) {
+				@stopFunctions = @savedUnReloadFunctions;
+				$stopFunctionsType = "UnReload";
+			}
+			elsif (@savedStopFunctions) {
+				@stopFunctions = @savedStopFunctions;
+			}
+		}
+		else {
+			if (defined $loadUnload) {
+				$startFunctions = $loadUnload;
+				$startFunctionsType = "Load";
+			}
+			elsif (defined $startStop) {
+				$startFunctions = $startStop;
+			}
+			if (@savedUnloadFunctions) {
+				@stopFunctions = @savedUnloadFunctions;
+				$stopFunctionsType = "Unload";
+			}
+			elsif (@savedStopFunctions) {
+				@stopFunctions = @savedStopFunctions;
+			}
+		}
+		
+		foreach (@$startFunctions) {
+			next if isArrayElement($startItems, $_);
+			if ($cc->{'used'} >= 2) {
+				push @$startItems, $_;
+				$startHooksRc .= "+ I FuncFvwm$startFunctionsType$_\n";
+			}
+		}
+
+		foreach (@stopFunctions) {
+			next if isArrayElement($stopItems, $_);
+			if ($cc->{'used'} >= 2) {
+				push @$stopItems, $_;
+				$stopHooksRc .= "FuncFvwm$stopFunctionsType$_\n";
+			}
+		}
+
+		foreach (@$loadFunctions) {
+			next if isArrayElement($loadItems, $_);
+			push @$loadItems, $_;
+			$loadHooksRc .= "+ I FuncFvwm$loadFunctionsType$_\n";
+		}
+
+	}
+
+	# get the remaining stop functions ("dropped" component)
+	foreach $c (keys %$saveStop) {
+		my @stopFunctions = ();
+		my $stopFunctionsType = "Stop";
+		# from the strongest
+		if (ref($saveStop->{$c}) eq 'HASH') {
+			if (defined $saveStop->{$c}->{'load-unload'} &&
+				ref($saveStop->{$c}->{'load-unload'}) eq 'ARRAY')
+			{
+				@stopFunctions = @{$saveStop->{$c}->{'load-unload'}};
+				$stopFunctionsType = "Unload";
+			}
+			elsif (defined $saveStop->{$c}->{'start-stop'} &&
+				ref($saveStop->{$c}->{'start-stop'}) eq 'ARRAY')
+			{
+				@stopFunctions = @{$saveStop->{$c}->{'start-stop'}};
+			}
+			elsif (defined $saveStop->{$c}->{'reload-unreload'} &&
+				ref($saveStop->{$c}->{'reload-unreload'}) eq 'ARRAY')
+			{
+				# should not happen ?
+				@stopFunctions = @{$saveStop->{$c}->{'reload-unreload'}};
+				$stopFunctionsType = "Unload";
+			}
+			delete $saveStop->{$c};
+		}
+		
+		foreach (@stopFunctions) {
+			next if isArrayElement($stopItems, $_);
+			push @$stopItems, $_;
+			$stopHooksRc  .= "FuncFvwm$stopFunctionsType$_\n";
+		}
+	}
+
+	# save the stop functions
+	$_c->{'stop'} = $cs;
+
+	return
+		("$loadHooksRc\n",
+		"$stopHooksRc" . "$hardCodedStopHooks\n" .
+		"$startHooksRc" . "$hardCodedStartHooks\n");
+}
+
+sub getReadsRc($) {
+	my $self = shift;
+	my $rc = "### We will decide later whether to use full paths here.\n";
+	my $switchRc = "";
+
+	foreach (@{$self->getSortedComponentsToRead()}) {
+		my $cc = $self->getComponentCfg($_);
+		my $readFile = $cc->{'read-file'};
+		my $optionReadAfterward = $cc->{'option-read-afterward'};
+		my $options = $cc->{'option'};
+		my $optionExports = [];
+		my $o;
+		my ($readRc1, $readRc2) = ("", "");
+		my ($switchReadRc2, $switchReadRc1) = ("", "");
+		for ($o = 0; ref($options) eq 'ARRAY' && $o < @$options; $o++) {
+			my $optionEntry = $options->[$o];
+			my $optionFile = $optionEntry->{'file'};
+
+			$optionFile = (
+				(
+					$readFile =~ /^(.*\/)$mainDirFile$/
+						|| ref($cc->{'variant'}) eq 'ARRAY'
+						&& $readFile =~ /^(.*\/)[^\/]+$/
+				)? $1: "$readFile."
+			) . $optionFile;
+
+			my $current = $optionEntry->{'current'};
+			my $index = $current - 1;
+			my $valueFile0 = $optionEntry->{'value'}->[$index]->{'file'};
+			my $valueFile = $optionFile . (-d $optionFile? "/": ".")
+				. $valueFile0;
+			$optionFile =~ s/^$ROOT_PREFIX//;
+			$valueFile =~ s/^$ROOT_PREFIX//;
+
+			push @$optionExports, {
+				'f' => $valueFile, 'c' => $current, 'v' => $valueFile0
+			};
+			my $command = $optionEntry->{'read-command'};
+			next if defined $command && $command eq "";
+
+			$command ||= $defaultReadCommand;
+			$command =~ s/%f/$valueFile/sg;
+			$command =~ s/%F/$valueFile0/sg;  # to be obsolete?
+			$command =~ s/%v/$valueFile0/sg;
+			$command =~ s/%d/$optionFile/sg;
+
+			my $readAfterward = $optionEntry->{'read-afterward'};
+			$readAfterward = $optionReadAfterward unless defined $readAfterward;
+			($readAfterward? $readRc2: $readRc1) .= "$command\n";
+			
+			my $reloadCommand = $command;
+			if (defined $optionEntry->{'reload-read-command'} && $cc->{'used'} < 3) {
+				$reloadCommand = $optionEntry->{'reload-read-command'};
+				$reloadCommand =~ s/%f/$valueFile/sg;
+				$reloadCommand =~ s/%F/$valueFile0/sg;  # to be obsolete?
+				$reloadCommand =~ s/%v/$valueFile0/sg;
+				$reloadCommand =~ s/%d/$optionFile/sg;
+				next if $reloadCommand eq "*none*";
+			}
+			($readAfterward? $switchReadRc2: $switchReadRc1) .= "$reloadCommand\n";
+
+#			if (($optionEntry->{'read-file'} || "") ne $valueFile) {
+#				$optionEntry->{'read-file'} = $valueFile;
+#				$self->setModified();
+#			}
+		}
+		my $command = $cc->{'read-command'} || $defaultReadCommand;
+		$readFile =~ s/^$ROOT_PREFIX//;
+		$command =~ s/%f/$readFile/sg;
+		$command =~ s/%d/getThemeDir($cc->{$themeKey})/seg;
+		$command =~ s/%o([\d]+)(\w)/$optionExports->[$1-1]->{$2} || ""/seg;
+		$rc .= "$readRc1$command\n$readRc2";
+
+		my $reloadCommand = $command;
+		if (defined $cc->{'reload-read-command'} && $cc->{'used'} < 3) {
+			$reloadCommand = $cc->{'reload-read-command'};
+			next if $reloadCommand eq "*none*";
+			$reloadCommand =~ s/%f/$readFile/sg;
+			$reloadCommand =~ s/%d/getThemeDir($cc->{$themeKey})/seg;
+			$reloadCommand =~ s/%o([\d]+)(\w)/$optionExports->[$1-1]->{$2}||""/seg;
+		}
+		$switchRc .= "$switchReadRc1$reloadCommand\n$switchReadRc2"
+			if $cc->{'used'} >= 2;
+	}
+	return ($rc,$switchRc);
+}
+
+sub getMenusAndHooksAndReadsRc ($) {
+	my $self = shift;
+	my $currentComponents = [keys %{$self->{cc}}];  # $self->{$componentKey};
+	my $rc = "";
+	my $switchRc = "";
+
+	my ($ownThemeListRc, $ownThemeMenuRc) = $self->getOwnThemeSubMenusRc();
+	my ($allThemeListRc, $allThemeMenuRc) = $self->getAllThemeSubMenusRc();
+
+	# set the "reload" rules
+	$self->setUsedFlags();
+	# add current theme hooks
+	($rc,$switchRc) = $self->getAllHooksRc();
+
+	# include components themselves (Read)
+	my ($tmpRc,$tmpSwitchRc) = $self->getReadsRc();
+	$rc .= $tmpRc;
+	$switchRc .= $tmpSwitchRc;
+
+	# add main menu entries
+	my $menu = "";
+	my $minimalSwitch = "";
+	if ($self->isMinimalReload()) {
+		$minimalSwitch =
+			qq(+ "&Use full reloading%menu/restart.xpm%" FuncFvwmThemesSetMinimalReload 0\n);
+	} else {
+		$minimalSwitch =
+			qq(+ "&Use partial reloading%menu/restart.xpm%" FuncFvwmThemesSetMinimalReload 1\n);
+	}
+	$menu .= qq(\n\n);
+	$menu .= qq(DestroyMenu "MenuFvwmThemes"\n);
+	$menu .= qq(AddToMenu   "MenuFvwmThemes" "Theme Management" Title\n);
+	$menu .= $ownThemeListRc;
+	$menu .= qq(+ "" Nop\n);
+	$menu .= $allThemeListRc;
+	$menu .= qq(+ "" Nop\n);
+	$menu .= qq(+ "&Refresh and Reload%menu/restart.xpm%" Popup MenuFvwmThemesRefreshReload\n);
+	$menu .= qq(DestroyMenu "MenuFvwmThemesRefreshReload"\n);
+	$menu .= qq(AddToMenu   "MenuFvwmThemesRefreshReload" "Refresh and Reload" Title\n);
+	$menu .= qq(+ "&Refresh the current theme%menu/restart.xpm%" FuncFvwmThemesFresh\n);
+	$menu .= qq(+ "Refresh with no &cache%menu/restart.xpm%" FuncFvwmThemesFreshUncached\n);
+	$menu .= $minimalSwitch;
+	$menu .= qq(+ "" Nop\n);
+	$menu .= qq(+ "Reset all to the &default%menu/restart.xpm%" FvwmScript FvwmScript-Confirm --line1 "Themes Management" --line2 "Are you sure you want to reset all changes to the default?" --line3 "__________" --ok Yes --cancel No --command FuncFvwmThemesReset\n);
+	$menu .= "\n";
+
+	# add own theme menus
+	$menu .= "$ownThemeMenuRc\n";
+
+	# add all theme menus
+	$menu .= "$allThemeMenuRc\n";
+
+	$rc .= $menu;
+	$switchRc .= $menu;
+	return ($rc,$switchRc);
+}
+
+sub generateThemesRc ($) {
+	my $self = shift;
+
+	my $verStr = sprintf("%-7s", $fvwmVersion);
+	my $curDateStr = `date +%d-%b-%Y`; chomp($curDateStr);
+	my $userIdent = ($ENV{'USER'} || 'unknown') . '@' .
+		($ENV{'HOST'} || $ENV{'HOSTNAME'} || 'somewhere');
+
+	my $header = q{
+# Auto-generated by $scriptName for $userIdent.
+#
+#         .================================================.
+#         |                ____ _  _ _    _     | The best |
+#         |  Designed for (  __X \/ X \/\/ )\/\ `----------|
+#         |                ) _) \  / \    /    \           |
+#         |-------------. (__) * \/ * \/\(_/\/\_) - $verStr|
+#         | $curDateStr |                                  |
+#         `================================================'
+#  _______________________________________________________________
+# (   _________________________   ________________________________)
+#  ) (__  _  _  _    _  .      ) (  __ __  ____       .  ____* ___
+# (   __)( \/ )( \/\/ )/\/\ * (   )(  )  )(  __)* /\/\  (  __)/ __)
+#  ) ( .  \  /* \    //    \ . ) (  ) _ ( *) _). /    \* ) _).\__ \
+# (___)  * \/  . \/\/(_/\/\_) (___)(__(__)(____)(_/\/\_)(____)(___/
+};
+
+	$header =~ s/\$(\w+)/eval "\$$1"/eg;
+
+	my $contents = "# fvwm/$rcFile $version $buildId$header";
+	$contents .= q{
+DestroyFunc FuncFvwmResetInitFunctions
+AddToFunc   FuncFvwmResetInitFunctions
++ I DestroyFunc StartFunction
++ I DestroyFunc InitFunction
++ I DestroyFunc RestartFunction
++ I DestroyFunc SessionInitFunction
++ I DestroyFunc SessionRestartFunction
++ I AddToFunc StartFunction
++ I + I FuncFvwmLoadAllHooks
+
+DestroyFunc FuncFvwmRestartFvwmTheme
+AddToFunc   FuncFvwmRestartFvwmTheme
++ I KillModule FvwmTheme
++ I DestroyModuleConfig FvwmTheme: *
++ I ModuleSynchronous FvwmTheme
+
+DestroyFunc FuncFvwmShowVersionInfo
+AddToFunc   FuncFvwmShowVersionInfo
++ I FuncFvwmShowMessage "FVWM Version" "$[version.line]^n@$versionInfo@"
+
+DestroyFunc FuncFvwmShowComponentInfo
+AddToFunc   FuncFvwmShowComponentInfo
++ I PipeRead `@$scriptFile@ --pipe --show-info --component $0`
+
+FuncFvwmResetInitFunctions
+
+DestroyFunc FuncFvwmThemesConfigAndUpdate
+AddToFunc   FuncFvwmThemesConfigAndUpdate
++ I FvwmScript FvwmScript-NoteMessage "Theme switching"
++ I Wait FvwmScript-NoteMessage
++ I PipeRead `@$scriptFile@ $0 --pipe`
+#+ I FuncFvwmResetInitFunctions
++ I Read @$rcFile3@
++ I FuncFvwmStartAllHooks
++ I All (FvwmScript-NoteMessage) Delete
+
+DestroyFunc FuncFvwmThemesCenterUpdate
+AddToFunc   FuncFvwmThemesCenterUpdate
++ I FvwmScript FvwmScript-NoteMessage "Theme switching"
++ I Wait FvwmScript-NoteMessage
+#+ I FuncFvwmResetInitFunctions
++ I Read @$rcFile3@
++ I FuncFvwmStartAllHooks
++ I All (FvwmScript-NoteMessage) Delete
+
+DestroyFunc FuncFvwmThemesReset
+AddToFunc   FuncFvwmThemesReset
++ I FuncFvwmThemesConfigAndUpdate --reset
+
+DestroyFunc FuncFvwmThemesFresh
+AddToFunc   FuncFvwmThemesFresh
++ I FuncFvwmThemesConfigAndUpdate --fresh
+
+DestroyFunc FuncFvwmThemesFreshUncached
+AddToFunc   FuncFvwmThemesFreshUncached
++ I FuncFvwmThemesConfigAndUpdate "--fresh --no-cfg-cache"
+
+DestroyFunc FuncFvwmThemesSetMinimalReload
+AddToFunc   FuncFvwmThemesSetMinimalReload
++ I FuncFvwmThemesConfigAndUpdate "--set-minimal-reload=$0"
+
+DestroyFunc FuncFvwmThemesLoad
+AddToFunc   FuncFvwmThemesLoad
++ I FuncFvwmThemesConfigAndUpdate "--load=$0"
+
+DestroyFunc FuncFvwmThemesDrop
+AddToFunc   FuncFvwmThemesDrop
++ I FuncFvwmThemesConfigAndUpdate "--drop=$0"
+
+DestroyFunc FuncFvwmThemesOption
+AddToFunc   FuncFvwmThemesOption
++ I FuncFvwmThemesConfigAndUpdate "--option=$0"
+
+DestroyFunc FuncFvwmThemesVariant
+AddToFunc   FuncFvwmThemesVariant
++ I FuncFvwmThemesConfigAndUpdate "--variant=$0"
+
+DestroyFunc FuncFvwmThemesSetLocked
+AddToFunc   FuncFvwmThemesSetLocked
++ I FuncFvwmThemesConfigAndUpdate "--set-locked=$0"
+
+# ---------------------------------------------------
+# Some global functions, extending FVWM functionality
+
+DestroyFunc FuncFvwmStopModule
+AddToFunc   FuncFvwmStopModule
++ I KillModule $0
+
+DestroyFunc FuncFvwmStopModuleByAlias
+AddToFunc   FuncFvwmStopModuleByAlias
++ I KillModule $0 $1
+
+DestroyFunc FuncFvwmRestartModule
+AddToFunc   FuncFvwmRestartModule
++ I FuncFvwmStopModule $0
++ I Module $0
+
+DestroyFunc FuncFvwmRestartModuleByAlias
+AddToFunc   FuncFvwmRestartModuleByAlias
++ I FuncFvwmStopModuleByAlias $0 $1
++ I Module $0 $1 $2
+
+DestroyFunc FuncFvwmRemoveAllButtons
+AddToFunc   FuncFvwmRemoveAllButtons
++ I Style "*" NoButton 1, NoButton 3, NoButton 5, NoButton 7, NoButton 9
++ I Style "*" NoButton 2, NoButton 4, NoButton 6, NoButton 8, NoButton 0
++ I TitleStyle Height 5
+
+Read @$rcFile2@
+};
+
+	$contents =~ s/@\$(\w+)@/eval "\$$1"/eg;
+	# use Restart to switch themes if asked
+	my $f = "FuncFvwmThemesConfigAndUpdate";
+	$contents =~ s{(DestroyFunc\s+$f\nAddToFunc\s+$f\n)((?:[^\n]+\n)*(\+ I PipeRead[^\n]+\n)(?:[^\n]+\n)*)}
+		{$1$2\n$1$3\+ I Restart\n}s if $useRestart;
+	saveFile("$workDir/$rcFile", \$contents);
+
+	my $imagePath = "$workDir/$currentThemeSubDir/images:$workDir/images";
+	$imagePath .= ":$siteDir/images" if $workDir ne $siteDir;
+	$imagePath .= ":$fvwmDefaultImagePath" if $fvwmDefaultImagePath;
+	$imagePath =~ s=(^|:)\Q$userDir\E(/|:|$)=$1\$FVWM_USERDIR$2=g;
+	$imagePath =~ s=(^|:)\Q$userHome\E(/|:|$)=$1\$HOME$2=g;
+	$imagePath =~ s=(^|:)\Q$siteDir\E(/|:|$)=$1\$FT_DATADIR$2=g;
+	my $addImagePath = $self->getAdditionalImagePath();
+	$imagePath .= "\nImagePath $addImagePath" if $addImagePath =~ /\+/;
+	my ($menusAndHooksRc, $switchMenusAndHooksRc) = 
+			$self->getMenusAndHooksAndReadsRc();
+	my $funcFvwmRestartFvwmTheme = $fvwmVersion =~ /^2\.4\..*/?
+		"\nFuncFvwmRestartFvwmTheme\n": "";
+
+	$contents = "# fvwm/$rcFile2 $version$header";
+	$contents .= qq{
+SetEnv FT_DATADIR '$siteDir'
+ImagePath $imagePath
+$funcFvwmRestartFvwmTheme
+$menusAndHooksRc
+Mouse 2 A CM Menu MenuFvwmThemes
+};
+	saveFile("$workDir/$rcFile2", \$contents);
+
+	$contents = "# fvwm/$rcFile3 $version$header";
+	$contents .= qq{
+SetEnv FT_DATADIR '$siteDir'
+ImagePath $imagePath
+
+$switchMenusAndHooksRc
+Mouse 2 A CM Menu MenuFvwmThemes
+};
+
+	if ($printRc3) {
+		print $contents;
+	}
+	else {
+		saveFile("$workDir/$rcFile3", \$contents);
+	}
+
+}
+
+# ----------------------------------------------------------------------------
+
+package main;
+
+my $site = 0;
+my $showThemes = 0;
+my $showComponents = 0;
+my $showDir = 0;
+my $themes = [];
+my $showCfg = 0;
+my $showValues = [];
+my $showInfo = 0;
+my $component = undef;
+my $expandFile = undef;
+my $fresh = 0;
+my $reset = 0;
+my $loadComponents = [];
+my $dropComponents = [];
+my $options = {};
+my $variants = {};
+my $setLockeds = {};
+my $comMode = 0;
+my $comName = "config";
+my @comPid = qw(0 0 0 0);
+my $install = 0;
+my $createPack = undef;
+my $packPrefix = "ft";
+my $packExtraVersion = "0";
+my $tmpDir = "/tmp";
+my $forceInstall = 0;
+my $fvwmscript = 0;
+my $onlySite = 0;
+my $onlyUser = 0;
+my $configCenter = 0;
+my $noCfgCache = 0;
+
+GetOptions(
+	"help|h"      => \&showHelp,
+	"version"     => \&showVersion,
+	"info"        => \&showInfo,
+	"i"           => sub { showInfo() unless @ARGV; $install = 1; },
+	"site|s"      => \$site,
+	"theme=s@"    => $themes,
+	"show-themes!"     => \$showThemes,
+	"show-components!" => \$showComponents,
+	"show-dir!"        => \$showDir,
+	"component=s"      => \$component,
+	"show-info"        => \$showInfo,
+	"show-cfg"         => \$showCfg,
+	"show-value=s@"    => $showValues,
+	"expand-rc:s" => \$expandFile,
+	"fresh|f"     => \$fresh,
+	"reset|r"     => \$reset,
+	"load|l=s@"   => $loadComponents,
+	"drop|d=s@"   => $dropComponents,
+	"option=s%"   => $options,
+	"variant=s%"  => $variants,
+	"set-locked=s%" => $setLockeds,
+	"pipe"        => \$pipe,
+	"print-rc3"   => \$printRc3,
+	"install"       => \$install,
+	"force-install" => \$forceInstall,
+	"create-pack=s" => \$createPack,
+	"pack-extra-version=s" => \$packExtraVersion,
+	"pack-prefix=s" => \$packPrefix,
+	"tmp-dir=s"     => \$tmpDir,
+	"com-mode"    => \$comMode,
+	"com-name=s"  => \$comName,
+	"fvwmscript"  => \$fvwmscript,
+	"only-site"   => \$onlySite,
+	"only-user"   => \$onlyUser,
+	"config-center" => \$configCenter,
+	"set-minimal-reload=i" => \$setMinimalReload,
+	"no-cfg-cache" => \$noCfgCache,
+) || wrongUsage();
+
+shift @searchPath if $site;
+$workDir = $searchPath[0];
+$siteDir = $searchPath[-1];
+
+if ($install) {
+	my $themesDir = "$workDir";
+	my $version = $version;
+	$version =~ s/\.\d+$/.x/;
+	my $dir = `pwd`;
+	chomp($dir);
+	errDie("Cannot chdir to $themesDir") unless chdir "$themesDir";
+	errDie("No $workDir/$themesSubDir dir found")
+		unless -d "$workDir/$themesSubDir";
+	my $file;
+	foreach $file (@ARGV) {
+		$file = "$dir/$file" unless $file =~ m:^/:;
+		errDie("No such file $file") unless -f $file;
+		my ($dir,$outDir,$ext) = $file =~ m:^(.*/|)([^/]+)\.tar\.(gz|bz2)$:;
+		errDie("File '$file' is not a .tar.gz or .tar.bz2")
+			unless defined $dir || defined $outDir || defined $ext;
+		my ($ver, $extraVer) = $outDir =~ /^[\w-]*[\w\d]*[-]+([\.\dx]+)([_\d\.]+|)$/;
+		errDie("File '$file' does not follow fvwm-themes naming convention")
+			unless defined $ver && defined $extraVer;
+		$ver =~ s/\.(?:[\d]+|x)$/.x/;
+		if ($ver ne $version) {
+			print "WARNING: fvwm-themes version and tarball version are not compatible\n";
+			if (!$forceInstall) {
+				print "Use the --force-install option if you really want to " .
+					"install this tarball.\n";
+				exit(0);
+			}
+		}
+		errDie("Theme name '$outDir' contains unacceptable symbols")
+			unless $outDir =~ /^[.\w\d-]+$/;
+		my $zcatProg = $ext eq 'gz'? "gzip -cd": "bzip2 -cd";
+		open(TAR, "$zcatProg $file| tar xvf - $outDir|")
+			|| sysDie("Can't open untar for $file");
+		my $output = join('', <TAR>);
+		close(TAR) || errDie("\nErrors while installing $file");
+		opendir(DIR, $outDir);
+		print "\n";
+		my $theme;
+		foreach $theme (readdir(DIR)) {
+			next if $theme =~ /^\./;
+			errDie("Theme name '$theme' contains unacceptable symbols")
+				unless $theme =~ /^[\w\d-]+$/;
+			my $answer = "y";
+			if (-d "$workDir/$themesSubDir/$theme") {
+				my $prompt = 2;
+				$prompt = 0 if $forceInstall;
+				if ($prompt) {
+					print "Warning: A theme named $theme is already installed, ".
+						"Replace it (y/n)? ";
+				}
+				while ($prompt > 0) {
+					$answer = readline(*STDIN);
+					chomp($answer);
+					last if $answer eq "y" || $answer eq "n";
+					print "Please answer y or n, or Ctrl-C to cancel: [n] "
+						if --$prompt > 0;
+				}
+			}
+			if ($answer eq "y") {
+				if (-d "$workDir/$themesSubDir/$theme") {
+					system ("rm -rf $workDir/$themesSubDir/$theme");
+				}
+				rename "$outDir/$theme", "$workDir/$themesSubDir/$theme";
+				print "Theme $theme is successfully installed in $themesDir\n\n";
+			}
+			else {
+				print "Theme $theme is not installed\n\n";
+				system ("rm -rf $outDir/$theme");
+			}
+		}
+		close(DIR);
+		rmdir "$outDir";
+		print "Installation of $outDir is completed\n";
+	}
+	print "Now \"Refresh with no cache\" and have fun...\n\n";
+	exit(0);
+}
+
+if (defined $createPack) {
+	errDie("Pack name '$createPack' contains unacceptable symbols")
+		unless $createPack =~ /^[\w\d-]+$/;
+	errDie("No theme names to pack listed") unless @ARGV;
+	my $version = $version;
+	$version =~ s/\.\d+$/.x/;
+	my $themesDir = "$workDir/$themesSubDir";
+	my $tarName = "$createPack-$version";
+	$tarName = $tarName . "_$packExtraVersion"
+		if ("$packExtraVersion" ne "0" && $packExtraVersion !~ /^[.\d]$/);
+	$tarName = $packPrefix . "-" . $tarName
+		if ("$packPrefix" ne "" && $packPrefix !~ /^[\w\d]$/);
+	my $tarDir = "$tmpDir/$tarName";
+	errDie("$tmpDir must exist for creating themes pack " .
+		"(see --tmp-dir option)") unless -d $tmpDir;
+	if (-d "$tarDir") {
+		system("rm -rf '$tarDir'");
+	}
+	makePath ("$tarDir") ||
+		errDie("Cannot create $tarDir (see the --tmp-dir option)");
+	errDie("Cannot chdir to $themesDir") unless chdir "$themesDir";
+	my $theme;
+	foreach $theme (@ARGV) {
+		errDie("Theme name '$theme' contains unacceptable symbols")
+			unless $theme =~ /^[\w\d-]+$/;
+		errDie("No such theme $theme in $themesDir") unless -d $theme;
+		system("cp -ard $theme $tarDir/");
+	}
+	chdir("$tmpDir") || errDie("Cannot chdir to $tmpDir");
+	system("tar cf - $tarName | gzip -9 >$tarName.tar.gz");
+	system("rm -rf $tarDir");
+	print "Pack $tarName.tar.gz created in $tmpDir\n";
+	exit(0);
+}
+
+errDie("Unexpected parameters @ARGV") if @ARGV;
+
+if (defined $expandFile) {
+	$expandFile ||= $rcFile;
+	unshift @searchPath, ".";
+	print getExpandedRc($expandFile);
+	exit(0);
+}
+
+if ($reset || $noCfgCache) {
+	unlink "$userDir/$cfgCacheFileName"
+		if -f "$userDir/$cfgCacheFileName";
+	unlink "$userDir/$currentThemeSubDir/$cfgCacheFileName"
+		if -f "$userDir/$currentThemeSubDir/$cfgCacheFileName";
+}
+
+showThemeComponents($themes, $showComponents, $component, $fvwmscript,
+	$onlySite, $onlyUser) if $showThemes || $showComponents;
+showThemeDirs($themes) if $showDir;
+showThemeComponentInfo($component) if $component && $showInfo;
+showThemeComponentCfg($component) if $component && $showCfg;
+showThemeComponentValues($component, $showValues) if $component && @$showValues;
+
+wrongUsage() unless
+	$fresh || $reset ||
+	@$loadComponents || @$dropComponents ||
+	keys %$options || keys %$variants ||
+	keys %$setLockeds || $comMode || $configCenter ||
+	$setMinimalReload ne "";
+
+my $cfg = FVWM::ThemeCfg->new('current', $reset? 'default': 'current', $fresh);
+if ($comMode) {
+	$comPid[0] = $comName;
+	$comPid[0] =~ s/config-//;
+	$comPid[0] = 0 if ($comPid[0] !~ /^\d+$/);
+	#$pipe = 1;
+	$cfg->comLoop($comName);
+	# we never return here
+}
+if ($configCenter) {
+	$cfg->showInfoForConfigCenter();
+	# we never return here
+}
+#ccds 1
+$cfg->setMinimalReload($setMinimalReload) if $setMinimalReload ne "";
+$cfg->useNewComponents($loadComponents, $dropComponents);
+$cfg->setNewComponentValues($options, $variants, $setLockeds);
+$cfg->generateThemesRc();
+$cfg->save() if $cfg->isModified();
+
+exit(0);
+
+#-----------------------------------------------------------------------------
+#
+# build info for the config center
+#
+#-----------------------------------------------------------------------------
+
+sub showInfoForConfigCenter {
+	my $self = shift;
+	my $return = "";
+	my $user = "";
+	my $site = "";
+	my $cc = $self->{'cc'};
+
+	my @components = ("globalfeel");
+	my $allThemes = getAllThemes();
+	my $userThemes = getAllThemes(0, 1);
+
+	# get themes-rc-3 without the menus
+	my $dd = $self->getComponentCfg("globalfeel");
+	$dd->{'used'} = 3;
+	$self->setComponentCfg("globalfeel", $dd);
+	$self->setUsedFlags();
+	my ($dummy,$switchRc) = $self->getAllHooksRc();
+	my $tmpSwitchRc;
+	($dummy,$tmpSwitchRc) = $self->getReadsRc();
+	$switchRc .= $tmpSwitchRc;
+	$switchRc =~ s/\n.+globalfeel\"\n/\n/;
+	print $switchRc;
+	$return .= "END\n";
+
+	foreach (@$userThemes) {
+		$return .= "$_\n";
+	}
+	my $c;
+	foreach $c (@components) {
+		$return .= "configuration of $c for the Config Center\n";
+		my $theme = $cc->{$c}->{'theme'} || "";
+		$return .= "$theme\n";
+		foreach $theme (@$allThemes) {
+			my ($comps, $groups) = getThemeComponentsAndGroups($theme);
+			next unless isArrayElement($comps, $c);
+			$return .= "$theme\n";
+			my $themeCfg = new FVWM::ThemeCfg($theme);
+			my $dd = $themeCfg->getComponentCfg($c);
+			my $file = $dd->{'read-file'} || "";
+			$return .= "$file\n";
+			my $options = $cc->{$c}->{'option'};
+			if (ref($options) eq 'ARRAY') {
+				$return .= "OPTIONS\n";
+				my $opt;
+				foreach $opt (@$options) {
+					$return .= "$opt->{'file'}:$opt->{'current'}\n";
+				}
+				$return .= "END\n";
+			}
+		}
+	}
+
+	print $return;
+	exit(0);
+}
+
+#-----------------------------------------------------------------------------
+#
+# communication loop
+#
+#-----------------------------------------------------------------------------
+# All that follows need a clean up.
+
+sub comLoop {
+	my $self = shift;
+	my $outFifo = ".tmp-com-out-" . $comName;
+	my $inFifo = ".tmp-com-in-" . $comName;
+	my $command = "";
+	my $return = "";
+
+	my $maxLength = 21;
+	my $maxLengthOpt = 29;
+	my %componentToLoad = ();
+	my %optionToSet = ();
+	my %variantToSet = ();
+	my %componentToLock = ();
+	my %componentToDrop = ();
+
+	my $allThemes = getAllThemes();
+	my $tmp = $self->{$componentKey};
+	my @currentComponents = sort @$tmp;
+	my $CC = $self->{cc};
+
+	my $settingsConfig = $self->getAllSubComponents("default", "settings");
+
+	my ($currentSession, $sessionList, $uptime) = sessionInfo();
+
+	chdir($userDir) || die "No FvwmConfigHome $userDir";
+	unlink($outFifo) if -p "$outFifo";
+	unlink($inFifo) if -p "$inFifo";
+
+	while(1) {
+
+		# read the command.
+		myMakeFifo($inFifo) if ! -p "$inFifo";
+		eval {
+			local $SIG{ALRM} = \&checkScript;
+			alarm(10);
+			# block unless FvwmScript write on $inFifo
+			#open(IN,"<$inFifo") || die "cannot open $inFifo";
+			sysopen(IN,"$inFifo", 0) || die "cannot open $inFifo";
+			alarm(0);
+			($command)=(<IN>);
+			close(IN);
+		};
+		if ($@ =~ /^cannot/) {
+			print STDERR "$comName: cannot read in fifo $inFifo\n";
+			unlink("$inFifo");
+			exit(1);
+		}
+		if ($@ =~ /^NoScript/) {
+			print STDERR "$comName: No more FvwmScript: exit!\n";
+			unlink("$inFifo") if -p "$inFifo";
+			my $i;
+			for($i = 1; $i < 4; $i++) {
+				kill(9, $comPid[$i]) if $comPid[$i];
+			}
+			exit(0);
+		}
+		if ($@ =~ /^Script/) {
+			next;
+		}
+
+		unlink($inFifo);
+
+		# build the answer
+		chomp($command);
+		my @tt = split(/\|/,$command);
+
+		# flush the message that does not need an answer
+		my $s;
+		for ($s = 0; $s < @tt; $s++) {
+			if ($tt[$s] =~ /^remove-to-pid-list\s+(\d+)\s+(\d+)$/) {
+				my $id = $1;
+				$comPid[$id] = 0;
+				$tt[$s] = "";
+			}
+			elsif ($tt[$s] =~ /^add-to-pid-list\s+(\d+)\s+(\d+)$/) {
+				my $id = $1;
+				my $p = $2;
+				$comPid[$id] = $p;
+				$tt[$s] = "";
+			}
+			elsif ($tt[$s] eq "exit") {
+				exit(0);
+			}
+		}
+
+		# now answer the first message which needs one
+		$command = "";
+		for ($s = @tt-1; $s >= 0; $s--) {
+			$command = $tt[$s] if $tt[$s] ne "";
+		}
+		
+		next if ($command eq "");
+
+		my $return = "";
+		if ($command =~ /^all-startup-stuff$/)
+		{
+			#--- themes-list
+			my $tlR = $self->getScriptThemeList(
+				$allThemes,
+				\@currentComponents,
+				\%componentToLoad,
+				$maxLength
+			);
+
+			#---- current-config
+			my $ccR = $self->getScriptCurrentConfig(
+				\@currentComponents,
+				\%componentToLoad,
+				\%componentToLock,
+				\%componentToDrop,
+				\%optionToSet,
+				\%variantToSet,
+				$maxLength
+			);
+
+			#---- settings-config
+			my $scR = getScriptSettingsConfig($settingsConfig,\%variantToSet);
+	
+			#---- session-info
+			my $scL = "Default|";
+			my $sL = "";
+			foreach(@$sessionList) {
+				$sL .= "$_";
+				$scL .= "$_|";
+				$sL .= " "x10 . "(Current)" if $_ eq $currentSession;
+				$sL .= "|";
+			}
+			$sL =~ s/\|$//;
+			$scL =~ s/\|$//;
+
+			#------- build the answer:
+			$return = mergeScriptAnswerForParse(
+				"$tlR\n$ccR\n$scR\n$currentSession\n$uptime\n$sL\n$scL");
+		}
+		# -----------------------------------------
+		elsif ($command =~ /^theme-components\s+(\d+)$/) {
+			my $index = $1 - 1;
+			my ($r1,$r2,$r3) =
+				$self->getScriptComponentInfo(
+					$allThemes, $index,
+					\@currentComponents,
+					\%componentToLoad,
+					$maxLength
+				);
+			$return = mergeScriptAnswerForParse("$r1\n$r2\n$r3");
+		}
+		# -----------------------------------------
+		elsif ($command =~ /^current-config\s+(\d+)$/) {
+			my $index = $1;
+			my $l;
+			my $ccReturn = $self->getScriptCurrentConfig(
+				\@currentComponents,
+				\%componentToLoad,
+				\%componentToLock,
+				\%componentToDrop,
+				\%optionToSet,
+				\%variantToSet,
+				$maxLength
+			);
+			#----- current-comp-name
+			my ($ccnReturn1,$ccnReturn2,$ccnReturn3) =
+				$self->getScriptCurrentCompName(
+					$index,\@currentComponents,
+					\%componentToLoad,
+					\%componentToLock,
+					\%componentToDrop,
+					\%optionToSet,
+					\%variantToSet
+				);
+
+			#------- build the answer:
+			$return = mergeScriptAnswerForParse(
+				"$ccReturn\n$ccnReturn1\n$ccnReturn2\n$ccnReturn3"
+			);
+		}
+		# -----------------------------------------
+		elsif ($command =~ /^current-comp-name\s+(\d+)$/) {
+			my $index = $1;
+			my ($ccnReturn1,$ccnReturn2,$ccnReturn3) =
+				$self->getScriptCurrentCompName(
+					$index,\@currentComponents,
+					\%componentToLoad,
+					\%componentToLock,
+					\%componentToDrop,
+					\%optionToSet,
+					\%variantToSet
+				);
+			$return = mergeScriptAnswerForParse(
+				"$ccnReturn1\n$ccnReturn2\n$ccnReturn3"
+			);
+		}
+		
+		#-------------------------------------------
+		elsif ($command =~ /^all-ts-lists\s+(\d+)\s+(\d+)$/)
+		{
+			my $tcIndex = $1 - 1;
+			my $ccnIndex = $2;
+			my $l;
+			my $theme;
+
+			#--- themes-list
+			my $tlReturn = $self->getScriptThemeList(
+				$allThemes,
+				\@currentComponents,
+				\%componentToLoad,
+				$maxLength
+			);
+				
+			#---- theme-components
+			my ($tcReturn1,$tcReturn2,$tcReturn3) =
+				$self->getScriptComponentInfo(
+					$allThemes, $tcIndex,
+					\@currentComponents,
+					\%componentToLoad,
+					$maxLength
+				);
+
+			#---- current-config
+			my $ccReturn = $self->getScriptCurrentConfig(
+				\@currentComponents,
+					\%componentToLoad,
+					\%componentToLock,
+					\%componentToDrop,
+					\%optionToSet,
+					\%variantToSet,
+					$maxLength
+				);
+			#----- current-comp-name
+			my ($ccnReturn1,$ccnReturn2,$ccnReturn3) =
+				$self->getScriptCurrentCompName(
+					$ccnIndex, \@currentComponents,
+					\%componentToLoad,
+					\%componentToLock,
+					\%componentToDrop,
+					\%optionToSet,
+					\%variantToSet
+				);
+			#------- build the answer:
+			$return = mergeScriptAnswerForParse(
+				"$tlReturn\n$tcReturn1\n$ccReturn\n" .
+				"$ccnReturn1\n$ccnReturn2\n$ccnReturn3");
+		}
+
+		# -------------------------------------------------
+		elsif ($command =~ /^restore\s+(.+)$/) {
+			my $comp = $1;
+			my $theme = "";
+			my $cc;
+			delete($componentToLock{$comp}) if (defined $componentToLock{$comp});
+			delete($componentToDrop{$comp}) if (defined $componentToDrop{$comp});
+			if (defined $componentToLoad{$comp}) {
+				$theme=$componentToLoad{$comp};
+				delete($componentToLoad{$comp});
+				my $i = 0;
+				my @tmp = @currentComponents;
+				foreach (@tmp) {
+					splice @currentComponents, $i, 1
+						if (! defined $self->{'cc'}->{$_} && $_ eq $comp);
+					$i++;
+				}
+				my $themeCfg = new FVWM::ThemeCfg($theme);
+				$cc = $themeCfg->getComponentCfg($comp);
+			} else {
+				delete $componentToDrop{$comp}
+					if (defined $componentToDrop{$comp});
+				$cc = $self->getComponentCfg($comp);
+				$theme = $cc->{'theme'};
+			}
+			my $contains = $cc->{'contains'};
+			my $options  = $cc->{'option'};
+			my $variants = $cc->{'variant'};
+			if (ref($options) eq 'ARRAY') {
+				foreach (keys %optionToSet) {
+					delete $optionToSet{$_} if /^$theme\/$comp:/;
+				}
+			}
+			if (ref($variants) eq 'ARRAY') {
+				foreach (keys %variantToSet) {
+					delete $variantToSet{$_} if /^$theme\/$comp/;
+				}
+			}
+			if (ref($contains) eq 'ARRAY') {
+				foreach (keys %variantToSet) {
+					delete $variantToSet{$_} if /^$theme\/$comp\//;
+				}				
+			}
+		}
+		#----------------------------------------
+		elsif ($command =~ /^lock\s+(.+)$/) {
+			my $comp = $1;
+			my $cc;
+			if (defined $self->{'cc'}->{$comp}) { 
+				my $cc = $self->getComponentCfg($comp);
+				if (! defined $componentToLoad{$comp}) {
+					if (defined $componentToLock{$comp}) {
+						delete $componentToLock{$comp};
+					} else {
+						$componentToLock{$comp}= ($cc->{'locked'}) ? 0:1;
+					}
+				} else {
+					if (defined $componentToLock{$comp}) {
+						delete $componentToLock{$comp};
+					} else {
+						$componentToLock{$comp}= 1;
+					}
+				}
+			} elsif (defined $componentToLock{$comp} && 
+				defined $componentToLoad{$comp}) {
+				delete $componentToLock{$comp};
+			} elsif (defined $componentToLoad{$comp}) { 
+				$componentToLock{$comp} = 1;
+			}
+		}
+		#----------------------------------------
+		elsif ($command =~ /^drop\s+(.+)$/) {
+			my $comp = $1;
+			my $cc;
+			if (defined $self->{'cc'}->{$comp}) { 
+				my $cc = $self->getComponentCfg($comp);
+				if (! defined $componentToDrop{$comp}) {
+					if (defined $componentToDrop{$comp}) {
+						delete $componentToDrop{$comp};
+					} else {
+						$componentToDrop{$comp}= ($cc->{'locked'}) ? 0:1;
+					}
+				} else {
+					if (defined $componentToDrop{$comp}) {
+						delete $componentToDrop{$comp};
+					} else {
+						$componentToDrop{$comp}= 1;
+					}
+				}
+			} elsif (defined $componentToDrop{$comp} && 
+				defined $componentToDrop{$comp}) {
+				delete $componentToDrop{$comp};
+			} elsif (defined $componentToDrop{$comp}) { 
+				$componentToDrop{$comp} = 1;
+			}
+		}
+		#----------------------------------------
+		elsif ($command =~ /^load-all\s+(.+)$/) {
+			my ($components, $groups) = getThemeComponentsAndGroups($1);
+			foreach (@$components) {
+				next if ((defined $self->{'cc'}->{$_} && 
+					$self->{'cc'}->{$_}->{'locked'} && 
+					! defined $componentToLoad{$_}) || 
+					(defined $componentToLock{$_} && $componentToLock{$_})); 
+				$componentToLoad{$_} = $1;
+				updateCurrentComponents(\@currentComponents,$_);
+			}
+		}
+		#----------------------------------------------
+		elsif ($command =~ /^load-main-look\s+(.+)$/) {
+			my ($components, $groups) = getThemeComponentsAndGroups($1);
+			my $g;
+			foreach $g (@$groups) {
+				my $name = $g->{'name'};
+				if ($name eq "basic look") {
+					my $groupComponents = $g->{$componentKey};
+					foreach (@$groupComponents) {
+						delete $componentToLock{$_} if defined $componentToLock{$_};
+						delete $componentToDrop{$_} if defined $componentToDrop{$_};
+						$componentToLoad{$_} = $1;
+						updateCurrentComponents(\@currentComponents,$_);
+					}
+				}
+			}
+		}
+		# ----------------------------------------------
+		elsif ($command =~ /^load-one\s+(.+)\s+(.+)$/) {
+			$componentToLoad{$2} = $1;
+			delete $componentToLock{$2} if defined $componentToLoad{$2};
+			delete $componentToDrop{$2} if defined $componentToDrop{$2};
+			updateCurrentComponents(\@currentComponents,$2);
+		}
+		# -----------------------------------------------------
+		elsif ($command =~ /^component-name\s+(.+)\s+(\d+)$/) {
+			my ($components, $groups) = getThemeComponents($1);
+			my $i = 1;
+			foreach (@$components) {
+				next if $_ eq "settings";
+				$return = $_ if $i == $2;
+				$i++;
+			}
+		}
+		# -----------------------------------------
+		elsif ($command =~ /^apply-ts-cmd-opts$/) {
+			my @compLoad = ();
+			my @compDrop = ();
+			my %compLock = ();
+			my %optLoad = ();
+			my %variantLoad = ();
+			my @deleteOpt = ();
+			my @deleteVariant = ();
+			my @deleteLock = ();
+			foreach (keys %componentToLoad) {
+				$return .= "--load $_\@$componentToLoad{$_} ";
+				push @compLoad, "$_\@$componentToLoad{$_}";
+			}
+			foreach (keys %componentToDrop) {
+				$return .= "--drop $_ ";
+				push @compDrop, "$_";
+			}
+			$self->useNewComponents(\@compLoad, \@compDrop);
+			foreach (keys %componentToLock) {
+				if (defined $CC->{$_}) {
+					$return .= "--set-locked $_=$componentToLock{$_} ";
+					$compLock{$_}=$componentToLock{$_};
+					push @deleteLock, $_;
+				}
+			}
+			foreach (keys %optionToSet) {
+				my $opt = substr($_,index($_,"/")+1);
+				my $theme = substr($_,0,index($_,"/"));
+				my $comp = substr($opt,0,rindex($opt,":"));
+				if (defined $CC->{$comp} && $CC->{$comp}->{'theme'} eq $theme) {
+					$return .= "--option $opt=$optionToSet{$_} ";
+					$optLoad{$opt} = "$optionToSet{$_}";
+					push @deleteOpt, $_;
+				}
+			}
+			foreach (keys %variantToSet) {
+				my $comp = substr($_,index($_,"/")+1);
+				my $theme = substr($_,0,index($_,"/"));
+				if (defined $CC->{$comp} && $CC->{$comp}->{'theme'} eq $theme) {
+					$return .= "--variant $comp=$variantToSet{$_} ";
+					$variantLoad{$comp} = "$variantToSet{$_}";
+					push @deleteVariant, $_;
+				}
+			}
+			if ($return ne "") {
+				$return = "FuncFvwmThemesCenterUpdate";
+			}
+			$self->setNewComponentValues(\%optLoad, \%variantLoad, \%compLock);
+			$self->generateThemesRc();
+			if ($self->isModified()) {
+				$self->save() if $self->isModified();
+			}
+			%componentToLoad = ();
+			%componentToDrop = ();
+			foreach (@deleteOpt) { delete $optionToSet{$_} }
+			foreach (@deleteVariant) { delete $variantToSet{$_} }
+			foreach (@deleteLock) { delete $componentToLock{$_} }
+			# reset
+			my %compToRemove = ();
+			foreach (@currentComponents) {
+				if (defined $self->{'cc'}->{$_}) {
+					my $cc = $self->getComponentCfg($_);
+					$cc->{'used'} = 1 if defined $cc->{used} && $cc->{used} > 0;
+					$cc->{'used'} = 0 if defined $cc->{used} && $cc->{used} < 0;
+					$compToRemove{$_} = 1 if defined $cc->{used} && $cc->{used} == 0;
+					$self->setComponentCfg($_, $cc);
+				}
+			}
+			my $config;
+			foreach $config (@$settingsConfig) {
+				my $comp = "$config->{comp}";
+				if (defined $self->{'cc'}->{$comp}) {
+					my $cc = $self->getComponentCfg($comp);
+					$cc->{'used'} = 1 if defined $cc->{used} && $cc->{used} > 1;
+					$cc->{'used'} = 0 if defined $cc->{used} && $cc->{used} < 0;
+					$self->setComponentCfg($comp, $cc);
+				}
+			}
+			$settingsConfig = $self->getAllSubComponents("default", "settings");
+			@currentComponents = ();
+			$tmp = $self->{$componentKey};
+			foreach (sort @$tmp) {
+				next if defined $compToRemove{$_};
+				push @currentComponents, $_;
+			}
+		}
+		# -----------------------------------------
+		elsif ($command =~ /^options-variants\s+(.+)\s+(.+)\s+(\d+)$/) {
+			my $comp = $1;
+			my $theme = $2;
+			my $o = $3-1;
+			$return = $self->getScriptOptionsVariants($theme,$comp,$o,
+																	\%optionToSet,
+																	\%variantToSet,
+																	$maxLengthOpt);
+		}
+		# --------------------------------------------
+		elsif ($command =~ /^options\s+(.+)\s+(.+)\s+(\d+)$/) {
+			my $comp = $1;
+			my $theme = $2;
+			my $o = $3;
+			my $themeCfg = new FVWM::ThemeCfg($theme);
+			my $cc = $themeCfg->getComponentCfg($comp);
+			my $contains = $cc->{'contains'};
+			my $options  = $cc->{'option'};
+			my $variants = $cc->{'variant'};
+			my $i = 0;
+			my $type = "";
+			my $list = "";
+			if (ref($options) eq 'ARRAY' && ref($variants) eq 'ARRAY') {
+				$type = "Options & Variants";
+			}
+			if (ref($options) eq 'ARRAY') {
+				my $opt;
+				$type = "Options" if $type eq "";
+				foreach $opt (@$options) {
+					$i++;
+					$list .= "$opt->{'name'}|";
+				}
+			}
+			if (ref($variants) eq 'ARRAY') {
+				$type = "Variants" if $type eq "";
+				$i++;
+				$list .= "$comp variants"
+			}
+			elsif (ref($contains) eq 'ARRAY') {
+				$type = "Sub Components";
+				my $c;
+				foreach $c (@$contains) {
+					$i++;
+					my $name = $themeCfg->getComponentCfg("$comp/$c")->{'name'};
+					$name = $name || $c;
+					$list .= "$name|";
+				}
+			}
+			$list =~ s/\|$//;
+
+			my $ol = $self->getScriptOptionsVariants(
+				$theme, $comp, $o,
+				\%optionToSet,
+				\%variantToSet,
+				$maxLengthOpt
+			);
+			$return = mergeScriptAnswerForParse("$i\n$type\n$list\n$ol");
+			#print STDERR $return ."\n";
+		}
+		# --------------------------------------------
+		elsif ($command =~ /^set-options\s+(.+)\s+(.+)\s+(\d+)\s+(\d+)$/) {
+			my $comp = $1;
+			my $theme = $2;
+			my $o = $3-1;
+			my $value = $4;
+			my $themeCfg = new FVWM::ThemeCfg($theme);
+			my $cc = $themeCfg->getComponentCfg($comp);
+			my $contains = $cc->{'contains'};
+			my $options  = $cc->{'option'};
+			my $variants = $cc->{'variant'};
+			if (ref($options) eq 'ARRAY' && defined $options->[$o]) {
+				my $optionEntry = $options->[$o];
+				my $optionFile = $optionEntry->{'file'};
+				$optionToSet{"$theme/$comp:$optionFile"} = $value;
+			} elsif (ref($variants) eq 'ARRAY') {
+				my $i;
+				my $v = $value;
+				for ($i = 0; $i < @$variants; $i++) {
+					$value++ if $variants->[$i]->{'hidden'} && $i < $value;
+				}
+				$variantToSet{"$theme/$comp"} = "$value";
+			} elsif (ref($contains) eq 'ARRAY' && defined $contains->[$o]) {
+				my $c = $contains->[$o];
+				my $dd = $themeCfg->getComponentCfg("$comp/$c");
+				my $subVariants = $dd->{'variant'};
+				if (ref($subVariants) eq 'ARRAY') {
+					$variantToSet{"$theme/$comp/$c"}="$value";
+				} else {
+					# Need To Drop ..
+				}
+			}
+		}
+		elsif ($command =~ /^update\s+(\d+)$/) {
+			my $fresh = $1;
+			$cfgFileCache = {};
+			unlink "$userDir/$cfgCacheFileName"
+				if -f "$userDir/$cfgCacheFileName";
+			unlink "$userDir/$currentThemeSubDir/$cfgCacheFileName"
+				if -f "$userDir/$currentThemeSubDir/$cfgCacheFileName";
+			$self = FVWM::ThemeCfg->new('current', 'current', $fresh);
+			$allThemes = getAllThemes();
+			$tmp = $self->{$componentKey};
+			@currentComponents = sort @$tmp;
+			$CC = $self->{cc};
+			$settingsConfig = $self->getAllSubComponents("default", "settings");
+			($currentSession,$sessionList,$uptime) = sessionInfo();
+		}
+		#-----------------------------------------------------------------------
+		# GS
+
+		# -----------------------------------------
+		elsif ($command =~ /^settings-config-and-variant\s+(.+)\s+(.+)\s+(\d+)$/) {
+			my $comp = $1;
+			my $theme = $2;
+			my $o = $3-1;
+			
+			my $r1 = getScriptSettingsConfig($settingsConfig,\%variantToSet);
+			my $r2 = $self->getScriptOptionsVariants(
+				$theme, $comp, $o,
+				\%optionToSet,
+				\%variantToSet,
+				$maxLengthOpt
+			);
+			$return = mergeScriptAnswerForParse("$r1\n$r2");
+		}
+		# -----------------------------------------
+		elsif ($command =~ /^settings-config$/) {
+			$return = getScriptSettingsConfig($settingsConfig,\%variantToSet);
+		}
+		# -----------------------------------------
+		elsif ($command =~ /^settings-comp\s+(\d+)$/) {
+			my $r1 = "$settingsConfig->[$1-1]->{'name'}";
+			my $r2 = "$settingsConfig->[$1-1]->{'comp'}";
+			my $isSet = 0;
+			$isSet = 1 
+				if defined $variantToSet{"default/$settingsConfig->[$1-1]->{comp}"};
+			my $r3 = $isSet;
+			my $r4 = $self->getScriptOptionsVariants(
+				'default', $r2, $1, \%optionToSet,
+				 \%variantToSet, $maxLengthOpt);
+			$return = mergeScriptAnswerForParse("$r1\n$r2\n$r3\n$r4");
+		}
+		#-----------------------------------------------------------------------
+		# SM
+		elsif ($command =~ /^session-info$/) {
+			my $configList = "Default|";
+			my $tmp = "";
+			foreach(@$sessionList) {
+				$tmp .= "$_";
+				$configList .= "$_|";
+				$tmp .= " "x10 . "(Current)" if $_ eq $currentSession;
+				$tmp .= "|";
+			}
+			$tmp =~ s/\|$//;
+			$configList =~ s/\|$//;
+			$return = mergeScriptAnswerForParse(
+				"$currentSession\n$uptime\n$tmp\n$configList"
+			);
+		}
+		# --------------------------------------
+		elsif ($command =~ /^session-uptime$/) {
+			my $current = "$userDir/themes/current";
+			$return = upTime($current,1);
+		}
+		# --------------------------------------
+		elsif ($command =~ /^session-name\s+(\d+)$/) {
+			my $index = $1-1;
+			$return = $$sessionList[$index] if defined $$sessionList[$index] &&
+				$index >= 0;
+		}
+		# --------------------------
+		elsif ($command =~ /^edit-session\s+(.+)$/) {
+			my $opt = $1;
+			my @opt = split(":",$opt);
+			# orig_session:new_session_name:int
+			# int is the value of Widget 52
+			$return = "Err1" if $#opt != 2;
+			$return = "Err1" if $opt[0] eq "";
+			foreach (@$sessionList) {
+				next if $opt[1] eq $opt[0];
+				$return = "Err2" if $opt[1] eq $_;
+			}
+			if ($return eq "") {
+				# $themesSubDir = themes
+				# $currentThemeName = current
+				# $currentThemeSubDir = themes/current
+				my $orig = "$currentThemeSubDir-$opt[0]";
+				my $dest = "$currentThemeSubDir-$opt[1]";
+				my $i = 1;
+				my $dirConfig = "";
+				foreach (@$sessionList) {
+						$i++;
+						$dirConfig = "$currentThemeSubDir-$$sessionList[$i-2]" 
+							if $i == $opt[2];
+				}
+				if ($dest ne $orig) {
+					rename($orig, $dest);
+				}
+				# change the symlinks if needed
+				if ($currentSession eq $opt[0] && $dest ne $orig) {
+					chdir("$themesSubDir");
+					unlink("$currentThemeName") ||
+						sysDie("Can't unlink $userDir/$currentThemeSubDir");
+					symlink("$currentThemeName-$opt[1]","$currentThemeName");
+					chdir("$userDir");
+					unlink("themes-rc-2") ||
+						sysDie("Can't unlink $userDir/themes-rc-2");
+					symlink("$currentThemeSubDir-$opt[1]/themes-rc-2","themes-rc-2");
+				}
+				if ($dirConfig ne $orig) {
+					system("rm -rf themes/current-$opt[1]/images");
+					#unlink("themes/current-$opt[1]/theme.cfg");
+					#unlink("themes/current-$opt[1]/$rcFile2");
+					if ($dirConfig eq "") {
+						# need to use the default config
+						system("cp -f $siteDir/$rcFile2 '$dest/'; " .
+							"cp -f $siteDir/themes/current/theme.cfg '$dest/'");
+					} else {
+						chdir($dirConfig) || sysDie("Can't chdir '$dirConfig'");
+						system("cp -af * '../../$dest'");
+						chdir($userDir);
+					}
+				}
+				($currentSession,$sessionList,$uptime) = sessionInfo();
+				$i = 0;
+				foreach (@$sessionList) {
+					$i++;
+					$return = $i if $_ eq $opt[1];
+				}
+			}
+		}
+		# --------------------------
+		elsif ($command =~ /^add-session\s+(.+)$/) {
+			my $opt = $1;
+			my @opt = split(":",$opt);
+			$return = "Err1" if $#opt != 1;
+			$return = "Err1" if $opt[0] eq "";
+			foreach (@$sessionList) {
+				$return = "Err2" if $opt[0] eq $_;
+			}
+
+			if ($return eq "") {
+				my $dirConfig = "";
+				my $i = 1;
+				foreach (@$sessionList) {
+					$i++;
+					$dirConfig = "themes/current-$$sessionList[$i-2]"
+						if $i == $opt[1];
+				}
+				makePath("$userDir/$currentThemeSubDir-$opt[0]");
+				if ($dirConfig ne "") {
+					chdir($dirConfig);
+					system("cp -rdp * '../../$currentThemeSubDir-$opt[0]'");
+					chdir($userDir);
+				}
+				($currentSession,$sessionList,$uptime) = sessionInfo();
+				$i = 0;
+				foreach (@$sessionList) {
+					$i++;
+					$return = $i if $_ eq $opt[0];
+				}
+			}
+		}
+		# --------------------------
+		elsif ($command =~ /^remove-session\s+(.+)$/) {
+			my $session = $1;
+			my $i = 0;
+			my $index = -1;
+			foreach (@$sessionList) {
+				$index = $i if $session eq $_;
+				$i++;
+			}
+			if ($index == -1) {
+				$return = "Err3";
+			} else {
+				system("rm -rf themes/current-$session");
+				($currentSession,$sessionList,$uptime) = sessionInfo();
+				if (! defined $$sessionList[$index]) {
+					$index--;
+				}
+				$i = $index+1;
+				$return = mergeScriptAnswerForParse("$$sessionList[$index]\n$i");
+			}
+		}
+		# --------------------------
+		elsif ($command =~ /^apply-sm\s+(.+)$/) {
+			my $newSession = $1;
+			my $create = 0;
+			my $rcRef = "";
+			my $rcNew = "";
+			# all that follows need a lot of optimisation
+
+			chdir("$userDir/$themesSubDir");
+			# we should create a themes-rc-3 to execute the stop func of the
+			# current theme!
+			system("fvwm-themes-config --fresh");
+			$rcRef = loadFile("$userDir/$rcFile3");
+			while (1) {
+				last unless $$rcRef =~ /(\w+)(.*?)(|\n.*)$/s;
+				$$rcRef = $3;
+				my $t = $1;
+				$rcNew = $rcNew . $t . "\n" if ($t =~ /FuncFvwm/);
+			}
+			saveFile("$userDir/$rcFile3",\$rcNew,0);
+			unlink("$currentThemeName") || 
+				sysDie("Can't unlink $userDir/$currentThemeSubDir");
+			makePath("$userDir/$themesSubDir/current-$newSession") 
+				if ! -d "current-$newSession";
+			symlink("current-$newSession","$currentThemeName");
+			chdir("$userDir");
+			if (! -f "$currentThemeSubDir-$newSession/$rcFile2") {
+				system("touch $currentThemeName-$newSession/$rcFile2");
+				$create = 1;
+			}
+			unlink("themes-rc-2");
+			symlink("$currentThemeSubDir-$newSession/themes-rc-2","themes-rc-2");
+			if ($create) {
+				system("fvwm-themes-config --reset");
+				#system("fvwm-themes-config --load \@personal 2>/dev/null");
+			}
+			($currentSession,$sessionList,$uptime) = sessionInfo();
+			$cfgFileCache = {};
+			unlink "$userDir/$cfgCacheFileName"
+				if -f "$userDir/$cfgCacheFileName";
+			unlink "$userDir/$currentThemeSubDir/$cfgCacheFileName"
+				if -f "$userDir/$currentThemeSubDir/$cfgCacheFileName";
+			$self = FVWM::ThemeCfg->new('current', 'current', 1);
+			$allThemes = getAllThemes();
+			$tmp = $self->{$componentKey};
+			@currentComponents = sort @$tmp;
+			$CC = $self->{cc};
+			$settingsConfig = $self->getAllSubComponents("default", "settings");
+			# discard the change in ts
+			%componentToLoad = ();
+			%componentToDrop = ();
+			%componentToLock = ();
+			%optionToSet = ();
+			%variantToSet = ();
+		}
+		# --------------------------
+		else {
+			print STDERR "$comName: unknown command $command\n";
+			$return = "0";
+		}
+		
+		# answer
+		$return = "1" if $return eq "";
+		myMakeFifo($outFifo);
+		eval {
+			local $SIG{ALRM} = sub { die "Timeout" };
+			alarm(10);
+			# this line block until com take the answer
+			open(OUT,">$outFifo") || die "$comName: cannot write fifo $outFifo";
+			alarm(0);
+			print OUT $return;
+			close(OUT);
+			unlink($outFifo);
+		};
+		if ($@ =~ /cannot/) {
+			print STDERR "$comName: cannot write on fifo $outFifo\n";
+			unlink($outFifo);
+			unlink($inFifo);
+			exit(1);
+		}
+		if ($@ =~ /Timeout/) {
+			print STDERR "$comName: com do not read my answer on $outFifo!\n";
+		}
+
+	}
+}
+
+#----------------------------------------------------------------------------
+# useful functions which may be useful not only for the com loop
+
+#--------------------------------------
+sub getOptionIndex {
+	my $self = shift;
+	my $theme = shift;
+	my $comp = shift;
+	my $optionEntry = shift;
+	my $o = shift;
+
+	my $themeCfg = new FVWM::ThemeCfg($theme);
+	my $cc = $themeCfg->getComponentCfg($comp);
+	my $CC = $self->{cc};
+	my $_core = $self->getComponentCfg("_core");
+
+	my $values = $optionEntry->{'value'};
+	my $index = 
+		$optionEntry->{'current'} || ($optionEntry->{'default'} || 1);
+	# see if $comp@$theme is "current"
+	if (defined $CC->{$comp}->{'theme'} && 
+		$CC->{$comp}->{'theme'} eq $theme)
+	{
+		my $OptE = $CC->{$comp}->{'option'}->[$o];
+		$index = $OptE->{'current'} || ($OptE->{'default'} || 1);
+		# if not see if we have a memeory
+	} elsif (defined $_core->{'memory'}->{$theme}->{$comp}) {
+		my $cm = $_core->{'memory'}->{$theme}->{$comp};
+		my $mOptions = $cm->{'option'};
+		if (time() - $cm->{'time'} <= 6 * 30 * 24 * 60 * 60 &&
+			ref($mOptions) eq 'ARRAY' && 
+			defined $mOptions->[$o]->{'current'})
+		{
+			$index = $mOptions->[$o]->{'current'}
+		}
+	}
+	$index--;
+	$index = 0 if $index < 0 || $index >= @$values;
+
+	return $index;
+}
+
+#--------------------------------------
+sub getVariantIndex {
+	my $self = shift;
+	my $theme = shift;
+	my $comp = shift;
+	my $val = shift;
+
+	my $themeCfg = new FVWM::ThemeCfg($theme);
+	my $cc = $themeCfg->getComponentCfg($comp);
+	my $CC = $self->{cc};
+	my $_core = $self->getComponentCfg("_core");
+
+	my $index = $cc->{'current'} || $cc->{'default'};
+	if (defined $CC->{"$comp"}->{'theme'} && 
+		$CC->{"$comp"}->{'theme'} eq $theme)
+	{
+		$index = $CC->{"$comp"}->{'current'} || $index;
+		# if not see if we have a memory
+	} elsif (defined $_core->{'memory'}->{"$theme"}->{"$comp"}) {
+		my $cm = $_core->{'memory'}->{$theme}->{"$comp"};
+		if (time() - $cm->{'time'} <= 6 * 30 * 24 * 60 * 60 &&
+			$cm->{'current'})
+		{
+			$index = $cm->{'current'};
+		}
+	}
+	$index--;
+	$index = 0 if $index < 0 || $index >= $val;
+	return $index;
+}
+
+#--------------------------------------
+sub getAllSubComponents ($$$;$$) {
+	my $self = shift;
+	my $theme = shift;
+	my $component = shift;
+	my $themeCfg = shift || new FVWM::ThemeCfg($theme);
+	my $name = shift;
+	my $configs = [];
+	my $cc = $themeCfg->getComponentCfg($component);
+	my $contains = $cc->{'contains'};
+
+	return undef if (ref($contains) ne 'ARRAY');
+	my $c;
+	foreach $c (@$contains) {
+		my $dd = $themeCfg->getComponentCfg("$component/$c");
+		next if $dd->{'hidden'};
+		my $subConfigs = $self->getAllSubComponents($theme, "$component/$c",
+			$themeCfg, $dd->{'name'});
+		if (defined $subConfigs) {
+			push @$configs, @$subConfigs;
+		} else {
+			my $config = {};
+			my $dd = $themeCfg->getComponentCfg("$component/$c");
+			$config->{'name'} = defined $name ? "$name " : "";
+			$config->{'name'} .= $dd->{'name'};
+			$config->{'comp'} = "$component/$c";
+			my $variants = $dd->{'variant'};
+			if (ref($variants) eq 'ARRAY') {
+				my $j = getVariantIndex($self,$theme,"$component/$c",@$variants);
+				$config->{'index'} = $j;
+				$config->{'current'} = $variants->[$j]->{'name'};
+			}
+			push @$configs, $config;
+		}
+	}
+	return $configs;
+}
+#--------------------------------------
+sub sessionInfo {
+	my @sessionList;
+	my $dir = "$userDir/themes";
+	my $current = "$userDir/themes/current";
+	my $currentSession = readlink($current);
+	my $uptime = upTime($current,1);
+	$currentSession =~ s/^current-//;
+	opendir(DIR,"$dir");
+	foreach (readdir(DIR)) {
+		if (/^current-(.+)/) { push @sessionList, $1; }
+	}
+	close(DIR);
+	@sessionList = sort @sessionList;
+	return ($currentSession, \@sessionList, $uptime);
+}
+
+# ----------------------
+sub upTime {
+	my $file = shift;
+	my $isSymbolic = shift || 0;
+	my @stat = $isSymbolic ? lstat($file) : stat($file);
+	my $uptime = time - $stat[9];
+	$uptime = secToUptime($uptime);
+	return $uptime;
+}
+
+# ----------------------
+sub secToUptime {
+	my $time = shift;
+	my $day = int($time/(60*60*24));
+	$time = $time%(60*60*24);
+	my $hours = int($time/(60*60));
+	$time = $time % (60*60);
+	my $min = int($time/60);
+	$min = "0$min" if length($min) == 1;
+	my $ret = "";
+	$ret .= "$day days " if $day > 1;
+	$ret .= "$day day " if $day == 1;
+	$ret .= "$hours h $min min";
+	return $ret;
+}
+
+#----------------------------------------------------------------------------
+# useful functions for the com loop
+
+#---------------------------------------
+# merging lines in one line for the Parse FvwmScript instruction
+sub mergeScriptAnswerForParse($) {
+	my $in = shift;
+	my $out = "";
+	my $l;
+
+	foreach (split(/\n/,$in)) {
+		$l = length($_);
+		$out .= "0" x (4-length($l)) . "$l" . $_;
+	}
+
+	return $out;
+}
+
+#---------------------------------------
+# list of all themes
+sub getScriptThemeList($$$$$) {
+	my $self = shift;
+	my $allThemes = shift;
+	my $currentComponents = shift;
+	my $componentToLoad = shift;
+	my $maxLength = shift;
+	my $l;
+	my $return = "";
+	my $theme;
+
+	foreach $theme (@$allThemes) {
+		my ($components, $groups) = getThemeComponentsAndGroups($theme);
+		my $used = 0;
+		my $set = 0;
+		my $useFlag = "";
+		foreach (@$components) {
+			my $used0 = 0;
+			$used0 = 1 if isArrayElement($currentComponents, $_) &&
+				defined $self->{'cc'}->{$_} &&
+					($self->getComponentCfg($_)->{$themeKey} || "") eq $theme;
+			$used ||= $used0;
+		}
+		my $key;
+		foreach $key (keys %$componentToLoad) {
+			$set = 1 if $componentToLoad->{$key} eq $theme;
+		}
+		$l = $maxLength - length($theme);
+		$l = 1 if $l < 1;
+		$useFlag .= " " x $l . "(" if $used || $set;
+		$useFlag .= "used" if $used;
+		$useFlag .= "/" if $used && $set;
+		$useFlag .= "set" if $set;
+		$useFlag .= ")" if $used || $set;
+		$return .= "$theme$useFlag|";
+	}
+	$return =~ s/\|$//;
+	return $return;
+}
+
+#---------------------------------------
+# info for a component
+sub getScriptComponentInfo($$$$$) {
+	my $self = shift;
+	my $allThemes = shift;
+	my $index = shift;
+	my $currentComponents = shift;
+	my $componentToLoad = shift;
+	my $maxLength = shift;
+	my $l;
+	my ($r1,$r2,$r3) = ("","","");
+	my $theme;
+			
+	if ($index < 0 || !defined $$allThemes[$index]) {
+		return ("None","None","None");
+	}
+		
+	$theme = $$allThemes[$index];
+	my ($components, $groups) = getThemeComponentsAndGroups($theme);
+	foreach (@$components) {
+		next if $_ eq "settings";
+		my $useFlag = "";
+		my $set = 0;
+		my $unset = 0;
+		my $used = isArrayElement($currentComponents, $_) &&
+			defined $self->{'cc'}->{$_} &&
+				($self->getComponentCfg($_)->{$themeKey} || "") eq $theme;
+		$set = 1 if defined $componentToLoad->{$_} &&
+			$componentToLoad->{$_} eq $theme;
+		$unset = 1 if defined $componentToLoad->{$_} && !$set;
+		$l = $maxLength - length($_);
+		$l = 1 if $l < 1;
+		$useFlag .= " " x $l . "(" if $used || $set;
+		$useFlag .= "used" if $used && !$unset;
+		$useFlag .= "unset" if $used && $unset;
+		$useFlag .= "/" if $used && $set;
+		$useFlag .= "set" if $set;
+		$useFlag .= ")" if $used || $set;
+		$r1 .= "$_$useFlag|";
+	}
+	$r1 =~ s/\|$//;
+	$r2 = $theme;
+	$r3 = getThemeDir($theme);
+	return ($r1,$r2,$r3);
+}
+
+#---------------------------------------
+# the current config
+sub getScriptCurrentConfig($$$$$$$$) {
+	my $self = shift;
+	my $currentComponents = shift;
+	my $componentToLoad = shift;
+	my $componentToLock = shift;
+	my $componentToDrop = shift;
+	my $optionToSet = shift;
+	my $variantToSet = shift;
+	my $maxLength = shift;
+
+	my $l;
+	my $return = "";
+
+	foreach (@$currentComponents) {
+		next if $_ eq "settings";
+		my $dd;
+		my $usedString;
+		my $set = 0;
+		my $theme;
+		my $cc;
+		if (defined $self->{'cc'}->{$_}) { 
+			$cc = $self->getComponentCfg($_);
+			$theme = $cc->{'theme'};
+			$usedString = ($cc->{'locked'}) ? "Locked: " : "Used: ";
+			$usedString .= "$theme";
+		} else {
+			$usedString = "Not Used";
+			$set = -1;
+		}
+		my $stateString = "";
+		my $setOrLock = "Set: ";
+		if (defined $componentToLoad->{$_}) {
+			$set = 1;
+			$theme = $componentToLoad->{$_};
+			$setOrLock = "Lock: " 
+				if (defined $componentToLock->{$_} &&
+					$componentToLock->{$_} == 1);
+		} elsif (defined $componentToDrop->{$_}) {
+			$set = -1;
+		} elsif (defined $componentToLock->{$_}) {
+			$set = 2;
+			$setOrLock = ($componentToLock->{"$_"}) ? "Lock it" : "Unlock it";
+			$setOrLock = "" if ($componentToLock->{"$_"} == $cc->{'locked'})
+		}
+		$usedString = "(" . $usedString . ")" if $set == 1;
+		$l = $maxLength - length($usedString);
+		$l = 1 if $l < 1;
+		$stateString = " " x $l . $setOrLock . "$componentToLoad->{$_}" 
+			if $set == 1;
+		$stateString = " " x $l . "Drop it!" 
+			if $set == -1;
+		$stateString = " " x $l . $setOrLock
+			if $set == 2;
+		my $l1 = $maxLength - 3 - length($stateString) + $l;
+		$l1 = 1 if $l1 < 1;
+		if ($set == 1) {
+			my $themeCfg = new FVWM::ThemeCfg($componentToLoad->{$_});
+			$dd = $themeCfg->getComponentCfg($_);
+			$theme = $dd->{'theme'};
+		} elsif ($set == 0 || $set == 2) {
+			$dd = $self->getComponentCfg($_);
+		}
+		my $contains = $dd->{'contains'};
+		my $options  = $dd->{'option'};
+		my $variants = $dd->{'variant'};
+		my $propertiesStr = "";
+		my $t = "";
+		if (ref($options) eq 'ARRAY') {
+			$propertiesStr = " " x $l1 ."Opt";
+			my $opt;
+			foreach $opt (@$options) {
+				my $optFile = $opt->{'file'};
+				$t = "(S)" if defined $optionToSet->{"$theme/$_:$optFile"};
+			}
+		}
+		if (ref($variants) eq 'ARRAY') {
+			$propertiesStr = " " x $l1 . ($propertiesStr? "V/O": "Var");
+			my $v;
+			foreach $v (@$variants) {
+						$t = "(S)" if defined $variantToSet->{"$theme/$_"};
+					}
+		}
+		elsif (ref($contains) eq 'ARRAY') {
+			$propertiesStr = " " x $l1 ."Sub";
+			my $c;
+			# dropped ?
+			foreach $c (@$contains) {
+				$t = "(S)" if defined $variantToSet->{"$theme/$_/$c"};
+			}
+		}
+		$propertiesStr .= $t;
+		$l = $maxLength - length($_);
+		$l = 1 if $l < 1;
+		$return .= "$_" . " " x $l . $usedString . $stateString .
+			$propertiesStr . "|";
+	}
+	$return =~ s/\|$//;
+	return $return;
+}
+
+#---------------------------------------
+#
+sub getScriptCurrentCompName($$$$$$$$) {
+	my $self = shift;
+	my $index = shift;
+	my $currentComponents = shift;
+	my $componentToLoad = shift;
+	my $componentToLock = shift;
+	my $componentToDrop = shift;
+	my $optionToSet = shift;
+	my $variantToSet = shift;
+
+	my $l;
+	my ($r1,$r2,$r3) = "";
+
+	if ($index == 0) {
+		return ("None","None","None");
+	}
+
+	my $dd = [];
+	my $i = 1;
+	my ($comp,$theme,$hasProperties,$drop,$set,$lock) = 
+		("", "", "0", "0", "0", "0");
+	foreach (@$currentComponents) {
+		next if $_ eq "settings";
+		if ($i == $index) {
+			$comp = "$_";
+			if (defined $componentToLoad->{$_}) {
+				$set = 1;
+				$theme = "$componentToLoad->{$_}";
+			} else {
+				my $cc = $self->getComponentCfg($_);
+				$theme = "$cc->{'theme'}";
+				$lock = "$cc->{'locked'}";
+			}
+			if (defined $componentToLock->{$_}) {
+				$lock = $componentToLock->{$_};
+				$set = 1;
+			}
+			if (defined $componentToDrop->{$_}) {
+				$set = 1;
+			}
+		}
+		$i++;
+	}
+	if ($set) {
+		my $themeCfg = new FVWM::ThemeCfg($theme);
+		$dd = $themeCfg->getComponentCfg($comp);
+	} else {
+		$dd = $self->getComponentCfg($comp);
+	}
+	my $contains = $dd->{'contains'};
+	my $options  = $dd->{'option'};
+	my $variants = $dd->{'variant'};
+	if (ref($options) eq 'ARRAY') {
+		$hasProperties = 1;
+		my $opt;
+		foreach $opt (@$options) {
+			my $optFile = $opt->{'file'};
+			$set = 1 if defined $optionToSet->{"$theme/$comp:$optFile"};
+		}
+	}
+	if (ref($variants) eq 'ARRAY') {
+		$hasProperties = 1;
+		my $c;
+		foreach $c (@$variants) {
+			$set = 1 if defined $variantToSet->{"$theme/$comp"};
+		}
+	}
+	elsif (ref($contains) eq 'ARRAY') {
+		$hasProperties = 1;
+		my $c;
+		# dropped ?
+		foreach $c (@$contains) {
+			$set = 1 if defined $variantToSet->{"$theme/$comp/$c"};
+		}
+	}
+	$drop = ($comp !~ /^(settings|colors$|menus|globallook)/
+				|| $comp =~ /-extra$/)? 1 : 0;
+	$r1 = $comp;
+	$r2 = $theme;
+	$r3 = $hasProperties . $set . $drop . $lock;
+	return ($r1,$r2,$r3);
+}
+
+#---------------------------------------
+# 
+sub getScriptSettingsConfig($$) {
+	my $settingsConfig = shift;
+	my $variantToSet = shift;
+	my $config;
+	my $return = "";
+
+	foreach $config (@$settingsConfig) {
+		my $l = 26 - length($config->{'name'});
+		$l = 1 if $l <= 0;
+		$return .= $config->{'name'} . " "x$l . "U: " .
+			$config->{'current'};
+		if (defined $variantToSet->{"default/$config->{comp}"}) {
+			my $j = $variantToSet->{"default/$config->{comp}"};
+			my $themeCfg = new FVWM::ThemeCfg('default');
+			my $dd = $themeCfg->getComponentCfg("$config->{comp}");
+			my $variants = $dd->{'variant'};
+			my $set = $variants->[$j-1]->{'name'};
+			$l = 28 - length($config->{'current'});
+			$l = 1 if $l <= 0;
+			$return .= " "x$l . "S: $set";
+		}
+		$return .=	"|";
+	}
+	$return =~ s/\|$//;
+	return $return;
+}
+
+#---------------------------------------
+#
+sub getScriptOptionsVariants($$$$$$$) {
+	my $self = shift;
+	my $theme = shift;
+	my $comp = shift;
+	my $o = shift;
+	my $optionToSet = shift;
+	my $variantToSet = shift;
+	my $maxLengthOpt = shift;
+	my $return = "";
+
+	if ($comp eq "None" || $theme eq "None") {
+		return "None";
+	}
+
+	my $themeCfg = new FVWM::ThemeCfg($theme);
+	my $cc = $themeCfg->getComponentCfg($comp);
+	my $contains = $cc->{'contains'};
+	my $options  = $cc->{'option'};
+	my $variants = $cc->{'variant'};
+	if (ref($options) eq 'ARRAY' && defined $options->[$o]) {
+		my $optionEntry = $options->[$o];
+		my $i = getOptionIndex($self,$theme,$comp,$optionEntry,$o);
+		my $optFile = $optionEntry->{'file'};
+		my $isSet = -1;
+		$isSet = $optionToSet->{"$theme/$comp:$optFile"} 
+		if defined $optionToSet->{"$theme/$comp:$optFile"};
+		my $values = $optionEntry->{'value'};
+		$return = variantsOptionsScriptList(
+			$values, $i, $isSet, $maxLengthOpt, $theme, $comp
+		);
+	}
+	elsif (ref($variants) eq 'ARRAY') {
+		my $i = getVariantIndex($self,$theme,$comp,@$variants);
+		my $isSet = -1;
+		$isSet = $variantToSet->{"$theme/$comp"} 
+		if defined $variantToSet->{"$theme/$comp"};
+		$return = variantsOptionsScriptList(
+			$variants, $i, $isSet, $maxLengthOpt, $theme, $comp
+		);
+	}
+	elsif (ref($contains) eq 'ARRAY' && defined $contains->[$o]) {
+		my $c = $contains->[$o];
+		my $dd = $themeCfg->getComponentCfg("$comp/$c");
+		my $sVariants = $dd->{'variant'};
+		if (ref($sVariants) eq 'ARRAY') {
+			my $i = getVariantIndex($self,$theme,"$comp/$c",@$sVariants);
+			my $isSet = -1;
+			$isSet = $variantToSet->{"$theme/$comp/$c"}
+			if defined $variantToSet->{"$theme/$comp/$c"};
+			$return = variantsOptionsScriptList(
+				$sVariants, $i, $isSet, $maxLengthOpt, $theme, $comp
+			);
+		}
+		$return .= "Drop This component";
+	}
+	$return =~ s/\|$//;
+	return $return;
+}
+
+#---------------------------------------
+#
+sub variantsOptionsScriptList {
+	my $variants = shift;
+	my $index = shift;
+	my $isSet = shift;
+	my $max = shift;
+	my $theme = shift;
+	my $comp = shift;
+	my $usedS = "Used";
+	my $setS = "Set";
+
+	my $return = "";
+	my $i;
+	for ($i = 0; $i < @$variants; $i++) {
+		next if $variants->[$i]->{'hidden'};
+		my $isCurrent = $i eq $index;
+		my $set = 0;
+		my $used = "";
+		my $name = $variants->[$i]->{'name'};
+		$name =~ s/\t/ /g;
+		#FIXME
+		if ($comp eq 'buttons' && $name =~ /\[/ && 
+			($theme eq 'multichoice' || $theme eq "nanogui"))
+		{
+			$name =~ s/Options/O/;
+			$name =~ s/Maximize/M/;
+			$name =~ s/Iconify/I/;
+			$name =~ s/Shade/Sh/g;
+			$name =~ s/Stick/St/;
+			$name =~ s/Close/C/;
+			$name =~ s/Up/U/;
+			$name =~ s/Down/D/;
+			$name =~ s/\s+/ /g;
+			$name =~ s/-//g;
+			my $cst1 = ($theme eq 'multichoice')? 10 : 15;
+			my $cst2 = ($theme eq 'multichoice')? 7 : 2;
+			my $tmp = $name;
+			my @t = split(/\[|\]/,$name);
+			$name = $t[0] . " " x ($cst1 - length($t[0]))."[" . 
+				$t[1] . "]" ." " x ($cst2 - length($t[1])).$t[2];
+			$name =~ s/\[ \]/\//g;
+			$max = 34;
+			#$usedS = "U";
+			#$setS = "S";
+		}
+		$set = 1 if $isSet == $i+1;
+		my $l = $max - length($name);
+		$l = 1 if $l < 1;
+		$used = " " x $l . "(" if $isCurrent || $set;
+		$used .= $isCurrent? "$usedS": "";
+		$used .= "/" if $isCurrent && $set;
+		$used .= "$setS" if $set;
+		$used .= ")" if $isCurrent || $set;
+		$return .= "$name$used|";
+	}
+	return $return;
+}
+
+#---------------------------------------
+# 
+sub updateCurrentComponents {
+	my $currentComponents = shift;
+	my $comp = shift;
+	my $test = 1;
+
+	foreach (@$currentComponents) {
+		$test = 0 if $_ eq $comp;
+	}
+	if ($test) {
+		push @$currentComponents, $comp;
+		@$currentComponents = sort @$currentComponents;
+	}
+}
+
+#----------------------------------------------------------------------------
+# An alarm handler (called from eval block):
+sub checkScript {
+
+	die "Script" unless ($comPid[0]);
+
+	my $test = 0;
+	my $inFifo = ".tmp-com-in-" . $comName;
+
+	$test = 1 if kill 0 => $comPid[0];
+
+	if ($test) { die "Script"; }
+	else { unlink($inFifo) if -p "$inFifo"; die "NoScript"; }
+}
+
+#-----------------------------------------------------------------------------
+# 
+sub myMakeFifo {
+	my ($fifo) = @_;
+	#unlink("$fifo");
+	system("mkfifo '$fifo'");  # not portable: mknod '$fifo' p
+}
+
+#-----------------------------------------------------------------------------
+# For killing FvwmScript-ThemesCenter if an error happen in this script!
+END {
+	if ($comMode) {
+		if ($?) {
+			my $outFifo = ".tmp-com-out-" . $comName;
+			my $inFifo = ".tmp-com-in-" . $comName;
+			my $message = "fvwm-themes-config: internal error $?\n";
+			# actually $@ is never defined in END
+			$message .= "\teval error: $@\n" if $@;
+			$message .= "\tOS error: $!\n" if $!;
+			# actually the following is never executed on unix
+			$message .= "\tOS error 2: $^E\n" if $^E && !($! && $^E eq $!);
+
+			unlink($outFifo) if -p "$outFifo";
+			unlink($inFifo) if -p "$inFifo";
+			if ($comPid[0]) {
+				kill(9, $comPid[0]);
+				$message .= "\tkilling FvwmScript-ThemesCenter";
+			}
+			my $i;
+			for($i = 1; $i < 4; $i++) {
+				kill(9, $comPid[$i]) if $comPid[$i];
+			}
+			print STDERR "$message\n";
+		}
+	}
+}
+
+__END__
+
+# ---------------------------------------------------------------------------
+
+=head1 NAME
+
+fvwm-themes-config - fvwm-themes manager and configurator
+
+=head1 SYNOPSIS
+
+B<fvwm-themes-config>
+[ B<--help>|B<-h> ]
+[ B<--version>|B<-v> ]
+[ B<--info>|B<-i> ]
+[ B<--site> ]
+[ B<--pipe> ]
+[ B<--show-themes> ]
+[ B<--show-components> ]
+[ B<--show-dir> ]
+[ B<--theme>|B<-t> I<theme> ]
+[ B<--show-info> ]
+[ B<--show-cfg> ]
+[ B<--show-value> I<key> ]
+[ B<--component> I<component> ]
+[ B<--only-site> ]
+[ B<--only-user> ]
+[ B<--fvwmscript> ]
+[ B<--expand-rc>|B<-e> I<[file]> ]
+[ B<--fresh>|B<-fr> ]
+[ B<--reset>|B<-r> ]
+[ B<--no-cfg-cache> ]
+[ B<--load>|B<-l> I<component@theme> ]
+[ B<--drop>|B<-u> I<component@theme> ]
+[ B<--option>|B<-o> I<component:option=value> ]
+[ B<--variant>|B<-v> I<component=variant> ]
+[ B<--set-locked> I<component=0|1> ]
+[ B<--install>|B<-i> I<file ...> ]
+[ B<--force-install>|B<-fo> ]
+[ B<--create-pack> I<name> I<file ...>]
+[ B<--pack-prefix> I<prefix> ]
+[ B<--pack-extra-version> I<x.x> ]
+[ B<--tmp-dir> I<dir> ]
+[ B<--com-mode> ]
+[ B<--com-name> I<name> ]
+
+=head1 DESCRIPTION
+
+This scripts creates and changes fvwm configuration to use with fvwm-themes
+accordingly to theme component definitions and user choices.
+
+It builds I<themes-rc> in $FVWM_USERDIR, which is a replacement for .fvwm2rc.
+
+=head1 OPTIONS
+
+B<--help>    - show the help and exit
+
+B<--version> - show the version and exit
+
+B<--info>    - show the configured information and exit
+
+B<--site> - use site configuration directory for output. The default is to
+use the user's directory.
+
+B<--pipe> - generate fvwm commands suitable to use within fvwm's PipeRead
+(instead of error messages, for example).
+
+B<--show-themes> - shows list of all themes (or ones specified by B<--theme>).
+
+B<--show-components> - shows all themes (or ones specified by B<--theme>)
+with all their components (components are TAB justified).
+
+B<--show-dir> - shows the theme directory of all themes (or ones specified
+by B<--theme>). These directories sit in themes/ parent directory of either
+user or site place.
+
+B<--theme> I<theme> - only theme(s) given by this parameter are queried,
+if given. Several instances of B<--theme> may be given.
+By default all themes are queried.
+
+B<--show-info> - shows an info for the component given in C<--component>
+parameter.
+
+B<--show-cfg> - shows an entire configuration hash for the component given
+in C<--component> parameter. To show only one or several specified named
+values, B<--show-value> may be used.
+
+B<--show-value> I<key> - shows a value by the key for the component given in
+C<--component> parameter. Several instances of B<--show-value> may be given.
+
+B<--component> I<component> - a working component for other parameters,
+may be of form component@theme.
+
+Example:
+  fvwm-themes-config --component colors --show-value theme --show-value read-file
+
+B<--only-site> - when specified together with B<--show-themes>
+or B<--show-components> causes to take into account only the site directory.
+
+B<--only-user> - when specified together with B<--show-themes>
+or B<--show-components> causes to take into account only the user directory.
+
+B<--fvwmscript> - when specified together with B<--show-themes>
+or B<--show-components> causes the output to be formatted for FvwmScript.
+
+B<--expand-rc> I<[file]> - gets an FVWM configuration file and expands all
+includes in one very long file, printed to standard output. If the file is
+not given $FVWM_USERDIR/themes-rc is taken.
+This parameter can't be used with others.
+
+B<--fresh> - refresh (regenerate) the fvwm configuration files needed to
+load themes, this includes files in the user's directory:
+$FVWM_USERDIR/themes-rc, $FVWM_USERDIR/themes-rc-2 and
+$FVWM_USERDIR/themes/current/theme.cfg.
+
+B<--reset> - forget all the currently used components, use the components
+from the default theme and regenerate the user's configuration cache.
+
+B<--no-cfg-cache> - don't use the existing configuration cache file,
+this file will be regenerated.
+
+B<--set-minimal-reload> I<value> - if value is 1, then minimal theme switching
+is used, if value is 0, then full theme switching is used.
+
+B<--load> I<component> - multiple C<--load> parameters may be given. If the
+parameter is of form component@theme, this specific theme component is used,
+if it is of form @theme, all components of the given theme will be used.
+
+The process of "loading" components consists of adding new components or
+replacing existing ones in the B<current> theme. It is possible that
+there will be conflicts during this operation. In this case, nothing is
+changed, negative status is returned and the error message is printed.
+
+B<--drop> I<component> - the opponent for C<--load>, these parameters
+may be mixed. Tries to unload the given component without breaking
+dependancies. [@theme] part of I<component> name may be omitted.
+
+B<--option> I<component:option=value> - set another component option value.
+The I<option> may be either the option name or its index in the option list
+starting from 1 (use 0 to represent the default option).
+The I<value> may be either the value name or its index in the option value list
+starting from 1 (use 0 to represent the default option value).
+
+B<--variant> I<component=variant> - set another component variant if a given
+I<component> has variants. The I<variant> may be either the variant name or
+its index in the variant list starting from 1 (use 0 to represent the
+default component variant).
+
+B<--set-locked> I<component=value> - set (if I<value> is 1) or unset (if
+I<value> is 0) a locked state of the given component. When the component
+from the current theme is locked, C<--load @theme> will not replace it,
+it can only be replaced by explicit C<--load component@theme>.
+
+Five last parameters may be combined together and multiple parameters are
+possible. If B<--load> and B<--drop> parameters are given, first it will
+be unloaded all given components and then loaded all given components, not
+vice versus. After that B<--variant> and B<--option> parameters will take
+place, i.e. it is possible to load a component and immediately change its
+options.
+
+B<--install> I<theme.tar.{gz,bz2} ...> - install the specified tarballs
+into the site (if B<--site> is alos given) or into the user's I<themes>
+directory by verifying and unpacking the contents of the tarballs.
+
+B<--force-install> - during the installation of a theme remove existing
+theme with the same name without prompting.
+
+B<--create-pack> I<pack> I<theme1 theme2 ...> - create a gzipped tarball named
+ft-pack-VERSION.tar.gz made of the specified theme(s) found in the
+user's themes directory or in the site directory if B<--site> is
+also given. VERSION is the version of FVWM Themes.
+
+B<--pack-prefix> I<prefix> - replace "ft" by "prefix" in the name of
+the gzipped tarball created via the B<--create-pack> option.
+
+B<--pack-extra-version> I<x.x> - add I<_x.x> to VERSION in the name of
+the gzipped tarball created via the B<--create-pack> option.
+
+B<--tmp-dir> I<dir> - full path to a directory that can be use as a
+temporary working directory. Default is /tmp. This option is used only with
+B<--create-pack>. 
+
+B<--com-mode> - run fvwm-themes-config under the "communication mode". See,
+the fvwm-themes-com and fvwm-themes-menuapp manual pages for more information
+on this option.
+You need to read the code to know the communication commands.
+
+B<--com-name> I<name> - use name as name for communication with fvwm-themes-com.
+By default, "config" is used, but you should use  "config-pid" as name
+where pid is the pid of the program that 
+want to talk to fvwm-themes-config so that fvwm-themes-config can 
+exit if this program exit and so that fvwm-themes-config can kill the program
+if an internal error happen in fvwm-themes-config. On the other hand,
+if you want to talk with fvwm-themes-config in, say, a terminal you must
+not give an name as "config-an_integer" as name.
+
+=head1 USAGE
+
+Usually you don't need to run this script manually, it is called using
+different interfaces (menus and more).
+
+To start with fvwm-themes, run this:
+
+  fvwm-themes-config --reset
+
+This command automatically called in B<fvwm-themes-start> when needed,
+it will create the "current" theme in the user space, equivalent to the
+"default" one. If C<--site> parameter is also given, it will be created
+in the system space instead.
+
+Info examples:
+
+  fvwm-themes-config --show-themes  # shows a list of all themes
+  fvwm-themes-config --show-components  # show all themes+components
+  fvwm-themes-config --show-themes --component windowlook
+  fvwm-themes-config --show-components --theme migo --theme default
+
+  fvwm-themes-config --component colors \
+    --show-value theme --show-value read-file
+  fvwm-themes-config --component colors@cde --show-value option
+  fvwm-themes-config --component _core --show-value memory
+
+Other examples:
+
+  fvwm-themes-config --load @afterstep  # load theme "afterstep"
+  fvwm-themes-config --drop modules@afterstep  # unload component
+  fvwm-themes-config --variant settings/stroke=2  # turn on stroke
+  fvwm-themes-config --variant settings/stroke=0  # use default (1)
+  fvwm-themes-config --option bindings:switch-mouse-2-3=no
+  fvwm-themes-config --set-locked colors=1 --set-locked globalfeel=0
+
+  fvwm-themes-config --install --site metallic.tar.gz wooden.tar.gz
+  fvwm-themes-config --create-pack martyns -tmp-dir . metallic wooden
+
+=head1 AUTHORS
+
+Mikhael Goikhman <migo@homemail.com>, 31 Dec 1999.
+
+Olivier Chapuis <olivier.chapuis@free.fr> (some small things and
+the communication loop implementation).
+
+=head1 COPYING
+
+The script is distributed by the same terms as fvwm-themes itself.
+See GNU General Public License for details.
+
+=head1 BUGS
+
+Report bugs to fvwm-themes-devel@lists.sourceforge.net.
+
+=cut
+
+# ===========================================================================
